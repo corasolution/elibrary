@@ -72,12 +72,14 @@ return new class extends Migration
             \$\$ LANGUAGE plpgsql;
         ");
 
-        // Attach trigger to bibliographic_records
+        // Attach trigger to bibliographic_records.
+        // Split into separate statements — PostgreSQL prepared statements
+        // (DB::statement) cannot run multiple commands at once.
+        DB::statement("DROP TRIGGER IF EXISTS trig_biblio_search_vector ON bibliographic_records");
         DB::statement("
-            DROP TRIGGER IF EXISTS trig_biblio_search_vector ON bibliographic_records;
             CREATE TRIGGER trig_biblio_search_vector
                 BEFORE INSERT OR UPDATE ON bibliographic_records
-                FOR EACH ROW EXECUTE FUNCTION update_biblio_search_vector();
+                FOR EACH ROW EXECUTE FUNCTION update_biblio_search_vector()
         ");
 
         // Backfill existing rows

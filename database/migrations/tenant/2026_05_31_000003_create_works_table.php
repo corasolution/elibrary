@@ -58,10 +58,23 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+
+        // Add the deferred FK from bibliographic_records.work_id now that
+        // works exists (the column was created in the bibframe-fields migration).
+        if (Schema::hasTable('bibliographic_records') && Schema::hasColumn('bibliographic_records', 'work_id')) {
+            Schema::table('bibliographic_records', function (Blueprint $table) {
+                $table->foreign('work_id')->references('id')->on('works')->nullOnDelete();
+            });
+        }
     }
 
     public function down(): void
     {
+        if (Schema::hasTable('bibliographic_records') && Schema::hasColumn('bibliographic_records', 'work_id')) {
+            Schema::table('bibliographic_records', function (Blueprint $table) {
+                $table->dropForeign(['work_id']);
+            });
+        }
         Schema::dropIfExists('works');
     }
 };

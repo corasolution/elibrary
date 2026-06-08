@@ -21,24 +21,15 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('payment_transactions', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('tenant_id')->constrained()->cascadeOnDelete();
-            $table->foreignUuid('subscription_id')->constrained()->cascadeOnDelete();
-            $table->decimal('amount', 10, 2);
-            $table->string('currency', 3)->default('USD');
-            $table->string('status', 20)->default('pending'); // pending, completed, failed, refunded
-            $table->string('payment_method', 50)->nullable();
-            $table->string('reference')->nullable();
-            $table->json('gateway_response')->default('{}');
-            $table->timestamp('paid_at')->nullable();
-            $table->timestamps();
-        });
+        // NOTE: payment_transactions is created by the dedicated, newer
+        // migration 2026_06_07_044925_create_payment_transactions_table
+        // (which carries the payment-verification workflow schema used by
+        // PaymentController and Invoice). The earlier duplicate definition
+        // here was removed — it conflicted on PostgreSQL (SQLite masked it).
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('payment_transactions');
         Schema::dropIfExists('subscriptions');
     }
 };

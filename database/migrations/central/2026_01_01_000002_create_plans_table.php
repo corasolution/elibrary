@@ -21,10 +21,24 @@ return new class extends Migration
             $table->integer('sort_order')->default(0);
             $table->timestamps();
         });
+
+        // Add the deferred FK from tenants.plan_id now that plans exists
+        if (Schema::hasTable('tenants')) {
+            Schema::table('tenants', function (Blueprint $table) {
+                $table->foreign('plan_id')
+                    ->references('id')->on('plans')
+                    ->nullOnDelete();
+            });
+        }
     }
 
     public function down(): void
     {
+        if (Schema::hasTable('tenants')) {
+            Schema::table('tenants', function (Blueprint $table) {
+                $table->dropForeign(['plan_id']);
+            });
+        }
         Schema::dropIfExists('plans');
     }
 };

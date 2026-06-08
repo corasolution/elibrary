@@ -14,7 +14,9 @@ return new class extends Migration
             $table->string('slug', 100)->unique();
             $table->string('domain')->nullable();
             $table->json('data')->default('{}');
-            $table->foreignUuid('plan_id')->nullable()->constrained('plans')->nullOnDelete();
+            // plan_id FK is added in the plans migration (runs after this one)
+            // to avoid a forward-reference that PostgreSQL rejects.
+            $table->uuid('plan_id')->nullable();
             $table->timestamp('trial_ends_at')->nullable();
             $table->string('status', 20)->default('active'); // active, suspended, cancelled
             $table->timestamps();

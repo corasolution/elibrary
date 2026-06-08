@@ -19,20 +19,22 @@ return new class extends Migration
             return;
         }
 
-        // Try to enable pgvector extension (requires superuser privileges)
+        // Check pgvector availability BEFORE attempting CREATE EXTENSION.
+        // A failed CREATE EXTENSION aborts the surrounding transaction in
+        // PostgreSQL, which would break migration logging — so we probe first.
+        $available = DB::select("SELECT 1 FROM pg_available_extensions WHERE name = 'vector'");
+        if (empty($available)) {
+            Log::warning('pgvector extension not available on this server - semantic search disabled');
+            Log::info('To enable, install pgvector: https://github.com/pgvector/pgvector');
+            return;
+        }
+
+        // Safe to enable now that we know it is available
         try {
             DB::statement('CREATE EXTENSION IF NOT EXISTS vector');
             Log::info('pgvector extension enabled successfully');
         } catch (\Exception $e) {
-            Log::warning('pgvector extension not available: ' . $e->getMessage());
-            Log::info('Semantic search will be disabled. To enable, install pgvector: https://github.com/pgvector/pgvector');
-            return;
-        }
-
-        // Check if extension was actually created
-        $extensionExists = DB::select("SELECT * FROM pg_extension WHERE extname = 'vector'");
-        if (empty($extensionExists)) {
-            Log::warning('pgvector extension installation failed - semantic search disabled');
+            Log::warning('pgvector extension creation failed: ' . $e->getMessage());
             return;
         }
 

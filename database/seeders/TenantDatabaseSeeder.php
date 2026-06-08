@@ -13,7 +13,7 @@ class TenantDatabaseSeeder extends Seeder
             PatronCategorySeeder::class,
             DefaultSettingsSeeder::class,
             StaffUserSeeder::class,
-            // DemoSeeder::class, // Commented out - no auto demo data
+            DemoSeeder::class,
         ]);
     }
 }

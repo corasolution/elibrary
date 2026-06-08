@@ -11,7 +11,8 @@ return new class extends Migration
         Schema::table('bibliographic_records', function (Blueprint $table) {
             if (! Schema::hasColumn('bibliographic_records', 'work_id')) {
                 $table->uuid('work_id')->nullable()->index()->after('id');
-                $table->foreign('work_id')->references('id')->on('works')->onDelete('set null');
+                // FK to works is added in create_works migration (runs after this)
+                // to avoid a forward reference that PostgreSQL rejects.
             }
             if (! Schema::hasColumn('bibliographic_records', 'responsibility_statement')) {
                 $table->string('responsibility_statement', 500)->nullable();
@@ -73,10 +74,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('bibliographic_records', function (Blueprint $table) {
-            // SQLite doesn't support dropForeign — guard for it
-            if (! app()->environment('testing') && config('database.default') !== 'sqlite') {
-                $table->dropForeign(['work_id']);
-            }
+            // work_id FK is now owned by the create_works migration's down().
             $columns = [
                 'work_id', 'responsibility_statement', 'content_type', 'media_type',
                 'carrier_type', 'issuance', 'dimensions', 'frequency', 'color_content',

@@ -28,7 +28,7 @@ return [
         'prefix' => env('TENANCY_DATABASE_PREFIX', 'alpha_elibrary_tenant_'),
         'suffix' => '',
         'managers' => [
-            'pgsql' => Stancl\Tenancy\Database\TenantDatabaseManagers\PostgreSQLDatabaseManager::class,
+            'pgsql' => Stancl\Tenancy\TenantDatabaseManagers\PostgreSQLDatabaseManager::class,
         ],
     ],
 

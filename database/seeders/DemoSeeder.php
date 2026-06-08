@@ -12,6 +12,12 @@ class DemoSeeder extends Seeder
 {
     public function run(): void
     {
+        // Ensure the (per-tenant) storage path exists before writing helper
+        // cache files — tenant storage dirs are not pre-created.
+        if (! is_dir(storage_path())) {
+            mkdir(storage_path(), 0775, true);
+        }
+
         $this->seedLocations();
         $this->seedCollections();
         $this->seedBibliographicRecords();
