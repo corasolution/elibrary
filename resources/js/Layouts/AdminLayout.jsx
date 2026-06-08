@@ -9,8 +9,18 @@ import {
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 
 export default function AdminLayout({ children, title }) {
-    const { auth, tenant, flash, url } = usePage().props;
+    const page = usePage();
+    const { auth, tenant, flash } = page.props;
+    const url = page.url;
     const { t } = useTranslation();
+
+    // Active-route helper (path-aware, origin-safe)
+    const isActive = (name) => {
+        try {
+            const resolved = route(name).replace(window.location.origin, '');
+            return url === resolved || url.startsWith(resolved + '/') || url.startsWith(resolved + '?');
+        } catch { return false; }
+    };
 
     const NAV = [
         {
@@ -119,20 +129,24 @@ export default function AdminLayout({ children, title }) {
 
             {/* Sidebar */}
             <aside className={`
-                fixed inset-y-0 left-0 z-30 w-64 bg-gray-900 text-white flex flex-col
+                fixed inset-y-0 left-0 z-30 w-64 flex flex-col
+                bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white
+                ring-1 ring-white/5 shadow-xl
                 transform transition-transform duration-200 ease-in-out
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
                 lg:static lg:translate-x-0 lg:flex
             `}>
                 {/* Brand */}
-                <div className="flex items-center gap-2.5 px-5 h-16 border-b border-gray-700/60 flex-shrink-0">
-                    <BookMarked className="w-6 h-6 text-blue-400" />
+                <div className="flex items-center gap-3 px-5 h-16 border-b border-white/5 flex-shrink-0">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-indigo-900/40">
+                        <BookMarked className="w-5 h-5 text-white" />
+                    </div>
                     <span className="font-semibold text-sm leading-tight">
-                        {tenant?.name ?? 'Alpha eLibrary'}
-                        <span className="block text-xs font-normal text-gray-400">Staff Panel</span>
+                        <span className="truncate">{tenant?.name ?? 'Alpha eLibrary'}</span>
+                        <span className="block text-[11px] font-normal text-slate-400 tracking-wide">Staff Panel</span>
                     </span>
                     <button
-                        className="ml-auto lg:hidden text-gray-400 hover:text-white"
+                        className="ml-auto lg:hidden text-slate-400 hover:text-white"
                         onClick={() => setSidebarOpen(false)}
                     >
                         <X className="w-5 h-5" />
@@ -140,20 +154,9 @@ export default function AdminLayout({ children, title }) {
                 </div>
 
                 {/* Nav */}
-                <nav ref={navRef} className="flex-1 overflow-y-auto py-4 px-2">
+                <nav ref={navRef} className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
                     {/* Dashboard */}
-                    <Link
-                        href={route('admin.dashboard')}
-                        data-active={url === route('admin.dashboard')}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm mb-1 ${
-                            url === route('admin.dashboard')
-                                ? 'bg-blue-600/20 text-blue-300 font-medium'
-                                : 'text-gray-300 hover:bg-gray-700/60 hover:text-white'
-                        }`}
-                    >
-                        <LayoutDashboard className="w-4 h-4 flex-shrink-0" />
-                        Dashboard
-                    </Link>
+                    <NavItem href="admin.dashboard" label="Dashboard" icon={LayoutDashboard} flat active={isActive('admin.dashboard')} />
 
                     {NAV.map((entry) => {
                         const Icon = entry.icon;
@@ -166,28 +169,32 @@ export default function AdminLayout({ children, title }) {
                                     label={entry.label}
                                     icon={Icon}
                                     flat
+                                    active={isActive(entry.href)}
                                 />
                             );
                         }
                         // Expandable group
                         const { group, items } = entry;
+                        const groupActive = items.some(item => isActive(item.href));
+                        const open = openGroups[group];
                         return (
-                            <div key={group} className="mb-1">
+                            <div key={group}>
                                 <button
                                     onClick={() => toggleGroup(group)}
-                                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-700/40"
+                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+                                        groupActive
+                                            ? 'text-white'
+                                            : 'text-slate-300 hover:text-white hover:bg-white/5'
+                                    }`}
                                 >
-                                    <Icon className="w-4 h-4 flex-shrink-0" />
+                                    <Icon className={`w-[18px] h-[18px] flex-shrink-0 ${groupActive ? 'text-blue-400' : ''}`} />
                                     <span className="flex-1 text-left font-medium">{group}</span>
-                                    {openGroups[group]
-                                        ? <ChevronDown className="w-3.5 h-3.5" />
-                                        : <ChevronRight className="w-3.5 h-3.5" />
-                                    }
+                                    <ChevronRight className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-200 ${open ? 'rotate-90' : ''}`} />
                                 </button>
-                                {openGroups[group] && (
-                                    <div className="ml-4 pl-3 border-l border-gray-700/50 mt-0.5 space-y-0.5">
+                                {open && (
+                                    <div className="ml-[22px] pl-3 border-l border-white/10 mt-0.5 mb-1 space-y-0.5">
                                         {items.map(item => (
-                                            <NavItem key={item.href} href={item.href} label={item.label} />
+                                            <NavItem key={item.href} href={item.href} label={item.label} active={isActive(item.href)} />
                                         ))}
                                     </div>
                                 )}
@@ -197,41 +204,45 @@ export default function AdminLayout({ children, title }) {
 
                     {/* Super Admin Section */}
                     {auth?.user?.roles?.includes('super_admin') && (
-                        <>
-                            <div className="mx-2 my-3 border-t border-gray-700/50"></div>
-                            <div className="px-2 mb-2">
-                                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-2">
-                                    Super Admin
-                                </div>
-                                {SUPER_ADMIN_NAV.map((entry) => {
-                                    const Icon = entry.icon;
-                                    return (
-                                        <NavItem
-                                            key={entry.href}
-                                            href={entry.href}
-                                            label={entry.label}
-                                            icon={Icon}
-                                            flat
-                                        />
-                                    );
-                                })}
+                        <div className="pt-3 mt-3 border-t border-white/5">
+                            <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest px-3 pb-1.5">
+                                Super Admin
                             </div>
-                        </>
+                            {SUPER_ADMIN_NAV.map((entry) => {
+                                const Icon = entry.icon;
+                                return (
+                                    <NavItem
+                                        key={entry.href}
+                                        href={entry.href}
+                                        label={entry.label}
+                                        icon={Icon}
+                                        flat
+                                        active={isActive(entry.href)}
+                                    />
+                                );
+                            })}
+                        </div>
                     )}
                 </nav>
 
                 {/* User */}
-                <div className="border-t border-gray-700/60 px-4 py-3 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-semibold flex-shrink-0">
-                        {auth?.user?.name?.charAt(0)?.toUpperCase() ?? 'S'}
+                <div className="border-t border-white/5 p-3 flex-shrink-0">
+                    <div className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2.5 ring-1 ring-white/5">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-sm font-bold text-white shadow flex-shrink-0">
+                            {auth?.user?.name?.charAt(0)?.toUpperCase() ?? 'S'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="text-sm font-semibold text-white truncate capitalize">{auth?.user?.name ?? 'Staff'}</div>
+                            <div className="text-xs text-slate-400 truncate">{auth?.user?.email}</div>
+                        </div>
+                        <button
+                            onClick={logout}
+                            title="Logout"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-500/10 hover:text-rose-400"
+                        >
+                            <LogOut className="w-4 h-4" />
+                        </button>
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-white truncate">{auth?.user?.name ?? 'Staff'}</div>
-                        <div className="text-xs text-gray-400 truncate">{auth?.user?.email}</div>
-                    </div>
-                    <button onClick={logout} className="text-gray-400 hover:text-red-400" title="Logout">
-                        <LogOut className="w-4 h-4" />
-                    </button>
                 </div>
             </aside>
 
@@ -284,23 +295,24 @@ export default function AdminLayout({ children, title }) {
     );
 }
 
-function NavItem({ href, label, icon: Icon, flat = false }) {
+function NavItem({ href, label, icon: Icon, flat = false, active: activeProp }) {
     const { url } = usePage();
     const resolvedHref = route(href);
-    const isActive = url.startsWith(resolvedHref.replace(window.location.origin, ''));
+    const isActive = activeProp ?? url.startsWith(resolvedHref.replace(window.location.origin, ''));
 
     if (flat) {
         return (
             <Link
                 href={resolvedHref}
                 data-active={isActive}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors mb-1 ${
+                className={`group relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
                     isActive
-                        ? 'bg-blue-600/20 text-blue-300 font-medium'
-                        : 'text-gray-300 hover:bg-gray-700/60 hover:text-white'
+                        ? 'bg-gradient-to-r from-blue-600/25 to-indigo-600/10 text-white font-semibold'
+                        : 'text-slate-300 hover:bg-white/5 hover:text-white'
                 }`}
             >
-                {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
+                {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-blue-400" />}
+                {Icon && <Icon className={`w-[18px] h-[18px] flex-shrink-0 ${isActive ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-200'}`} />}
                 {label}
             </Link>
         );
@@ -310,12 +322,13 @@ function NavItem({ href, label, icon: Icon, flat = false }) {
         <Link
             href={resolvedHref}
             data-active={isActive}
-            className={`block px-3 py-1.5 rounded text-sm transition-colors ${
+            className={`relative flex items-center px-3 py-1.5 rounded-lg text-sm transition-colors ${
                 isActive
-                    ? 'bg-blue-600/20 text-blue-300 font-medium'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-700/40'
+                    ? 'text-white font-medium bg-white/5'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
             }`}
         >
+            <span className={`mr-2.5 h-1.5 w-1.5 rounded-full flex-shrink-0 ${isActive ? 'bg-blue-400' : 'bg-slate-600'}`} />
             {label}
         </Link>
     );
