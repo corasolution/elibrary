@@ -34,56 +34,62 @@ class AppServiceProvider extends ServiceProvider
         // Register observers
         BibliographicRecord::observe(BibliographicRecordObserver::class);
 
-        // Register XML response macro for OAI-PMH
+        // Register XML response macro for OAI-PMH (uses DOMDocument for namespace support)
         Response::macro('xml', function ($data, $status = 200) {
-            $xml = $this->arrayToXml($data);
-            return response($xml, $status)->header('Content-Type', 'application/xml; charset=UTF-8');
-        });
-    }
+            $dom = new \DOMDocument('1.0', 'UTF-8');
+            $dom->formatOutput = true;
 
-    /**
-     * Convert array to XML for OAI-PMH responses
-     */
-    private function arrayToXml(array $data, \SimpleXMLElement $xml = null): string
-    {
-        if ($xml === null) {
-            $xml = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><root/>');
-        }
+            $rootKey = array_key_first($data);
+            $rootData = $data[$rootKey];
 
-        foreach ($data as $key => $value) {
-            if ($key === '@attributes') {
-                foreach ($value as $attrKey => $attrValue) {
-                    $xml->addAttribute($attrKey, $attrValue);
-                }
-            } elseif ($key === '@value') {
-                $xml[0] = $value;
-            } elseif ($key === '@raw') {
-                // Insert raw XML content
-                $dom = dom_import_simplexml($xml);
-                $fragment = $dom->ownerDocument->createDocumentFragment();
-                $fragment->appendXML($value);
-                $dom->appendChild($fragment);
-            } elseif (is_array($value)) {
-                if (isset($value[0])) {
-                    // Numeric array - multiple elements with same name
-                    foreach ($value as $item) {
-                        $subnode = $xml->addChild($key);
-                        if (is_array($item)) {
-                            $this->arrayToXml($item, $subnode);
-                        } else {
-                            $subnode[0] = $item;
+            // Recursive function to build DOM elements
+            $build = function (\DOMElement $parent, $data) use (&$build, $dom) {
+                foreach ($data as $key => $value) {
+                    if ($key === '@attributes') {
+                        foreach ($value as $attrKey => $attrValue) {
+                            $parent->setAttribute($attrKey, (string) $attrValue);
                         }
+                    } elseif ($key === '@value') {
+                        $parent->appendChild($dom->createTextNode((string) $value));
+                    } elseif ($key === '@raw') {
+                        // Insert raw XML fragment
+                        $fragment = $dom->createDocumentFragment();
+                        @$fragment->appendXML($value);
+                        if ($fragment->hasChildNodes()) {
+                            $parent->appendChild($fragment);
+                        }
+                    } elseif (is_array($value)) {
+                        // Indexed array = repeated elements
+                        if (array_is_list($value)) {
+                            foreach ($value as $item) {
+                                $child = $dom->createElement($key);
+                                if (is_array($item)) {
+                                    $build($child, $item);
+                                } else {
+                                    $child->appendChild($dom->createTextNode((string) $item));
+                                }
+                                $parent->appendChild($child);
+                            }
+                        } else {
+                            // Associative array = single nested element
+                            $child = $dom->createElement($key);
+                            $build($child, $value);
+                            $parent->appendChild($child);
+                        }
+                    } else {
+                        $child = $dom->createElement($key);
+                        $child->appendChild($dom->createTextNode((string) $value));
+                        $parent->appendChild($child);
                     }
-                } else {
-                    // Associative array - single element
-                    $subnode = $xml->addChild($key);
-                    $this->arrayToXml($value, $subnode);
                 }
-            } else {
-                $xml->addChild($key, htmlspecialchars($value));
-            }
-        }
+            };
 
-        return $xml->asXML();
+            $root = $dom->createElement($rootKey);
+            $dom->appendChild($root);
+            $build($root, $rootData);
+
+            return response($dom->saveXML(), $status)
+                ->header('Content-Type', 'application/xml; charset=UTF-8');
+        });
     }
 }

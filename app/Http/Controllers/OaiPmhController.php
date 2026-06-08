@@ -51,13 +51,19 @@ class OaiPmhController extends Controller
         $libraryName = LibrarySetting::get('library_name', 'Library');
         $baseUrl = route('library.oai', ['slug' => tenancy()->tenant->slug]);
 
+        // Get earliest datestamp safely
+        $earliestDate = BibliographicRecord::min('created_at');
+        $earliestDatestamp = $earliestDate
+            ? Carbon::parse($earliestDate)->toIso8601String()
+            : now()->toIso8601String();
+
         $data = [
             'Identify' => [
                 'repositoryName' => $libraryName,
                 'baseURL' => $baseUrl,
                 'protocolVersion' => '2.0',
                 'adminEmail' => LibrarySetting::get('library_email', 'admin@library.edu'),
-                'earliestDatestamp' => (BibliographicRecord::min('created_at') ?? now())->toIso8601String(),
+                'earliestDatestamp' => $earliestDatestamp,
                 'deletedRecord' => 'persistent',
                 'granularity' => 'YYYY-MM-DDThh:mm:ssZ',
                 'description' => [
@@ -342,12 +348,100 @@ class OaiPmhController extends Controller
     private function toMarc21Xml(BibliographicRecord $record): array
     {
         if ($record->marc_xml) {
-            // Return existing MARC XML
-            return ['marc:record' => ['@raw' => $record->marc_xml]];
+            // Return existing MARC XML with proper namespace
+            return [
+                'record' => [
+                    '@attributes' => ['xmlns' => 'http://www.loc.gov/MARC21/slim'],
+                    '@raw' => $record->marc_xml,
+                ],
+            ];
         }
 
-        // No MARC XML available
-        return ['marc:record' => ['@value' => 'MARC21 data not available for this record']];
+        // No MARC XML stored — generate MARC21 from bibliographic fields
+        return [
+            'record' => [
+                '@attributes' => ['xmlns' => 'http://www.loc.gov/MARC21/slim'],
+                'leader' => '00000nam a2200000 a 4500',
+                'datafield' => $this->generateMarcDatafields($record),
+            ],
+        ];
+    }
+
+    /**
+     * Generate MARC21 datafields from bibliographic record fields
+     */
+    private function generateMarcDatafields(BibliographicRecord $record): array
+    {
+        $fields = [];
+
+        // 020 - ISBN
+        if ($record->isbn) {
+            $fields[] = [
+                '@attributes' => ['tag' => '020', 'ind1' => ' ', 'ind2' => ' '],
+                'subfield' => [
+                    ['@attributes' => ['code' => 'a'], '@value' => $record->isbn],
+                ],
+            ];
+        }
+
+        // 100 - Main author
+        $authors = $record->authors ?? [];
+        if (!empty($authors) && isset($authors[0]['name'])) {
+            $fields[] = [
+                '@attributes' => ['tag' => '100', 'ind1' => '1', 'ind2' => ' '],
+                'subfield' => [
+                    ['@attributes' => ['code' => 'a'], '@value' => $authors[0]['name']],
+                ],
+            ];
+        }
+
+        // 245 - Title
+        $fields[] = [
+            '@attributes' => ['tag' => '245', 'ind1' => '1', 'ind2' => '0'],
+            'subfield' => [
+                ['@attributes' => ['code' => 'a'], '@value' => $record->title ?? 'Untitled'],
+            ],
+        ];
+
+        // 260/264 - Publication
+        if ($record->publisher || $record->publication_year) {
+            $pubSubfields = [];
+            if ($record->publisher) {
+                $pubSubfields[] = ['@attributes' => ['code' => 'b'], '@value' => $record->publisher];
+            }
+            if ($record->publication_year) {
+                $pubSubfields[] = ['@attributes' => ['code' => 'c'], '@value' => (string) $record->publication_year];
+            }
+            $fields[] = [
+                '@attributes' => ['tag' => '264', 'ind1' => ' ', 'ind2' => '1'],
+                'subfield' => $pubSubfields,
+            ];
+        }
+
+        // 520 - Abstract/Description
+        if ($record->abstract) {
+            $fields[] = [
+                '@attributes' => ['tag' => '520', 'ind1' => ' ', 'ind2' => ' '],
+                'subfield' => [
+                    ['@attributes' => ['code' => 'a'], '@value' => $record->abstract],
+                ],
+            ];
+        }
+
+        // 650 - Subjects
+        foreach (($record->subjects ?? []) as $subject) {
+            $term = is_array($subject) ? ($subject['term'] ?? null) : $subject;
+            if ($term) {
+                $fields[] = [
+                    '@attributes' => ['tag' => '650', 'ind1' => ' ', 'ind2' => '0'],
+                    'subfield' => [
+                        ['@attributes' => ['code' => 'a'], '@value' => $term],
+                    ],
+                ];
+            }
+        }
+
+        return $fields;
     }
 
     /**
