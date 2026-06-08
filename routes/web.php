@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AICatalogController;
 use App\Http\Controllers\Admin\AIUsageController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\OaiPmhController;
 
 // NOTE: Central Admin routes are loaded in routes/central.php
 // NOTE: Tenant Admin routes are loaded in routes/admin.php
@@ -61,6 +62,9 @@ Route::prefix('{slug}')
             Route::post('/expand-query', [OpacAIController::class, 'expandQuery'])->name('expand-query');
             Route::post('/suggest', [OpacAIController::class, 'suggest'])->name('suggest');
         });
+
+        // OAI-PMH 2.0 Provider (public, no auth required)
+        Route::get('/oai', [OaiPmhController::class, 'handle'])->name('oai');
 
         // Patron auth
         Route::get('/login', [PatronAuthController::class, 'showLogin'])->name('opac.login');

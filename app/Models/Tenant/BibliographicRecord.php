@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Log;
 use Laravel\Scout\Searchable;
 
 class BibliographicRecord extends Model
@@ -246,5 +247,137 @@ class BibliographicRecord extends Model
         }
 
         return $result;
+    }
+
+    /**
+     * Parse MARC XML and get specific field
+     * @param string $tag e.g. '245' (title)
+     * @param string|null $subfield e.g. 'a' (main title)
+     * @return string|null
+     */
+    public function getMarcField(string $tag, ?string $subfield = null): ?string
+    {
+        if (!$this->marc_xml) {
+            return null;
+        }
+
+        try {
+            $xml = simplexml_load_string($this->marc_xml);
+            $xml->registerXPathNamespace('marc', 'http://www.loc.gov/MARC21/slim');
+
+            $xpath = "//marc:datafield[@tag='{$tag}']";
+            $fields = $xml->xpath($xpath);
+
+            if (empty($fields)) {
+                // Try control field
+                $xpath = "//marc:controlfield[@tag='{$tag}']";
+                $controlFields = $xml->xpath($xpath);
+                return $controlFields ? (string)$controlFields[0] : null;
+            }
+
+            if ($subfield) {
+                $subfieldNodes = $fields[0]->xpath("marc:subfield[@code='{$subfield}']");
+                return $subfieldNodes ? (string)$subfieldNodes[0] : null;
+            }
+
+            // Return concatenated subfields if no specific subfield requested
+            $subfields = $fields[0]->xpath('marc:subfield');
+            return collect($subfields)->map(fn($sf) => (string)$sf)->implode(' ');
+
+        } catch (\Exception $e) {
+            Log::error('MARC field parsing failed', [
+                'record_id' => $this->id,
+                'tag' => $tag,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Get all MARC fields as structured array
+     * @return array
+     */
+    public function getMarcFieldsArray(): array
+    {
+        if (!$this->marc_xml) {
+            return [];
+        }
+
+        try {
+            $xml = simplexml_load_string($this->marc_xml);
+            $xml->registerXPathNamespace('marc', 'http://www.loc.gov/MARC21/slim');
+
+            $result = [];
+
+            // Control fields (001-009)
+            foreach ($xml->xpath('//marc:controlfield') as $field) {
+                $tag = (string)$field['tag'];
+                $result[$tag] = (string)$field;
+            }
+
+            // Data fields (010-999)
+            foreach ($xml->xpath('//marc:datafield') as $field) {
+                $tag = (string)$field['tag'];
+                $ind1 = (string)$field['ind1'];
+                $ind2 = (string)$field['ind2'];
+
+                $subfields = [];
+                foreach ($field->subfield as $subfield) {
+                    $code = (string)$subfield['code'];
+                    $subfields[$code] = (string)$subfield;
+                }
+
+                if (!isset($result[$tag])) {
+                    $result[$tag] = [];
+                }
+
+                $result[$tag][] = [
+                    'ind1' => $ind1,
+                    'ind2' => $ind2,
+                    'subfields' => $subfields,
+                ];
+            }
+
+            return $result;
+
+        } catch (\Exception $e) {
+            Log::error('MARC fields array parsing failed', [
+                'record_id' => $this->id,
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+
+    /**
+     * Convert MARC21 to Dublin Core metadata
+     * @return array
+     */
+    public function marcToDublinCore(): array
+    {
+        if (!$this->marc_xml) {
+            return [];
+        }
+
+        $marc = $this->getMarcFieldsArray();
+
+        return [
+            'title' => $this->getMarcField('245', 'a'),
+            'creator' => $this->getMarcField('100', 'a') ?: $this->getMarcField('110', 'a') ?: $this->getMarcField('111', 'a'),
+            'subject' => collect($marc['650'] ?? [])->map(fn($f) => $f['subfields']['a'] ?? null)->filter()->values()->toArray(),
+            'description' => $this->getMarcField('520', 'a'),
+            'publisher' => $this->getMarcField('264', 'b') ?: $this->getMarcField('260', 'b'),
+            'contributor' => collect($marc['700'] ?? [])->map(fn($f) => $f['subfields']['a'] ?? null)->filter()->values()->toArray(),
+            'date' => $this->getMarcField('264', 'c') ?: $this->getMarcField('260', 'c'),
+            'type' => $this->getMarcField('336', 'a'),
+            'format' => $this->getMarcField('338', 'a'),
+            'identifier' => $this->getMarcField('020', 'a') ?: $this->getMarcField('022', 'a') ?: $this->getMarcField('010', 'a'),
+            'source' => $this->getMarcField('786', 'a'),
+            'language' => $this->getMarcField('041', 'a') ?: (isset($marc['008']) ? substr($marc['008'], 35, 3) : null),
+            'relation' => $this->getMarcField('490', 'a'),
+            'coverage' => $this->getMarcField('651', 'a'),
+            'rights' => $this->getMarcField('540', 'a'),
+        ];
     }
 }
