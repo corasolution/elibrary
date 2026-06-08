@@ -303,7 +303,7 @@ class TenantController extends Controller
             tenancy()->initialize($tenant);
 
             // Create user in tenant database
-            $user = \App\Models\User::create([
+            $user = \App\Models\Tenant\User::create([
                 'name' => $adminData['name'],
                 'email' => $adminData['email'],
                 'password' => \Illuminate\Support\Facades\Hash::make($adminData['password']),
