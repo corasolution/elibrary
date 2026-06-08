@@ -37,6 +37,15 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission'    => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         ]);
 
+        // Ensure tenancy is initialized BEFORE the auth middleware runs, so the
+        // auth guard resolves users against the tenant database (not central).
+        // Without this, Laravel's middleware priority runs Authenticate first and
+        // auth checks hit the wrong DB — causing an admin login redirect loop.
+        $middleware->prependToPriorityList(
+            before: \Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests::class,
+            prepend: \App\Http\Middleware\InitializeTenancyBySlug::class,
+        );
+
         // Send unauthenticated users to the correct login page based on area.
         // Without this, the default 'login' route is missing and guests hit a 500.
         $middleware->redirectGuestsTo(function (\Illuminate\Http\Request $request) {

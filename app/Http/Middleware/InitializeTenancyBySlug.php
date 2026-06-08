@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use App\Models\Central\Tenant;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\URL;
 use Symfony\Component\HttpFoundation\Response;
 
 class InitializeTenancyBySlug
@@ -37,6 +38,11 @@ class InitializeTenancyBySlug
         // Make tenant available throughout the request
         app()->instance('currentTenant', $tenant);
         View::share('currentTenant', $tenant);
+
+        // Auto-fill the {slug} route parameter for all generated URLs in this
+        // request (e.g. route('admin.dashboard') inside controllers), so
+        // redirects don't fail with "Missing parameter: slug".
+        URL::defaults(['slug' => $slug]);
 
         return $next($request);
     }
