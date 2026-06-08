@@ -36,6 +36,25 @@ return Application::configure(basePath: dirname(__DIR__))
             'role'          => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission'    => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         ]);
+
+        // Send unauthenticated users to the correct login page based on area.
+        // Without this, the default 'login' route is missing and guests hit a 500.
+        $middleware->redirectGuestsTo(function (\Illuminate\Http\Request $request) {
+            $segments = $request->segments();          // e.g. ['elibrary', 'admin', ...]
+            $slug = $segments[0] ?? null;
+
+            if ($slug === 'central') {
+                return route('central.login');
+            }
+            // Tenant admin area -> staff login; otherwise patron login
+            if ($slug && ($segments[1] ?? null) === 'admin') {
+                return url("/{$slug}/admin/login");
+            }
+            if ($slug) {
+                return url("/{$slug}/login");
+            }
+            return url('/');
+        });
     })
     ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {
         // Auto-purge catalog records soft-deleted more than 90 days ago
