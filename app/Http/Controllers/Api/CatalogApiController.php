@@ -97,11 +97,33 @@ class CatalogApiController extends Controller
      */
     public function dublinCore(string $id): JsonResponse
     {
-        $record = BibliographicRecord::findOrFail($id);
+        $record = BibliographicRecord::with('materialType')->findOrFail($id);
 
-        $dublinCore = $record->marcToDublinCore();
+        // Prefer MARC-derived Dublin Core if MARC XML exists,
+        // otherwise build from bibliographic fields directly.
+        $dublinCore = $record->marc_xml
+            ? $record->marcToDublinCore()
+            : $this->buildDublinCoreFromFields($record);
 
         return response()->json($dublinCore);
+    }
+
+    /**
+     * Build Dublin Core from bibliographic fields (fallback when no MARC XML)
+     */
+    private function buildDublinCoreFromFields(BibliographicRecord $record): array
+    {
+        return array_filter([
+            'title' => $record->title,
+            'creator' => collect($record->authors ?? [])->pluck('name')->filter()->values()->all(),
+            'subject' => collect($record->subjects ?? [])->pluck('term')->filter()->values()->all(),
+            'description' => $record->abstract,
+            'publisher' => $record->publisher,
+            'date' => $record->publication_year ? (string) $record->publication_year : null,
+            'type' => $record->materialType?->name,
+            'identifier' => $record->isbn ? 'ISBN:' . $record->isbn : ($record->issn ? 'ISSN:' . $record->issn : null),
+            'language' => $record->language,
+        ], fn ($v) => !empty($v));
     }
 
     /**
