@@ -1,0 +1,481 @@
+/* ====================================================================
+   OPAC LAYOUT TEMPLATES - Template-Specific Styling
+
+   This file contains CSS for 10 distinct OPAC layout templates.
+   Each template has unique navigation, card styles, and layouts
+   while maintaining professional eLibrary standards.
+
+   Templates are applied via body class: .theme-{template-id}
+   ==================================================================== */
+
+/* ==================== MODERN MINIMAL ==================== */
+body.theme-modern-minimal {
+  --container-max-width: 1280px;
+  --navbar-height: 4rem;
+  --navbar-bg: white;
+  --navbar-text: #1e293b;
+  --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  --card-hover-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+body.theme-modern-minimal .opac-navbar {
+  background: var(--navbar-bg);
+  color: var(--navbar-text);
+  height: var(--navbar-height);
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+body.theme-modern-minimal .card {
+  box-shadow: var(--card-shadow);
+  border-radius: var(--border-radius);
+  transition: all 0.2s ease;
+}
+
+body.theme-modern-minimal .card:hover {
+  box-shadow: var(--card-hover-shadow);
+  transform: translateY(-2px);
+}
+
+body.theme-modern-minimal .page-container {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+}
+
+/* ==================== CLASSIC LIBRARY ==================== */
+body.theme-classic-library {
+  --container-max-width: 1400px;
+  --navbar-height: 5rem;
+  --navbar-bg: #8b4513;
+  --navbar-text: #fff5e1;
+  --card-border: 2px solid var(--color-secondary);
+  --card-bg: #fffaf0;
+}
+
+body.theme-classic-library .opac-navbar {
+  background: var(--navbar-bg);
+  color: var(--navbar-text);
+  height: var(--navbar-height);
+  padding: 1.5rem 0;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+body.theme-classic-library .opac-navbar .brand {
+  font-family: 'Merriweather', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+body.theme-classic-library .card {
+  border: var(--card-border);
+  border-radius: 0.375rem;
+  background: var(--card-bg);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.05);
+}
+
+body.theme-classic-library .page-container {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+}
+
+body.theme-classic-library button,
+body.theme-classic-library .btn {
+  border-radius: 0.375rem;
+  font-weight: 500;
+}
+
+/* ==================== MAGAZINE STYLE ==================== */
+body.theme-magazine-style {
+  --container-max-width: 1600px;
+  --navbar-height: 3.5rem;
+  --navbar-bg: white;
+  --navbar-text: #000;
+}
+
+body.theme-magazine-style .opac-navbar {
+  background: var(--navbar-bg);
+  color: var(--navbar-text);
+  height: var(--navbar-height);
+  border-bottom: 2px solid #000;
+}
+
+body.theme-magazine-style .opac-navbar .brand {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+body.theme-magazine-style .card {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: white;
+}
+
+body.theme-magazine-style .card:hover {
+  transform: translateY(-4px);
+  transition: transform 0.2s ease;
+}
+
+body.theme-magazine-style .page-container {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+}
+
+body.theme-magazine-style button,
+body.theme-magazine-style .btn {
+  border-radius: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+/* ==================== DARK ELEGANT ==================== */
+body.theme-dark-elegant {
+  --container-max-width: 1280px;
+  --navbar-height: 4.5rem;
+  --navbar-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  --navbar-text: #d4af37;
+  --card-bg: #1e1e2e;
+  --card-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3);
+}
+
+body.theme-dark-elegant {
+  background: #0f0f1e;
+  color: #e0e0e0;
+}
+
+body.theme-dark-elegant .opac-navbar {
+  background: var(--navbar-bg);
+  color: var(--navbar-text);
+  height: var(--navbar-height);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+}
+
+body.theme-dark-elegant .opac-navbar .brand {
+  font-weight: 700;
+  color: var(--navbar-text);
+}
+
+body.theme-dark-elegant .card {
+  background: var(--card-bg);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
+}
+
+body.theme-dark-elegant .card:hover {
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+body.theme-dark-elegant .page-container {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+}
+
+body.theme-dark-elegant button,
+body.theme-dark-elegant .btn {
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+}
+
+/* ==================== ACADEMIC PROFESSIONAL ==================== */
+body.theme-academic-professional {
+  --container-max-width: 1400px;
+  --navbar-height: 5.5rem;
+  --navbar-bg: #1e3a8a;
+  --navbar-text: white;
+}
+
+body.theme-academic-professional .opac-navbar {
+  background: var(--navbar-bg);
+  color: var(--navbar-text);
+  height: var(--navbar-height);
+  padding: 1.5rem 0;
+  border-bottom: 4px solid #3b82f6;
+}
+
+body.theme-academic-professional .opac-navbar .brand {
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+body.theme-academic-professional .card {
+  border: 1px solid #e5e7eb;
+  border-radius: var(--border-radius);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  background: white;
+}
+
+body.theme-academic-professional .page-container {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+}
+
+body.theme-academic-professional button,
+body.theme-academic-professional .btn {
+  border-radius: 0;
+  font-weight: 600;
+}
+
+/* ==================== KIDS FRIENDLY ==================== */
+body.theme-kids-friendly {
+  --container-max-width: 1200px;
+  --navbar-height: 5rem;
+  --navbar-bg: linear-gradient(135deg, #ec4899 0%, #8b5cf6 50%, #3b82f6 100%);
+  --navbar-text: white;
+}
+
+body.theme-kids-friendly .opac-navbar {
+  background: var(--navbar-bg);
+  color: var(--navbar-text);
+  height: var(--navbar-height);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+body.theme-kids-friendly .opac-navbar .brand {
+  font-size: 1.75rem;
+  font-weight: 800;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+body.theme-kids-friendly .card {
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: rotate(-1deg);
+  transition: all 0.3s ease;
+  background: white;
+}
+
+body.theme-kids-friendly .card:hover {
+  transform: rotate(0deg) scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+body.theme-kids-friendly .page-container {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+}
+
+body.theme-kids-friendly button,
+body.theme-kids-friendly .btn {
+  border-radius: 2rem;
+  font-weight: 700;
+  padding: 0.75rem 1.5rem;
+}
+
+/* ==================== BOLD GEOMETRIC ==================== */
+body.theme-bold-geometric {
+  --container-max-width: 1400px;
+  --navbar-height: 4rem;
+  --navbar-bg: #000;
+  --navbar-text: white;
+}
+
+body.theme-bold-geometric .opac-navbar {
+  background: var(--navbar-bg);
+  color: var(--navbar-text);
+  height: var(--navbar-height);
+  border-bottom: 4px solid var(--color-primary);
+}
+
+body.theme-bold-geometric .opac-navbar .brand {
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+body.theme-bold-geometric .card {
+  border-radius: 0;
+  border: 3px solid var(--color-primary);
+  position: relative;
+  background: white;
+}
+
+body.theme-bold-geometric .card::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  right: -6px;
+  bottom: -6px;
+  border: 2px solid var(--color-accent);
+  z-index: -1;
+  pointer-events: none;
+}
+
+body.theme-bold-geometric .page-container {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+}
+
+body.theme-bold-geometric button,
+body.theme-bold-geometric .btn {
+  border-radius: 0;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* ==================== MINIMALIST ZEN ==================== */
+body.theme-minimalist-zen {
+  --container-max-width: 900px;
+  --navbar-height: 3rem;
+  --navbar-bg: transparent;
+  --navbar-text: #374151;
+}
+
+body.theme-minimalist-zen .opac-navbar {
+  background: var(--navbar-bg);
+  color: var(--navbar-text);
+  height: var(--navbar-height);
+  border-bottom: 1px solid #f3f4f6;
+}
+
+body.theme-minimalist-zen .opac-navbar .brand {
+  font-weight: 300;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+}
+
+body.theme-minimalist-zen .card {
+  border: none;
+  border-radius: var(--border-radius);
+  box-shadow: none;
+  background: white;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+body.theme-minimalist-zen .card:hover {
+  background: #fafafa;
+}
+
+body.theme-minimalist-zen .page-container {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+}
+
+body.theme-minimalist-zen button,
+body.theme-minimalist-zen .btn {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--color-primary);
+  border-radius: 0;
+  font-weight: 500;
+  padding: 0.5rem 0;
+}
+
+/* ==================== NATURE INSPIRED ==================== */
+body.theme-nature-inspired {
+  --container-max-width: 1300px;
+  --navbar-height: 4.5rem;
+  --navbar-bg: #2d5016;
+  --navbar-text: #f0fdf4;
+}
+
+body.theme-nature-inspired .opac-navbar {
+  background: var(--navbar-bg);
+  color: var(--navbar-text);
+  height: var(--navbar-height);
+  box-shadow: 0 2px 8px rgba(45, 80, 22, 0.2);
+}
+
+body.theme-nature-inspired .opac-navbar .brand {
+  font-weight: 600;
+}
+
+body.theme-nature-inspired .card {
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: white;
+  border: 1px solid rgba(45, 80, 22, 0.1);
+}
+
+body.theme-nature-inspired .card:hover {
+  box-shadow: 0 4px 12px rgba(45, 80, 22, 0.15);
+}
+
+body.theme-nature-inspired .page-container {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+}
+
+body.theme-nature-inspired button,
+body.theme-nature-inspired .btn {
+  border-radius: 1rem;
+  font-weight: 600;
+}
+
+/* ==================== VIBRANT COLORFUL ==================== */
+body.theme-vibrant-colorful {
+  --container-max-width: 1280px;
+  --navbar-height: 4.5rem;
+  --navbar-bg: linear-gradient(90deg, #ec4899 0%, #f97316 50%, #eab308 100%);
+  --navbar-text: white;
+}
+
+body.theme-vibrant-colorful .opac-navbar {
+  background: var(--navbar-bg);
+  color: var(--navbar-text);
+  height: var(--navbar-height);
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+}
+
+body.theme-vibrant-colorful .opac-navbar .brand {
+  font-weight: 800;
+  font-size: 1.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+body.theme-vibrant-colorful .card {
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: white;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+body.theme-vibrant-colorful .card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 8px 20px rgba(236, 72, 153, 0.2);
+  transform: translateY(-4px);
+}
+
+body.theme-vibrant-colorful .page-container {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+}
+
+body.theme-vibrant-colorful button,
+body.theme-vibrant-colorful .btn {
+  border-radius: 1rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+}
+
+/* ==================== RESPONSIVE ADJUSTMENTS ==================== */
+@media (max-width: 768px) {
+  body[class*="theme-"] .opac-navbar {
+    height: 3.5rem;
+  }
+
+  body.theme-classic-library .opac-navbar,
+  body.theme-academic-professional .opac-navbar {
+    padding: 1rem 0;
+  }
+
+  body[class*="theme-"] .page-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  body.theme-bold-geometric .card::before {
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+  }
+}

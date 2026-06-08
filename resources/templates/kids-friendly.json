@@ -1,0 +1,26 @@
+{
+  "id": "kids-friendly",
+  "name": "Kids Friendly",
+  "description": "Rounded corners, bright colors, large text, playful design. Perfect for children's libraries.",
+  "preview_image": "/images/templates/kids-friendly.jpg",
+  "colors": {
+    "primary": "#ec4899",
+    "secondary": "#8b5cf6",
+    "accent": "#facc15",
+    "background": "#fef3c7",
+    "text": "#1f2937",
+    "muted": "#9ca3af"
+  },
+  "fonts": {
+    "heading": "Nunito",
+    "body": "Nunito"
+  },
+  "styles": {
+    "layout": "playful",
+    "cardStyle": "bubble",
+    "navbarStyle": "colorful",
+    "heroStyle": "illustrated",
+    "borderRadius": "1.5rem",
+    "buttonStyle": "bubble"
+  }
+}

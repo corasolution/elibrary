@@ -1,0 +1,53 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                     ALPHA eLIBRARY - QUICK LOGIN REFERENCE                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+📌 STAFF ADMIN LOGIN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+URL: http://127.0.0.1:8000/admin
+
+🔴 Super Admin:       admin@bannalai.com              / password
+🟠 Library Admin:     library.admin@bannalai.com     / password
+🟡 Cataloger:         cataloger@bannalai.com         / password
+🟢 Circulation:       circulation@bannalai.com       / password
+🔵 Reader Services:   reader.services@bannalai.com   / password
+
+Additional Staff:
+   Sopheak Chea:      sopheak@bannalai.com           / password
+   Sreymom Kong:      sreymom@bannalai.com           / password
+   Dara Meas:         dara@bannalai.com              / password
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📌 PATRON LOGIN (OPAC)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+URL: http://127.0.0.1:8000/library/{slug}/login
+
+All patron passwords: password
+
+P-2024-001  sophea.kim@university.edu.kh     Student  (Active loans)
+P-2024-002  dara.prak@university.edu.kh      Faculty
+P-2024-003  ratana.chan@university.edu.kh    Student  (Active loans)
+P-2024-004  virak.sok@library.org            Staff    (Overdue!)
+P-2024-005  channary.lim@gmail.com           Public   (Overdue!)
+P-2024-006  bunna.heng@student.edu.kh        Student  (Active loans)
+P-2024-007  sreymom.oun@university.edu       Student  (Active loans)
+P-2024-008  makara.tep@faculty.edu.kh        Faculty
+P-2024-009  pisey.mao@gmail.com              Public
+P-2024-010  rith.noun@student.edu.kh         Student  (Active loans)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📌 QUICK TESTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Test Catalog:     cataloger@bannalai.com → Catalog → Create/Import/Export
+✅ Test Checkout:    circulation@bannalai.com → Quick Checkout → P-2024-001
+✅ Test Patron:      sophea.kim@university.edu.kh → OPAC → My Account
+✅ Test Overdue:     circulation@bannalai.com → Loans → Overdue Items
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️  SECURITY: These are DEMO credentials for development only!
+    Change all passwords before production deployment.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

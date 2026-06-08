@@ -1,0 +1,208 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║            IMPORT/EXPORT - QUICK TEST GUIDE                                  ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+📍 URL: http://127.0.0.1:8000/admin/catalog
+
+🔐 LOGIN CREDENTIALS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Email:    cataloger@bannalai.com
+Password: password
+Role:     Cataloger (Full catalog + import/export access)
+
+Alternative logins:
+- admin@bannalai.com (Super Admin)
+- library.admin@bannalai.com (Library Admin)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ TEST 1: EXPORT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Navigate to: Admin → Catalog
+2. Click the "Export" button (green spreadsheet icon)
+3. Select "Export All Records"
+4. File downloads: catalog_export_YYYYMMDD_HHMMSS.xlsx
+5. Open in Excel and verify:
+   ✓ 12 demo records
+   ✓ Styled headers (blue background, frozen row)
+   ✓ All 28 columns populated
+   ✓ Authors formatted: Name (role) | Name2 (role)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ TEST 2: DOWNLOAD TEMPLATE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Click "Import" button (blue upload icon)
+2. Modal opens
+3. Click "Template" link at top
+4. File downloads: catalog_import_template.xlsx
+5. Open and verify:
+   ✓ Sheet 1: "Catalog Template"
+      - Row 1: Headers (blue)
+      - Row 2: Example (Clean Code book, green background)
+      - Row 3: Hints (gray italic text)
+   ✓ Sheet 2: "material_types"
+      - Reference table with codes
+   ✓ Column Q (material_type): Has dropdown validation
+   ✓ Column AA (record_status): Has dropdown (active/draft)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ TEST 3: IMPORT NEW RECORDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Open the downloaded template
+2. Add 3 new books (copy row 2 and modify):
+
+   Example Book 1:
+   - title: "Test Book One"
+   - authors: "John Doe (aut)"
+   - isbn: "9781234567890"
+   - publisher: "Test Publisher"
+   - publication_year: 2024
+   - material_type: book (use dropdown)
+   - record_status: active (use dropdown)
+
+3. Delete row 3 (hint row)
+4. Save as new file: test_import.xlsx
+5. Click "Import" button
+6. Drag file to dropzone OR click to browse
+7. File name shows, click "Start Import"
+8. Watch progress:
+   ✓ Uploading... → Processing...
+   ✓ Progress bar fills (50 rows/chunk)
+   ✓ Live counters: Created / Updated / Errors
+9. Success screen shows:
+   ✓ "Import Complete" with green checkmark
+   ✓ "3 Created, 0 Updated, 0 Errors"
+10. Click "View Catalog"
+11. Verify 3 new books appear in list
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ TEST 4: IMPORT WITH ERRORS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Open template
+2. Add these rows:
+
+   Row 2 (Valid):
+   - title: "Valid Book"
+   - isbn: "9780000000001"
+   - material_type: book
+
+   Row 3 (ERROR - missing title):
+   - title: (leave empty)
+   - isbn: "9780000000002"
+
+   Row 4 (ERROR - invalid year):
+   - title: "Future Book"
+   - publication_year: 3000
+   - isbn: "9780000000003"
+
+   Row 5 (ERROR - invalid material type):
+   - title: "Bad Type"
+   - material_type: invalid_code
+   - isbn: "9780000000004"
+
+3. Import file
+4. Processing shows errors count increasing
+5. Done screen shows: "1 Created, 0 Updated, 3 Errors"
+6. Click "Download Error Report"
+7. Open error Excel file:
+   ✓ Row | Attribute | Errors | Title | ISBN
+   ✓ 3   | title     | Title is required | (empty) | 9780000000002
+   ✓ 4   | publication_year | Year must be ≤ 2030 | Future Book | 9780000000003
+   ✓ 5   | material_type | Invalid type | Bad Type | 9780000000004
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ TEST 5: UPDATE EXISTING RECORDS (UPSERT)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Export all records
+2. Open exported file
+3. Find "Clean Code" row (ISBN: 9780132350884)
+4. Change title to: "Clean Code: UPDATED EDITION"
+5. Change edition to: "2nd"
+6. Keep ISBN the same: 9780132350884
+7. Import the file
+8. Processing shows: "0 Created, 1 Updated, 0 Errors"
+9. View catalog
+10. Verify "Clean Code" title updated to "UPDATED EDITION"
+11. Verify no duplicate record created
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ TEST 6: FILTERED EXPORT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. In catalog search box, type: "JavaScript"
+2. Click "Search"
+3. Results show 1 record
+4. Click "Export" → "Export Filtered Results"
+5. File downloads: catalog_filtered_YYYYMMDD_HHMMSS.xlsx
+6. Open and verify: Only 1 record (JavaScript: The Good Parts)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ TEST 7: DRAG & DROP UPLOAD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Click "Import"
+2. Open file explorer with .xlsx file
+3. Drag file over modal dropzone
+4. Dropzone turns blue (drag over state)
+5. Release mouse
+6. File name shows immediately
+7. "Start Import" button enabled
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ TEST 8: COMPLEX FIELDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Add a book with complex fields:
+
+authors:       Robert Martin (aut) | Kent Beck (edt) | Martin Fowler (trl)
+subjects:      Programming [LCSH] | Clean Code [local] | Refactoring [MeSH]
+keywords:      clean code | TDD | refactoring | unit testing
+
+After import, check database/view record:
+✓ Authors array has 3 objects with roles
+✓ Subjects array has 3 objects with schemes
+✓ Keywords array has 4 strings
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 EXPECTED BEHAVIOR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Export downloads immediately (no modal)
+✅ Import shows real-time progress bar
+✅ Processing cannot be cancelled (prevents data corruption)
+✅ Errors collected but don't stop import
+✅ ISBN-based upsert prevents duplicates
+✅ Modal auto-closes on "View Catalog" click
+✅ Page reloads to show new records
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🐛 TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Issue: "Route not found"
+Fix: Check you're logged in as staff user at /admin/catalog
+
+Issue: "File type not allowed"
+Fix: Only .xlsx and .xls files accepted
+
+Issue: "File too large"
+Fix: Max 20 MB file size
+
+Issue: Import stuck at 0%
+Fix: Check browser console, verify CSRF token valid
+
+Issue: Template dropdown not working
+Fix: Open in Microsoft Excel or LibreOffice (Google Sheets may not support)
+
+Issue: "Import job not found"
+Fix: Import jobs expire after 2 hours in cache
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ ALL TESTS PASSED = IMPORT/EXPORT FULLY WORKING! 🎉
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

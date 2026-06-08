@@ -1,0 +1,26 @@
+{
+  "id": "minimalist-zen",
+  "name": "Minimalist Zen",
+  "description": "Monochrome palette, generous spacing, calm and focused. For distraction-free reading.",
+  "preview_image": "/images/templates/minimalist-zen.jpg",
+  "colors": {
+    "primary": "#374151",
+    "secondary": "#6b7280",
+    "accent": "#9ca3af",
+    "background": "#f9fafb",
+    "text": "#111827",
+    "muted": "#d1d5db"
+  },
+  "fonts": {
+    "heading": "Inter",
+    "body": "Inter"
+  },
+  "styles": {
+    "layout": "zen",
+    "cardStyle": "minimal",
+    "navbarStyle": "minimal",
+    "heroStyle": "text-only",
+    "borderRadius": "0rem",
+    "buttonStyle": "ghost"
+  }
+}

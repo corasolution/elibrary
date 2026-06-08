@@ -1,0 +1,35 @@
+{
+  "id": "elibrary-modern",
+  "name": "eLibrary Modern",
+  "description": "Modern digital library design with comprehensive search, AI features, and clean navigation. Based on professional library standards.",
+  "preview_image": "/images/templates/elibrary-modern.jpg",
+  "colors": {
+    "primary": "#3B82F6",
+    "secondary": "#64748B",
+    "accent": "#2563EB",
+    "background": "#F8FAFC",
+    "text": "#0B1220",
+    "muted": "#CBD5E1",
+    "brand-50": "#EFF6FF",
+    "brand-100": "#DBEAFE",
+    "brand-200": "#BFDBFE",
+    "brand-500": "#3B82F6",
+    "brand-600": "#2563EB",
+    "brand-700": "#1D4ED8",
+    "brand-800": "#1E40AF",
+    "brand-900": "#1E3A8A",
+    "brand-950": "#0B1F52"
+  },
+  "fonts": {
+    "heading": "Inter",
+    "body": "Inter"
+  },
+  "styles": {
+    "layout": "centered",
+    "cardStyle": "shadow",
+    "navbarStyle": "elibrary",
+    "heroStyle": "dotted",
+    "borderRadius": "0.5rem",
+    "buttonStyle": "rounded"
+  }
+}

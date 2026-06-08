@@ -1,0 +1,26 @@
+{
+  "id": "bold-geometric",
+  "name": "Bold Geometric",
+  "description": "Strong shapes, contrasting colors, modern art vibe. For contemporary design-forward libraries.",
+  "preview_image": "/images/templates/bold-geometric.jpg",
+  "colors": {
+    "primary": "#0891b2",
+    "secondary": "#fb923c",
+    "accent": "#c026d3",
+    "background": "#f0fdfa",
+    "text": "#134e4a",
+    "muted": "#5eead4"
+  },
+  "fonts": {
+    "heading": "Space Grotesk",
+    "body": "Inter"
+  },
+  "styles": {
+    "layout": "geometric",
+    "cardStyle": "angular",
+    "navbarStyle": "bold",
+    "heroStyle": "geometric",
+    "borderRadius": "0rem",
+    "buttonStyle": "sharp"
+  }
+}

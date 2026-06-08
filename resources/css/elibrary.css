@@ -1,0 +1,185 @@
+/* eLibrary Design System - Based on Claude Design handoff */
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Subtle dotted background for hero */
+.dot-grid {
+    background-image: radial-gradient(rgba(37, 99, 235, 0.12) 1px, transparent 1px);
+    background-size: 22px 22px;
+}
+
+/* Placeholder cover stripes */
+.cover-stripes {
+    background: repeating-linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.12) 0 8px,
+        rgba(255, 255, 255, 0) 8px 16px
+    );
+}
+
+/* Tile hover effects */
+.tile {
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.tile:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 30px rgba(37, 99, 235, 0.15);
+    border-color: #BFDBFE;
+}
+
+/* Book card hover */
+.book-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.book-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+/* AI pill pulse animation */
+@keyframes pulseDot {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.4);
+    }
+}
+
+.ai-dot {
+    animation: pulseDot 1.6s ease-in-out infinite;
+}
+
+/* Scroll row styling */
+.scroll-row::-webkit-scrollbar {
+    height: 8px;
+}
+
+.scroll-row::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 99px;
+}
+
+.scroll-row::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* Gradient line */
+.gradient-line {
+    background: linear-gradient(90deg, transparent, #BFDBFE, transparent);
+}
+
+/* Focused search ring */
+.search-wrap:focus-within {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12), 0 10px 30px rgba(37, 99, 235, 0.12);
+    border-color: #3B82F6;
+}
+
+/* Cover gradient presets */
+.cv-1 {
+    background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+}
+
+.cv-2 {
+    background: linear-gradient(135deg, #0B1F52 0%, #1D4ED8 100%);
+}
+
+.cv-3 {
+    background: linear-gradient(135deg, #2563EB 0%, #60A5FA 100%);
+}
+
+.cv-4 {
+    background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%);
+}
+
+.cv-5 {
+    background: linear-gradient(135deg, #60A5FA 0%, #BFDBFE 100%);
+    color: #0B1F52;
+}
+
+.cv-6 {
+    background: linear-gradient(135deg, #334155 0%, #1E40AF 100%);
+}
+
+.cv-7 {
+    background: linear-gradient(135deg, #0EA5E9 0%, #1E40AF 100%);
+}
+
+.cv-8 {
+    background: linear-gradient(135deg, #1D4ED8 0%, #0B1F52 100%);
+}
+
+/* Chip/tag hover effects */
+.chip {
+    transition: all 0.15s ease;
+}
+
+.chip:hover {
+    background: #EFF6FF;
+    border-color: #BFDBFE;
+    color: #1D4ED8;
+}
+
+.chip.active {
+    background: #1D4ED8;
+    color: white;
+    border-color: #1D4ED8;
+}
+
+/* Brand colors matching eLibrary design */
+:root {
+    --brand-50: #EFF6FF;
+    --brand-100: #DBEAFE;
+    --brand-200: #BFDBFE;
+    --brand-300: #93C5FD;
+    --brand-400: #60A5FA;
+    --brand-500: #3B82F6;
+    --brand-600: #2563EB;
+    --brand-700: #1D4ED8;
+    --brand-800: #1E40AF;
+    --brand-900: #1E3A8A;
+    --brand-950: #0B1F52;
+
+    --ink-900: #0B1220;
+    --ink-700: #334155;
+    --ink-500: #64748B;
+    --ink-300: #CBD5E1;
+    --ink-100: #F1F5F9;
+}
+
+/* Soft shadow */
+.shadow-soft {
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+/* Pop shadow (for CTAs and important elements) */
+.shadow-pop {
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.18);
+}
+
+/* Text shadow for colorful navbar */
+.text-shadow {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Line clamp utilities (for truncating text) */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}

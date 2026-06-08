@@ -1,0 +1,26 @@
+{
+  "id": "academic-professional",
+  "name": "Academic Professional",
+  "description": "Structured grid layout, navy and white, formal and authoritative. Ideal for universities.",
+  "preview_image": "/images/templates/academic-professional.jpg",
+  "colors": {
+    "primary": "#1e40af",
+    "secondary": "#475569",
+    "accent": "#0284c7",
+    "background": "#f8fafc",
+    "text": "#0f172a",
+    "muted": "#94a3b8"
+  },
+  "fonts": {
+    "heading": "Roboto",
+    "body": "Roboto"
+  },
+  "styles": {
+    "layout": "grid",
+    "cardStyle": "flat",
+    "navbarStyle": "professional",
+    "heroStyle": "minimal",
+    "borderRadius": "0.375rem",
+    "buttonStyle": "squared"
+  }
+}

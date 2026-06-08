@@ -1,0 +1,26 @@
+{
+  "id": "modern-minimal",
+  "name": "Modern Minimal",
+  "description": "Clean lines, plenty of white space, focus on content. Perfect for contemporary libraries.",
+  "preview_image": "/images/templates/modern-minimal.jpg",
+  "colors": {
+    "primary": "#2563eb",
+    "secondary": "#64748b",
+    "accent": "#f59e0b",
+    "background": "#ffffff",
+    "text": "#1e293b",
+    "muted": "#94a3b8"
+  },
+  "fonts": {
+    "heading": "Inter",
+    "body": "Inter"
+  },
+  "styles": {
+    "layout": "centered",
+    "cardStyle": "shadow",
+    "navbarStyle": "solid",
+    "heroStyle": "gradient",
+    "borderRadius": "0.5rem",
+    "buttonStyle": "rounded"
+  }
+}

@@ -1,0 +1,103 @@
+/* OPAC Layout Templates */
+@import './templates.css';
+
+/* eLibrary Design System */
+@import './elibrary.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Theme CSS Variables - Default values */
+:root {
+  --color-primary: #2563eb;
+  --color-secondary: #64748b;
+  --color-accent: #f59e0b;
+  --color-background: #ffffff;
+  --color-text: #1e293b;
+  --color-muted: #94a3b8;
+
+  --font-heading: 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  --border-radius: 0.5rem;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+
+    body {
+        @apply text-gray-900 bg-white;
+        color: var(--color-text);
+        background-color: var(--color-background);
+        font-family: var(--font-body);
+        font-size: 0.9375rem;
+        line-height: 1.6;
+        letter-spacing: -0.01em;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-heading);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+    }
+
+    h1 { @apply text-3xl md:text-4xl font-bold; }
+    h2 { @apply text-2xl md:text-3xl font-semibold; }
+    h3 { @apply text-xl md:text-2xl font-semibold; }
+    h4 { @apply text-lg md:text-xl font-medium; }
+    h5 { @apply text-base md:text-lg font-medium; }
+    h6 { @apply text-sm md:text-base font-medium; }
+
+    p {
+        line-height: 1.7;
+    }
+
+    /* Better form input styling */
+    input, textarea, select {
+        font-size: 0.9375rem;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* Better button text */
+    button {
+        font-weight: 500;
+        letter-spacing: -0.01em;
+    }
+}
+
+@layer components {
+    .btn-primary {
+        @apply inline-flex items-center gap-2 px-4 py-2 bg-blue-700 text-white text-sm font-medium rounded-lg hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors;
+    }
+
+    .btn-secondary {
+        @apply inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors;
+    }
+
+    .card {
+        @apply bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow;
+    }
+
+    .input {
+        @apply block w-full rounded-lg border-gray-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500;
+    }
+
+    .badge {
+        @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    }
+
+    .badge-blue  { @apply badge bg-blue-100 text-blue-800; }
+    .badge-green { @apply badge bg-green-100 text-green-800; }
+    .badge-amber { @apply badge bg-amber-100 text-amber-800; }
+    .badge-red   { @apply badge bg-red-100 text-red-800; }
+}

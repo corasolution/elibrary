@@ -1,0 +1,26 @@
+{
+  "id": "classic-library",
+  "name": "Classic Library",
+  "description": "Traditional serif fonts, burgundy and cream palette. Timeless elegance for academic institutions.",
+  "preview_image": "/images/templates/classic-library.jpg",
+  "colors": {
+    "primary": "#7c2d12",
+    "secondary": "#78716c",
+    "accent": "#ca8a04",
+    "background": "#fef3c7",
+    "text": "#292524",
+    "muted": "#a8a29e"
+  },
+  "fonts": {
+    "heading": "Playfair Display",
+    "body": "Merriweather"
+  },
+  "styles": {
+    "layout": "wide",
+    "cardStyle": "bordered",
+    "navbarStyle": "classic",
+    "heroStyle": "banner",
+    "borderRadius": "0.25rem",
+    "buttonStyle": "classic"
+  }
+}

@@ -1,0 +1,259 @@
+/* Circulation Desk page — custom styles for quick-checkout */
+
+/* Layout */
+.qco-grid-5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1.25rem; }
+.qco-col-2  { grid-column: span 2 / span 2; }
+.qco-col-3  { grid-column: span 3 / span 3; }
+@media (max-width: 1023px) {
+    .qco-grid-5 { grid-template-columns: 1fr; }
+    .qco-col-2, .qco-col-3 { grid-column: span 1; }
+}
+
+/* Cards */
+.qco-card {
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / .08);
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+}
+.qco-card-body { padding: 1.25rem; }
+
+/* Accent top bar */
+.qco-accent-blue   { height: 6px; background: #3b82f6; }
+.qco-accent-indigo { height: 6px; background: #6366f1; }
+.qco-accent-gray   { height: 6px; background: #d1d5db; }
+
+/* Page header */
+.qco-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; }
+.qco-header-icon {
+    padding: 0.5rem; background: #2563eb; border-radius: 0.75rem;
+    display: flex; align-items: center; justify-content: center;
+}
+.qco-header-icon svg { width: 1.5rem; height: 1.5rem; color: #fff; fill: none; stroke: currentColor; }
+.qco-header h1 { font-size: 1.5rem; font-weight: 700; color: #111827; line-height: 1.25; margin: 0; }
+.qco-header p  { font-size: 0.875rem; color: #6b7280; margin: 0; }
+
+/* Tab switcher */
+.qco-tabs {
+    display: flex; gap: 0.25rem; padding: 0.25rem;
+    background: #f3f4f6; border-radius: 0.75rem;
+    width: fit-content; margin-bottom: 1.5rem;
+}
+.qco-tab {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.625rem 1.25rem; border-radius: 0.5rem;
+    font-size: 0.875rem; font-weight: 600;
+    cursor: pointer; border: none; background: transparent;
+    transition: all 0.15s ease; color: #4b5563;
+}
+.qco-tab:hover { background: #f9fafb; color: #1f2937; }
+.qco-tab.active-blue   { background: #fff; color: #1d4ed8; box-shadow: 0 1px 2px 0 rgb(0 0 0/.08); outline: 1px solid #e5e7eb; }
+.qco-tab.active-amber  { background: #fff; color: #b45309; box-shadow: 0 1px 2px 0 rgb(0 0 0/.08); outline: 1px solid #e5e7eb; }
+.qco-tab svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; }
+.qco-badge-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 1.25rem; height: 1.25rem; border-radius: 9999px;
+    background: #f59e0b; color: #fff; font-size: 0.75rem; font-weight: 700;
+}
+
+/* Section labels */
+.qco-section-label {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.05em; color: #374151; margin-bottom: 0.75rem;
+}
+.qco-section-label svg { width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; }
+
+/* Inputs */
+.qco-input {
+    width: 100%; padding: 0.75rem 1rem;
+    font-size: 1rem; border: 1px solid #d1d5db; border-radius: 0.75rem;
+    outline: none; transition: border-color .15s, box-shadow .15s;
+    background: #fff; color: #111827;
+    box-sizing: border-box;
+}
+.qco-input::placeholder { color: #9ca3af; }
+.qco-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgb(59 130 246/.2); }
+.qco-input-amber:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgb(245 158 11/.2); }
+.qco-input-indigo:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgb(99 102 241/.2); }
+
+/* Buttons */
+.qco-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.75rem 1.5rem; border-radius: 0.75rem;
+    font-size: 0.875rem; font-weight: 600; cursor: pointer;
+    border: none; transition: background .15s; white-space: nowrap;
+}
+.qco-btn svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; flex-shrink: 0; }
+.qco-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.qco-btn-blue   { background: #2563eb; color: #fff; }
+.qco-btn-blue:hover   { background: #1d4ed8; }
+.qco-btn-indigo { background: #4f46e5; color: #fff; }
+.qco-btn-indigo:hover { background: #4338ca; }
+.qco-btn-amber  { background: #f59e0b; color: #fff; }
+.qco-btn-amber:hover  { background: #d97706; }
+.qco-btn-green  { background: #16a34a; color: #fff; padding: 0.625rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; }
+.qco-btn-green:hover  { background: #15803d; }
+.qco-btn-ghost  { background: transparent; color: #4b5563; border: 1px solid #d1d5db; padding: 0.625rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; }
+.qco-btn-ghost:hover  { background: #f9fafb; }
+.qco-btn-reset  { background: transparent; color: #4b5563; border: 1px solid #d1d5db; border-radius: 0.75rem; padding: 0.75rem 1rem; }
+.qco-btn-reset:hover  { background: #f9fafb; }
+.qco-btn-renew  { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.75rem; background: #eff6ff; border-radius: 0.5rem; color: #1d4ed8; font-size: 0.75rem; font-weight: 600; border: none; cursor: pointer; }
+.qco-btn-renew:hover { background: #dbeafe; }
+.qco-btn-renew svg { width: 0.875rem; height: 0.875rem; fill: none; stroke: currentColor; }
+
+/* Patron card */
+.qco-avatar {
+    width: 3.5rem; height: 3.5rem; border-radius: 9999px;
+    background: #dbeafe; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.qco-avatar span { font-size: 1.25rem; font-weight: 700; color: #1d4ed8; }
+.qco-patron-name { font-weight: 700; font-size: 1.125rem; color: #111827; line-height: 1.25; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qco-patron-num  { font-size: 0.875rem; color: #6b7280; font-family: monospace; margin: 0.125rem 0 0; }
+
+.qco-badge {
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    padding: 0.125rem 0.625rem; border-radius: 9999px;
+    font-size: 0.75rem; font-weight: 600;
+}
+.qco-badge-dot { width: 6px; height: 6px; border-radius: 9999px; display: inline-block; }
+.qco-badge-green  { background: #dcfce7; color: #15803d; }
+.qco-badge-green  .qco-badge-dot { background: #16a34a; }
+.qco-badge-red    { background: #fee2e2; color: #b91c1c; }
+.qco-badge-red    .qco-badge-dot { background: #dc2626; }
+.qco-badge-gray   { background: #f3f4f6; color: #374151; }
+.qco-badge-amber  { background: #fef3c7; color: #92400e; }
+.qco-badge-amber  .qco-badge-dot { background: #f59e0b; }
+
+.qco-patron-details { border-top: 1px solid #f1f5f9; padding-top: 1rem; display: flex; flex-direction: column; gap: 0.625rem; }
+.qco-detail-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.875rem; }
+.qco-detail-label { display: flex; align-items: center; gap: 0.375rem; color: #6b7280; }
+.qco-detail-label svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; }
+.qco-detail-value { font-weight: 500; color: #1f2937; }
+
+/* Loan progress bar */
+.qco-progress-bar { display: flex; align-items: center; gap: 0.5rem; }
+.qco-progress-track { width: 4rem; height: 6px; background: #e5e7eb; border-radius: 9999px; overflow: hidden; }
+.qco-progress-fill  { height: 100%; border-radius: 9999px; }
+.qco-progress-blue   { background: #3b82f6; }
+.qco-progress-amber  { background: #f59e0b; }
+.qco-progress-red    { background: #ef4444; }
+
+/* Overdue warning banner */
+.qco-overdue-banner {
+    margin-top: 1rem; display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.75rem; border-radius: 0.75rem;
+    background: #fef2f2; border: 1px solid #fecaca;
+}
+.qco-overdue-banner svg { width: 1.25rem; height: 1.25rem; color: #ef4444; fill: none; stroke: currentColor; flex-shrink: 0; }
+.qco-overdue-banner p   { margin: 0; font-size: 0.875rem; font-weight: 600; color: #b91c1c; }
+
+/* Blocked banner */
+.qco-blocked-banner {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 1rem; border-radius: 0.75rem;
+    background: #fef2f2; border: 1px solid #fca5a5;
+}
+.qco-blocked-banner svg { width: 1.5rem; height: 1.5rem; color: #dc2626; fill: none; stroke: currentColor; }
+.qco-blocked-banner p { margin: 0; }
+.qco-blocked-title { font-weight: 600; color: #7f1d1d; }
+.qco-blocked-sub   { font-size: 0.875rem; color: #b91c1c; }
+
+/* Pending checkout card */
+.qco-pending-card {
+    padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem;
+    border: 2px solid #a5b4fc; background: #eef2ff;
+    display: flex; gap: 0.75rem;
+}
+.qco-pending-icon {
+    padding: 0.5rem; background: #e0e7ff; border-radius: 0.5rem;
+    flex-shrink: 0; display: flex;
+}
+.qco-pending-icon svg { width: 1.5rem; height: 1.5rem; color: #4338ca; fill: none; stroke: currentColor; }
+.qco-pending-title { font-weight: 700; color: #1e1b4b; font-size: 1rem; line-height: 1.35; margin: 0 0 0.5rem; }
+.qco-pending-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem 1rem; font-size: 0.875rem; margin-bottom: 0.75rem; }
+.qco-pending-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: .05em; color: #6d72c3; }
+.qco-pending-val   { font-weight: 600; color: #2d2a7a; font-family: monospace; }
+.qco-pending-val-bold { font-weight: 700; color: #1e1b4b; }
+
+/* Success receipt */
+.qco-receipt {
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    padding: 1rem; border-radius: 0.75rem;
+    background: #f0fdf4; border: 1px solid #bbf7d0;
+}
+.qco-receipt-icon { padding: 0.375rem; background: #bbf7d0; border-radius: 9999px; flex-shrink: 0; margin-top: 2px; }
+.qco-receipt-icon svg { width: 1rem; height: 1rem; color: #15803d; fill: none; stroke: currentColor; }
+.qco-receipt-title { font-size: 0.875rem; font-weight: 700; color: #14532d; margin: 0 0 2px; }
+.qco-receipt-sub   { font-size: 0.875rem; color: #15803d; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qco-receipt-meta  { font-size: 0.75rem; color: #16a34a; font-family: monospace; margin: 0; }
+
+/* Empty states */
+.qco-empty {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 2.5rem 1rem; color: #9ca3af;
+    text-align: center;
+}
+.qco-empty svg { width: 3rem; height: 3rem; margin-bottom: 0.5rem; opacity: .3; fill: none; stroke: currentColor; }
+.qco-empty p { margin: 0; font-size: 0.875rem; }
+.qco-empty-patron svg  { width: 2.25rem; height: 2.25rem; color: #93c5fd; opacity: 1; }
+.qco-empty-patron-box {
+    width: 4rem; height: 4rem; background: #eff6ff; border-radius: 0.75rem;
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;
+}
+
+/* No-patron placeholder */
+.qco-no-patron {
+    background: #fff; border-radius: 1rem;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0/.08); border: 1px solid #f1f5f9;
+    padding: 3rem; text-align: center;
+}
+.qco-no-patron h3 { font-weight: 600; color: #374151; margin: 0 0 0.25rem; }
+.qco-no-patron p  { font-size: 0.875rem; color: #9ca3af; margin: 0; }
+
+/* Table card */
+.qco-table-card { background: #fff; border-radius: 1rem; box-shadow: 0 1px 3px 0 rgb(0 0 0/.08); border: 1px solid #f1f5f9; overflow: hidden; }
+.qco-table-header { padding: 1rem 1.25rem; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; }
+.qco-table-header-left { display: flex; align-items: center; gap: 0.5rem; }
+.qco-table-header-left svg { width: 1.25rem; height: 1.25rem; color: #6b7280; fill: none; stroke: currentColor; }
+.qco-table-header h3 { font-weight: 600; color: #1f2937; font-size: 0.95rem; margin: 0; }
+.qco-table-count { display: inline-flex; align-items: center; justify-content: center; padding: 0.125rem 0.5rem; border-radius: 9999px; background: #f3f4f6; color: #4b5563; font-size: 0.75rem; font-weight: 700; }
+.qco-table-count-amber { background: #fef3c7; color: #92400e; }
+.qco-overdue-flag { font-size: 0.75rem; font-weight: 600; color: #dc2626; display: flex; align-items: center; gap: 0.25rem; }
+.qco-overdue-flag svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; }
+
+/* Table */
+.qco-table { width: 100%; font-size: 0.875rem; border-collapse: collapse; }
+.qco-table thead tr { background: #f9fafb; border-bottom: 1px solid #f1f5f9; }
+.qco-table thead th { text-align: left; padding: 0.75rem 1rem; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; }
+.qco-table tbody tr { border-bottom: 1px solid #f9fafb; transition: background .1s; }
+.qco-table tbody tr:hover { background: #f9fafb; }
+.qco-table tbody tr.row-overdue { background: #fef2f2; }
+.qco-table tbody tr.row-overdue:hover { background: #fee2e2; }
+.qco-table tbody tr.row-overdue-amber { background: #fffbeb; }
+.qco-table tbody tr.row-overdue-amber:hover { background: #fef3c7; }
+.qco-table td { padding: 0.875rem 1rem; vertical-align: middle; }
+.qco-td-title { font-weight: 500; color: #1f2937; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 240px; }
+.qco-td-title-red { color: #7f1d1d; }
+.qco-td-mono  { font-family: monospace; font-size: 0.75rem; color: #6b7280; }
+.qco-td-due   { display: flex; align-items: center; gap: 0.375rem; }
+.qco-td-due svg { width: 1rem; height: 1rem; color: #ef4444; fill: none; stroke: currentColor; flex-shrink: 0; }
+.qco-td-due-ok  { color: #374151; }
+.qco-td-due-red { color: #b91c1c; font-weight: 600; }
+.qco-renewals-max { font-size: 0.75rem; color: #9ca3af; font-style: italic; }
+
+/* Search bar section */
+.qco-search-card { background: #fff; border-radius: 1rem; box-shadow: 0 1px 3px 0 rgb(0 0 0/.08); border: 1px solid #f1f5f9; padding: 1.25rem; margin-bottom: 1.25rem; }
+.qco-search-row { display: flex; gap: 0.75rem; align-items: stretch; }
+.qco-search-row .qco-input { flex: 1; }
+.qco-tip { margin-top: 0.5rem; font-size: 0.75rem; color: #9ca3af; }
+
+/* Fine badge */
+.qco-fine-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.125rem 0.625rem; border-radius: 9999px; background: #fee2e2; color: #b91c1c; font-size: 0.75rem; font-weight: 600; }
+.qco-fine-badge svg { width: 0.75rem; height: 0.75rem; fill: none; stroke: currentColor; }
+
+/* Returned status badge */
+.qco-status-returned { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.125rem 0.625rem; border-radius: 9999px; background: #dcfce7; color: #15803d; font-size: 0.75rem; font-weight: 600; }
+.qco-status-returned svg { width: 0.875rem; height: 0.875rem; fill: none; stroke: currentColor; }

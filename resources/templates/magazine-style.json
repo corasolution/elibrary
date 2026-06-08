@@ -1,0 +1,26 @@
+{
+  "id": "magazine-style",
+  "name": "Magazine Style",
+  "description": "Editorial layout, overlapping cards, typography-focused. Modern media library aesthetic.",
+  "preview_image": "/images/templates/magazine-style.jpg",
+  "colors": {
+    "primary": "#18181b",
+    "secondary": "#71717a",
+    "accent": "#ef4444",
+    "background": "#ffffff",
+    "text": "#09090b",
+    "muted": "#a1a1aa"
+  },
+  "fonts": {
+    "heading": "Montserrat",
+    "body": "Lato"
+  },
+  "styles": {
+    "layout": "editorial",
+    "cardStyle": "magazine",
+    "navbarStyle": "minimal",
+    "heroStyle": "editorial",
+    "borderRadius": "0rem",
+    "buttonStyle": "underline"
+  }
+}

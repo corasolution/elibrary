@@ -1,0 +1,26 @@
+{
+  "id": "vibrant-colorful",
+  "name": "Vibrant & Colorful",
+  "description": "Bold colors, playful gradients, energetic vibe. Great for public and community libraries.",
+  "preview_image": "/images/templates/vibrant-colorful.jpg",
+  "colors": {
+    "primary": "#dc2626",
+    "secondary": "#7c3aed",
+    "accent": "#f59e0b",
+    "background": "#fef2f2",
+    "text": "#1e293b",
+    "muted": "#64748b"
+  },
+  "fonts": {
+    "heading": "Poppins",
+    "body": "Open Sans"
+  },
+  "styles": {
+    "layout": "asymmetric",
+    "cardStyle": "colorful",
+    "navbarStyle": "gradient",
+    "heroStyle": "gradient-bold",
+    "borderRadius": "1rem",
+    "buttonStyle": "pill"
+  }
+}

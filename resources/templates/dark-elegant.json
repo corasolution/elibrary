@@ -1,0 +1,26 @@
+{
+  "id": "dark-elegant",
+  "name": "Dark Elegant",
+  "description": "Dark mode with gold accents, sophisticated and modern. Perfect for evening readers.",
+  "preview_image": "/images/templates/dark-elegant.jpg",
+  "colors": {
+    "primary": "#f59e0b",
+    "secondary": "#78716c",
+    "accent": "#eab308",
+    "background": "#0f172a",
+    "text": "#e2e8f0",
+    "muted": "#64748b"
+  },
+  "fonts": {
+    "heading": "Lora",
+    "body": "Inter"
+  },
+  "styles": {
+    "layout": "centered",
+    "cardStyle": "elevated",
+    "navbarStyle": "dark",
+    "heroStyle": "dark-gradient",
+    "borderRadius": "0.5rem",
+    "buttonStyle": "glow"
+  }
+}

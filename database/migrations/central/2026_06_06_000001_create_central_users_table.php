@@ -1,0 +1,40 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::connection('central')->create('central_users', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->string('password');
+            $table->string('role', 50); // 'super_admin', 'partner', 'sales_agent'
+            $table->boolean('is_active')->default(true);
+            $table->timestamp('email_verified_at')->nullable();
+            $table->rememberToken();
+            $table->timestamps();
+            $table->softDeletes();
+
+            // Indexes for performance
+            $table->index('email');
+            $table->index('role');
+            $table->index('is_active');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::connection('central')->dropIfExists('central_users');
+    }
+};

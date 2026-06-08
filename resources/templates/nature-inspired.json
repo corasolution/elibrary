@@ -1,0 +1,26 @@
+{
+  "id": "nature-inspired",
+  "name": "Nature Inspired",
+  "description": "Earth tones, organic shapes, green and brown palette. Warm and welcoming natural aesthetic.",
+  "preview_image": "/images/templates/nature-inspired.jpg",
+  "colors": {
+    "primary": "#15803d",
+    "secondary": "#78350f",
+    "accent": "#a3e635",
+    "background": "#fefce8",
+    "text": "#365314",
+    "muted": "#84cc16"
+  },
+  "fonts": {
+    "heading": "Quicksand",
+    "body": "Open Sans"
+  },
+  "styles": {
+    "layout": "organic",
+    "cardStyle": "soft",
+    "navbarStyle": "natural",
+    "heroStyle": "nature",
+    "borderRadius": "2rem",
+    "buttonStyle": "organic"
+  }
+}
