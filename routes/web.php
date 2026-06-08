@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\AICatalogController;
 use App\Http\Controllers\Admin\AIUsageController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\OaiPmhController;
+use App\Http\Controllers\Api\CatalogApiController;
 
 // NOTE: Central Admin routes are loaded in routes/central.php
 // NOTE: Tenant Admin routes are loaded in routes/admin.php
@@ -65,6 +66,20 @@ Route::prefix('{slug}')
 
         // OAI-PMH 2.0 Provider (public, no auth required)
         Route::get('/oai', [OaiPmhController::class, 'handle'])->name('oai');
+
+        // Tenant-scoped JSON API (path-based: /{slug}/api/v1/catalog/...)
+        // Lives inside the tenant group so tenancy is initialized before queries.
+        Route::prefix('api/v1')->middleware('throttle:60,1')->name('api.')->group(function () {
+            Route::get('/catalog', [CatalogApiController::class, 'index'])->name('catalog.index');
+            Route::get('/catalog/search', [CatalogApiController::class, 'search'])->name('catalog.search');
+            Route::post('/catalog/semantic-search', [CatalogApiController::class, 'semanticSearch'])->name('catalog.semantic');
+            Route::get('/catalog/isbn/{isbn}', [CatalogApiController::class, 'isbnLookup'])->name('catalog.isbn');
+            Route::get('/catalog/{id}', [CatalogApiController::class, 'show'])->name('catalog.show');
+            Route::get('/catalog/{id}/bibframe', [CatalogApiController::class, 'bibframe'])->name('catalog.bibframe');
+            Route::get('/catalog/{id}/marc', [CatalogApiController::class, 'marc'])->name('catalog.marc');
+            Route::get('/catalog/{id}/dublincore', [CatalogApiController::class, 'dublinCore'])->name('catalog.dublincore');
+            Route::get('/catalog/{id}/similar', [CatalogApiController::class, 'similar'])->name('catalog.similar');
+        });
 
         // Patron auth
         Route::get('/login', [PatronAuthController::class, 'showLogin'])->name('opac.login');

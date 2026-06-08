@@ -1,25 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\CatalogApiController;
 
-// ─── Public API (rate limited) ────────────────────────────────────────────────
-Route::middleware(['throttle:60,1'])->prefix('v1')->group(function () {
-    // Catalog search
-    Route::get('/catalog', [CatalogApiController::class, 'index']);
-    Route::get('/catalog/search', [CatalogApiController::class, 'search']);
-    Route::get('/catalog/{id}', [CatalogApiController::class, 'show']);
-    Route::get('/catalog/isbn/{isbn}', [CatalogApiController::class, 'isbnLookup']);
-
-    // Enhanced endpoints (new)
-    Route::get('/catalog/{id}/bibframe', [CatalogApiController::class, 'bibframe']);
-    Route::get('/catalog/{id}/marc', [CatalogApiController::class, 'marc']);
-    Route::get('/catalog/{id}/dublincore', [CatalogApiController::class, 'dublinCore']);
-    Route::get('/catalog/{id}/similar', [CatalogApiController::class, 'similar']);
-
-    // Semantic search (if enabled)
-    Route::post('/catalog/semantic-search', [CatalogApiController::class, 'semanticSearch']);
-});
+// ─── Public Catalog API ───────────────────────────────────────────────────────
+// NOTE: Catalog endpoints are tenant-scoped and live under the {slug} group in
+// routes/web.php (e.g. /{slug}/api/v1/catalog/...). They were moved out of this
+// non-tenant file because catalog data lives in per-tenant databases — calling
+// them here would query the central DB and return nothing.
 
 // ─── Authenticated Patron API ─────────────────────────────────────────────────
 Route::middleware(['auth:sanctum', 'throttle:120,1'])->prefix('v1')->group(function () {
