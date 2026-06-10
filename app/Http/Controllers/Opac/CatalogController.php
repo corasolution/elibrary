@@ -10,7 +10,10 @@ use Inertia\Response;
 
 class CatalogController extends Controller
 {
-    public function __construct(private readonly CatalogService $catalogService) {}
+    public function __construct(
+        private readonly CatalogService $catalogService,
+        private readonly \App\Services\DigitalAssetService $assetService,
+    ) {}
 
     public function home(): Response
     {
@@ -107,7 +110,16 @@ class CatalogController extends Controller
             ->limit(6)
             ->get();
 
-        return Inertia::render('Opac/Record', compact('record', 'related'));
+        $videoUrl = null;
+        if ($record->materialType?->code === 'video' && $record->digitalResources->isNotEmpty()) {
+            try {
+                $videoUrl = $this->assetService->signedUrl($record->digitalResources->first(), expiryMinutes: 120);
+            } catch (\Exception) {
+                // Local disk doesn't support signed URLs; frontend falls back to /storage path
+            }
+        }
+
+        return Inertia::render('Opac/Record', compact('record', 'related', 'videoUrl'));
     }
 
     public function citation(Request $request, string $id, string $format): \Illuminate\Http\Response

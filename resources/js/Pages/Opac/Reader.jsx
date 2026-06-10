@@ -38,13 +38,13 @@ export default function Reader({ resource, record, url: signedUrl }) {
             <div className="flex-1 overflow-hidden">
                 {format === 'pdf' && <PdfViewer src={fileUrl} />}
                 {format === 'epub' && <EpubViewer src={fileUrl} />}
-                {['mp3', 'wav', 'flac'].includes(format) && (
+                {['mp3', 'wav', 'flac', 'audio'].includes(format) && (
                     <AudioViewer src={fileUrl} title={record?.title} cover={resource?.thumbnail_path ? `/storage/${resource.thumbnail_path}` : null} />
                 )}
-                {['mp4', 'mkv', 'webm'].includes(format) && (
+                {['mp4', 'mkv', 'webm', 'video'].includes(format) && (
                     <VideoViewer src={fileUrl} title={record?.title} />
                 )}
-                {!['pdf', 'epub', 'mp3', 'wav', 'flac', 'mp4', 'mkv', 'webm'].includes(format) && (
+                {!['pdf', 'epub', 'mp3', 'wav', 'flac', 'audio', 'mp4', 'mkv', 'webm', 'video'].includes(format) && (
                     <UnsupportedViewer resource={resource} base={base} />
                 )}
             </div>

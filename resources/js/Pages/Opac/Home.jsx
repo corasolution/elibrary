@@ -22,12 +22,12 @@ export default function OpacHome({ ebooks = [], epublications = [], audio = [], 
 
     // Collection types
     const collections = [
-        { name: 'eBooks', count: '824,312 titles', icon: BookOpen, color: 'blue', href: `${base}/catalog?type=ebook` },
-        { name: 'Catalog', count: 'All physical items', icon: FileText, color: 'blue', href: `${base}/catalog` },
-        { name: 'ePublications', count: '312,084 issues', icon: Newspaper, color: 'blue', href: `${base}/catalog?type=epub` },
-        { name: 'Audio', count: '48,207 recordings', icon: Headphones, color: 'blue', href: `${base}/catalog?type=audio` },
-        { name: 'Video', count: '22,914 films', icon: Film, color: 'blue', href: `${base}/catalog?type=video` },
-        { name: 'Theses', count: '104,550 papers', icon: GraduationCap, color: 'blue', href: `${base}/catalog?type=thesis` },
+        { name: t('home.material_ebooks'), count: '824,312 titles', icon: BookOpen, color: 'blue', href: `${base}/catalog?type=ebook` },
+        { name: t('home.material_catalog'), count: 'All physical items', icon: FileText, color: 'blue', href: `${base}/catalog` },
+        { name: t('home.material_epubs'), count: '312,084 issues', icon: Newspaper, color: 'blue', href: `${base}/catalog?type=epub` },
+        { name: t('home.material_audio'), count: '48,207 recordings', icon: Headphones, color: 'blue', href: `${base}/catalog?type=audio` },
+        { name: t('home.material_video'), count: '22,914 films', icon: Film, color: 'blue', href: `${base}/catalog?type=video` },
+        { name: t('home.material_theses'), count: '104,550 papers', icon: GraduationCap, color: 'blue', href: `${base}/catalog?type=thesis` },
     ];
 
     // Trending keywords
@@ -113,7 +113,7 @@ export default function OpacHome({ ebooks = [], epublications = [], audio = [], 
                                     type="submit"
                                     className="inline-flex items-center justify-center h-11 px-6 rounded-xl bg-blue-700 hover:bg-blue-800 text-white font-semibold text-sm transition-all"
                                 >
-                                    Search
+                                    {t('home.search_btn')}
                                 </button>
                             </div>
                         </form>
@@ -181,7 +181,7 @@ export default function OpacHome({ ebooks = [], epublications = [], audio = [], 
                                 <BookOpen className="w-5 h-5" />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-extrabold text-gray-900">eBooks</h2>
+                                <h2 className="text-2xl font-extrabold text-gray-900">{t('home.material_ebooks')}</h2>
                                 <div className="text-sm text-gray-500">Full-text titles available for immediate reading</div>
                             </div>
                         </div>
@@ -242,7 +242,7 @@ export default function OpacHome({ ebooks = [], epublications = [], audio = [], 
                                 <Newspaper className="w-5 h-5" />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-extrabold text-gray-900">ePublications</h2>
+                                <h2 className="text-2xl font-extrabold text-gray-900">{t('home.material_epubs')}</h2>
                                 <div className="text-sm text-gray-500">Journals, magazines, and serial issues</div>
                             </div>
                         </div>
@@ -301,7 +301,7 @@ export default function OpacHome({ ebooks = [], epublications = [], audio = [], 
                                 <Headphones className="w-5 h-5" />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-extrabold text-gray-900">Audio Collection</h2>
+                                <h2 className="text-2xl font-extrabold text-gray-900">{t('home.audio_collection')}</h2>
                                 <div className="text-sm text-gray-500">Lectures, audiobooks, oral histories</div>
                             </div>
                         </div>
@@ -360,7 +360,7 @@ export default function OpacHome({ ebooks = [], epublications = [], audio = [], 
                                 <Film className="w-5 h-5" />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-extrabold text-gray-900">Video Library</h2>
+                                <h2 className="text-2xl font-extrabold text-gray-900">{t('home.video_library')}</h2>
                                 <div className="text-sm text-gray-500">Documentaries, recorded lectures, archival footage</div>
                             </div>
                         </div>
@@ -420,7 +420,7 @@ export default function OpacHome({ ebooks = [], epublications = [], audio = [], 
                                 <GraduationCap className="w-5 h-5" />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-extrabold text-gray-900">Theses & Dissertations</h2>
+                                <h2 className="text-2xl font-extrabold text-gray-900">{t('home.theses_dissertations')}</h2>
                                 <div className="text-sm text-gray-500">Graduate research from partner institutions</div>
                             </div>
                         </div>
@@ -429,27 +429,43 @@ export default function OpacHome({ ebooks = [], epublications = [], audio = [], 
                         </Link>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {theses.map((record) => (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-5">
+                        {theses.slice(0, 12).map((record, i) => (
                             <Link
                                 key={record.id}
                                 href={`${base}/catalog/${record.id}`}
-                                className="book-card flex items-start gap-4 bg-white border border-slate-200 rounded-2xl p-5"
+                                className="book-card group block"
                             >
-                                <div className="w-12 h-16 rounded-md bg-gradient-to-br from-blue-700 to-blue-900 flex items-center justify-center text-white shrink-0">
-                                    <GraduationCap className="w-6 h-6" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="text-[10px] font-bold uppercase tracking-wider text-blue-700 mb-1">
-                                        Thesis · {record.publication_year}
+                                <div className={`relative aspect-[2/3] rounded-xl bg-gradient-to-br ${
+                                    i % 8 === 0 ? 'from-blue-800 to-blue-600' :
+                                    i % 8 === 1 ? 'from-blue-950 to-blue-700' :
+                                    i % 8 === 2 ? 'from-blue-600 to-blue-400' :
+                                    i % 8 === 3 ? 'from-blue-900 to-blue-600' :
+                                    i % 8 === 4 ? 'from-blue-400 to-blue-200' :
+                                    i % 8 === 5 ? 'from-gray-700 to-blue-800' :
+                                    i % 8 === 6 ? 'from-cyan-500 to-blue-800' :
+                                    'from-blue-700 to-blue-950'
+                                } shadow-sm overflow-hidden cover-stripes`}>
+                                    <div className="absolute inset-0 flex flex-col justify-end p-3">
+                                        <div className={`text-[13px] font-bold leading-tight line-clamp-3 ${
+                                            i % 8 === 4 ? 'text-blue-900' : 'text-white'
+                                        }`}>
+                                            {record.title}
+                                        </div>
+                                        <div className={`text-[10px] mt-1 ${
+                                            i % 8 === 4 ? 'text-blue-700/80' : 'text-white/80'
+                                        }`}>
+                                            {record.authors?.[0]?.name || 'Unknown'}
+                                        </div>
                                     </div>
-                                    <div className="font-bold text-gray-900 leading-snug">{record.title}</div>
-                                    <div className="text-sm text-gray-500 mt-1">{record.authors?.[0]?.name || 'Unknown'}</div>
-                                    <div className="flex items-center gap-3 mt-3 text-xs text-gray-500">
-                                        <span>{record.pages || 0} pp.</span>
+                                    <div className="absolute inset-0 bg-blue-900/0 group-hover:bg-blue-900/20 transition-colors"></div>
+                                </div>
+                                <div className="mt-3">
+                                    <div className="text-sm font-semibold text-gray-900 truncate">{record.title}</div>
+                                    <div className="text-xs text-gray-500 truncate mt-0.5">
+                                        {record.authors?.[0]?.name || 'Unknown'} · {record.publication_year}
                                     </div>
                                 </div>
-                                <ArrowRight className="w-4 h-4 text-gray-300 mt-1" />
                             </Link>
                         ))}
                     </div>

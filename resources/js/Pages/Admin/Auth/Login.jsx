@@ -1,9 +1,11 @@
 import { useForm, Link } from '@inertiajs/react';
 import { BookMarked, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 export default function Login() {
     const [showPwd, setShowPwd] = useState(false);
+    const { t } = useTranslation();
 
     const { data, setData, post, processing, errors } = useForm({
         email: '',
@@ -25,7 +27,7 @@ export default function Login() {
                         <BookMarked className="w-6 h-6 text-white" />
                     </div>
                     <h1 className="text-xl font-bold text-white">Alpha eLibrary</h1>
-                    <p className="text-sm text-gray-400 mt-1">Staff Login</p>
+                    <p className="text-sm text-gray-400 mt-1">{t('auth.staff_login')}</p>
                 </div>
 
                 {/* Card */}
@@ -34,7 +36,7 @@ export default function Login() {
                         {/* Email */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                Email address
+                                {t('auth.email')}
                             </label>
                             <input
                                 type="email"
@@ -55,7 +57,7 @@ export default function Login() {
                         {/* Password */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                Password
+                                {t('auth.password')}
                             </label>
                             <div className="relative">
                                 <input
@@ -91,7 +93,7 @@ export default function Login() {
                                 className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                             />
                             <label htmlFor="remember" className="text-sm text-gray-600">
-                                Remember me
+                                {t('auth.remember_me')}
                             </label>
                         </div>
 
@@ -101,7 +103,7 @@ export default function Login() {
                             disabled={processing}
                             className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium py-2.5 px-4 rounded-lg transition-colors"
                         >
-                            {processing ? 'Signing in…' : 'Sign in'}
+                            {processing ? t('common.loading') : t('auth.login')}
                         </button>
                     </form>
                 </div>

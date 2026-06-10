@@ -2,6 +2,7 @@ import { usePage, Link } from '@inertiajs/react';
 import { ThemeProvider } from '@/Components/ThemeProvider';
 import { useThemeVariant } from '@/hooks/useThemeVariant';
 import { BookOpen } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 // Import navbar variants
 import NavbarSolid from '@/Components/Opac/variants/NavbarSolid';
@@ -15,6 +16,7 @@ export default function OpacLayout({ children }) {
     const { theme, tenant } = usePage().props;
     const { navbarStyle } = useThemeVariant();
     const base = tenant?.base_url ?? '';
+    const { t } = useTranslation();
 
     // Select navbar component based on theme style
     const NavbarComponent = {
@@ -50,46 +52,46 @@ export default function OpacLayout({ children }) {
                             </div>
                             <div>
                                 <div className="font-extrabold text-white">{tenant?.name || 'eLibrary'}</div>
-                                <div className="text-xs text-white/60">Digital Knowledge Portal</div>
+                                <div className="text-xs text-white/60">{t('footer.tagline')}</div>
                             </div>
                         </div>
                         <p className="mt-4 text-sm text-white/60 max-w-sm">
-                            A modern library management system — free, searchable, and accessible to everyone.
+                            {t('footer.description')}
                         </p>
                     </div>
                     <div>
-                        <div className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3">Explore</div>
+                        <div className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3">{t('footer.explore')}</div>
                         <ul className="space-y-2 text-sm">
-                            <li><Link href={`${base}/catalog?type=ebook`} className="hover:text-white">eBooks</Link></li>
-                            <li><Link href={`${base}/catalog?type=epub`} className="hover:text-white">ePublications</Link></li>
-                            <li><Link href={`${base}/catalog?type=audio`} className="hover:text-white">Audio</Link></li>
-                            <li><Link href={`${base}/catalog?type=video`} className="hover:text-white">Video</Link></li>
-                            <li><Link href={`${base}/catalog?type=thesis`} className="hover:text-white">Theses</Link></li>
+                            <li><Link href={`${base}/catalog?type=ebook`} className="hover:text-white">{t('footer.ebooks')}</Link></li>
+                            <li><Link href={`${base}/catalog?type=epub`} className="hover:text-white">{t('footer.epublications')}</Link></li>
+                            <li><Link href={`${base}/catalog?type=audio`} className="hover:text-white">{t('footer.audio')}</Link></li>
+                            <li><Link href={`${base}/catalog?type=video`} className="hover:text-white">{t('footer.video')}</Link></li>
+                            <li><Link href={`${base}/catalog?type=thesis`} className="hover:text-white">{t('footer.theses')}</Link></li>
                         </ul>
                     </div>
                     <div>
-                        <div className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3">Library</div>
+                        <div className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3">{t('footer.library')}</div>
                         <ul className="space-y-2 text-sm">
-                            <li><Link href={`${base}/catalog`} className="hover:text-white">Browse catalog</Link></li>
-                            <li><Link href={`${base}/collections`} className="hover:text-white">Collections</Link></li>
-                            <li><Link href={`${base}/new-arrivals`} className="hover:text-white">New arrivals</Link></li>
-                            <li><Link href={`${base}/account`} className="hover:text-white">My account</Link></li>
+                            <li><Link href={`${base}/catalog`} className="hover:text-white">{t('footer.browse_catalog')}</Link></li>
+                            <li><Link href={`${base}/collections`} className="hover:text-white">{t('footer.collections')}</Link></li>
+                            <li><Link href={`${base}/new-arrivals`} className="hover:text-white">{t('footer.new_arrivals')}</Link></li>
+                            <li><Link href={`${base}/account`} className="hover:text-white">{t('footer.my_account')}</Link></li>
                         </ul>
                     </div>
                     <div>
-                        <div className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3">About</div>
+                        <div className="text-xs font-semibold uppercase tracking-wider text-white/50 mb-3">{t('footer.about')}</div>
                         <ul className="space-y-2 text-sm">
-                            <li><Link href={`${base}/about`} className="hover:text-white">About us</Link></li>
-                            <li><Link href={`${base}/contact`} className="hover:text-white">Contact us</Link></li>
-                            <li><a href="#" className="hover:text-white">Privacy</a></li>
-                            <li><a href="#" className="hover:text-white">Terms</a></li>
+                            <li><Link href={`${base}/about`} className="hover:text-white">{t('footer.about_us')}</Link></li>
+                            <li><Link href={`${base}/contact`} className="hover:text-white">{t('footer.contact_us')}</Link></li>
+                            <li><a href="#" className="hover:text-white">{t('footer.privacy')}</a></li>
+                            <li><a href="#" className="hover:text-white">{t('footer.terms')}</a></li>
                         </ul>
                     </div>
                 </div>
                 <div className="border-t border-white/10">
                     <div className="max-w-7xl mx-auto px-6 py-5 text-xs text-white/50 flex items-center justify-between">
-                        <div>© {new Date().getFullYear()} {tenant?.name || 'eLibrary'}. All rights reserved.</div>
-                        <div>Built by <span className="text-white/70">Corasoft</span> · v1.0</div>
+                        <div>© {new Date().getFullYear()} {tenant?.name || 'eLibrary'}. {t('footer.rights')}</div>
+                        <div>{t('footer.built_by')} <span className="text-white/70">Corasoft</span> · v1.0</div>
                     </div>
                 </div>
             </footer>

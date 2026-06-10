@@ -24,77 +24,83 @@ export default function AdminLayout({ children, title }) {
 
     const NAV = [
         {
-            group: 'Catalog',
+            group: t('admin.nav.catalog'),
+            groupKey: 'Catalog',
             icon: BookOpen,
             items: [
-                { label: 'Bibliographic Records', href: 'admin.catalog.index' },
-                { label: 'Physical Items', href: 'admin.items.index' },
-                { label: 'Digital Resources', href: 'admin.digital.index' },
+                { label: t('admin.nav.bibliographic_records'), href: 'admin.catalog.index' },
+                { label: t('admin.nav.items'), href: 'admin.items.index' },
+                { label: t('admin.nav.digital_resources'), href: 'admin.digital.index' },
             ],
         },
         {
-            group: 'Circulation',
+            group: t('admin.nav.circulation'),
+            groupKey: 'Circulation',
             icon: RefreshCw,
             items: [
-                { label: 'Quick Checkout', href: 'admin.circulation.quick-checkout' },
-                { label: 'Active Loans', href: 'admin.loans.index' },
-                { label: 'Overdue Items', href: 'admin.loans.overdue' },
-                { label: 'Reservations', href: 'admin.reservations.index' },
-                { label: 'Fines', href: 'admin.fines.index' },
+                { label: t('admin.nav.quick_checkout'), href: 'admin.circulation.quick-checkout' },
+                { label: t('admin.nav.active_loans'), href: 'admin.loans.index' },
+                { label: t('admin.nav.overdue'), href: 'admin.loans.overdue' },
+                { label: t('admin.nav.reservations'), href: 'admin.reservations.index' },
+                { label: t('admin.nav.fines'), href: 'admin.fines.index' },
             ],
         },
-        { label: 'Patrons', icon: Users, href: 'admin.patrons.index' },
+        { label: t('admin.nav.patrons'), icon: Users, href: 'admin.patrons.index' },
         {
-            group: 'Acquisitions',
+            group: t('admin.nav.acquisitions'),
+            groupKey: 'Acquisitions',
             icon: ShoppingCart,
             items: [
-                { label: 'Orders', href: 'admin.acquisitions.index' },
+                { label: t('admin.nav.orders'), href: 'admin.acquisitions.index' },
             ],
         },
         {
-            group: 'Serials',
+            group: t('admin.nav.serials'),
+            groupKey: 'Serials',
             icon: Newspaper,
             items: [
-                { label: 'Subscriptions', href: 'admin.serials.index' },
+                { label: t('admin.nav.subscriptions'), href: 'admin.serials.index' },
             ],
         },
         {
-            group: 'Reports',
+            group: t('admin.nav.reports'),
+            groupKey: 'Reports',
             icon: BarChart2,
             items: [
-                { label: 'Circulation', href: 'admin.reports.circulation' },
-                { label: 'Collection', href: 'admin.reports.collection' },
-                { label: 'Digital Usage', href: 'admin.reports.digital' },
-                { label: 'Overdue', href: 'admin.reports.overdue' },
+                { label: t('admin.nav.circulation_report'), href: 'admin.reports.circulation' },
+                { label: t('admin.nav.collection_report'), href: 'admin.reports.collection' },
+                { label: t('admin.nav.digital_usage'), href: 'admin.reports.digital' },
+                { label: t('admin.nav.overdue_report'), href: 'admin.reports.overdue' },
             ],
         },
         {
-            group: 'Settings',
+            group: t('admin.nav.settings'),
+            groupKey: 'Settings',
             icon: Settings,
             items: [
-                { label: 'General', href: 'admin.settings' },
-                { label: 'Theme', href: 'admin.settings.theme.index' },
-                { label: 'Storage', href: 'admin.settings.storage.index' },
-                { label: 'Collections & Locations', href: 'admin.collections-locations.index' },
-                { label: 'Patron Categories', href: 'admin.patron-categories.index' },
+                { label: t('admin.nav.general'), href: 'admin.settings' },
+                { label: t('admin.nav.theme'), href: 'admin.settings.theme.index' },
+                { label: t('admin.nav.storage'), href: 'admin.settings.storage.index' },
+                { label: t('admin.nav.collections_locations'), href: 'admin.collections-locations.index' },
+                { label: t('admin.nav.categories'), href: 'admin.patron-categories.index' },
             ],
         },
     ];
 
     const SUPER_ADMIN_NAV = [
-        { label: 'Tenants', icon: Building2, href: 'admin.tenants.index' },
-        { label: 'Plans',   icon: CreditCard, href: 'admin.plans.index' },
+        { label: t('admin.nav.tenants'), icon: Building2, href: 'admin.tenants.index' },
+        { label: t('admin.nav.plans'),   icon: CreditCard, href: 'admin.plans.index' },
     ];
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const navRef = useRef(null);
     const [openGroups, setOpenGroups] = useState(() => {
         const defaults = {};
-        NAV.forEach(n => { defaults[n.group] = true; });
+        NAV.forEach(n => { if (n.groupKey) defaults[n.groupKey] = true; });
         return defaults;
     });
 
-    const toggleGroup = (group) => {
-        setOpenGroups(prev => ({ ...prev, [group]: !prev[group] }));
+    const toggleGroup = (groupKey) => {
+        setOpenGroups(prev => ({ ...prev, [groupKey]: !prev[groupKey] }));
     };
 
     const logout = () => router.post(route('admin.logout'));
@@ -143,7 +149,7 @@ export default function AdminLayout({ children, title }) {
                     </div>
                     <span className="font-semibold text-sm leading-tight">
                         <span className="truncate">{tenant?.name ?? 'Alpha eLibrary'}</span>
-                        <span className="block text-[11px] font-normal text-slate-400 tracking-wide">Staff Panel</span>
+                        <span className="block text-[11px] font-normal text-slate-400 tracking-wide">{t('admin.ui.staff')}</span>
                     </span>
                     <button
                         className="ml-auto lg:hidden text-slate-400 hover:text-white"
@@ -156,7 +162,7 @@ export default function AdminLayout({ children, title }) {
                 {/* Nav */}
                 <nav ref={navRef} className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
                     {/* Dashboard */}
-                    <NavItem href="admin.dashboard" label="Dashboard" icon={LayoutDashboard} flat active={isActive('admin.dashboard')} />
+                    <NavItem href="admin.dashboard" label={t('admin.nav.dashboard')} icon={LayoutDashboard} flat active={isActive('admin.dashboard')} />
 
                     {NAV.map((entry) => {
                         const Icon = entry.icon;
@@ -174,13 +180,13 @@ export default function AdminLayout({ children, title }) {
                             );
                         }
                         // Expandable group
-                        const { group, items } = entry;
+                        const { group, groupKey, items } = entry;
                         const groupActive = items.some(item => isActive(item.href));
-                        const open = openGroups[group];
+                        const open = openGroups[groupKey];
                         return (
-                            <div key={group}>
+                            <div key={groupKey}>
                                 <button
-                                    onClick={() => toggleGroup(group)}
+                                    onClick={() => toggleGroup(groupKey)}
                                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
                                         groupActive
                                             ? 'text-white'
@@ -232,7 +238,7 @@ export default function AdminLayout({ children, title }) {
                             {auth?.user?.name?.charAt(0)?.toUpperCase() ?? 'S'}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <div className="text-sm font-semibold text-white truncate capitalize">{auth?.user?.name ?? 'Staff'}</div>
+                            <div className="text-sm font-semibold text-white truncate capitalize">{auth?.user?.name ?? t('admin.ui.staff')}</div>
                             <div className="text-xs text-slate-400 truncate">{auth?.user?.email}</div>
                         </div>
                         <button

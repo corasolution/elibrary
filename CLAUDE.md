@@ -1804,6 +1804,101 @@ and circulation doesn't record a branch. A core multi-branch implementation is p
 "default to home branch, admins can switch"). Note `locations.id` is a **bigint** — branch FKs
 must be `foreignId`, not `foreignUuid`.
 
+### 25.7 Sample Data & Media Player Updates (June 2026)
+
+#### Sample Data — `ThumailSeeder.php`
+
+New seeder at `database/seeders/ThumailSeeder.php` seeds the **`elibrary`** tenant with a full
+demo catalog. Run with:
+
+```bash
+php artisan db:seed --class=ThumailSeeder
+```
+
+Seeded content (all idempotent — safe to re-run):
+
+| Type | Count | Notes |
+|------|-------|-------|
+| eBooks | 12 | format `pdf`, access `registered` |
+| ePublications (epub) | 12 | format `audio` / epub |
+| Audio | 6 | external MP3 URLs (SoundHelix CDN) |
+| Video | 4 | external MP4 URLs (Google sample CDN) |
+| Theses | 4 | physical copies + digital |
+| Physical Books | 12 | barcoded items in GEN collection |
+
+**Audio digital_resources** — `is_external=true`, `format='audio'`, URLs:
+```
+https://www.soundhelix.com/examples/mp3/SoundHelix-Song-{1-6}.mp3
+```
+
+**Video digital_resources** — `is_external=true`, `format='mp4'`, URLs:
+```
+https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
+https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4
+https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4
+https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4
+```
+
+> **PostgreSQL sequence note:** `DemoSeeder` inserts `collections` with explicit IDs 1–6,
+> leaving the PG sequence at 1. `ThumailSeeder` therefore skips collection seeding (rows
+> already exist) to avoid `duplicate key` errors. When adding new collections to a fresh
+> tenant use `DB::table('collections')->insert(...)` *without* an explicit `id`, not
+> `updateOrInsert`.
+
+---
+
+#### OPAC Homepage — `resources/js/Pages/Opac/Home.jsx`
+
+- **Theses section** redesigned to use the same `aspect-[2/3]` book-cover grid as eBooks
+  (was a 2-column horizontal card list with a graduation cap icon).
+- All 6 homepage sections: eBooks · ePublications · Audio · Video · Theses · Physical Books.
+
+---
+
+#### Record Detail — `resources/js/Pages/Opac/Record.jsx`
+
+Two new media-aware states added:
+
+**Audio (`material_type.code === 'audio'`)**
+- Cover panel replaced with blue gradient Music disc + waveform decoration.
+- Inline `AudioPlayer` component rendered below the Abstract:
+  - Custom HTML5 `<audio>` wrapper (hidden native element).
+  - Track info (title + author), waveform visualizer bar.
+  - Scrubable progress bar (range input), current / total time.
+  - Play/Pause button, ±10 s skip (SkipBack / SkipForward).
+  - Volume slider + mute toggle.
+- "Read Online" button hidden for audio (player is inline).
+- `audioUrl` resolved from `resource.url` (external) → `file_path` → `resource.url` fallback.
+
+**Video (`material_type.code === 'video'`)**
+- Cover panel replaced with dark cinematic gradient + Film icon + overlay.
+- **Watch Now** button inside cover panel (links to Reader page).
+- **Watch Video** button in the Availability card.
+- "Read Online" button hidden for video.
+
+---
+
+#### Reader — `resources/js/Pages/Opac/Reader.jsx`
+
+Format routing extended:
+
+| Format string | Viewer |
+|---------------|--------|
+| `mp3`, `wav`, `flac`, **`audio`** | `AudioViewer` |
+| `mp4`, `mkv`, `webm`, **`video`** | `VideoViewer` |
+
+Previously `'audio'` and `'video'` fell through to `UnsupportedViewer`.
+
+---
+
+#### Landing Page UI
+
+- **`LandingLayout.jsx`** — nav link font size `text-sm → text-base`; button font size
+  `text-xs → text-sm`.
+- **`LanguageSwitcher.jsx`** — trigger button font size updated to `text-base` to match nav.
+- **`km.json`** — landing section nav labels corrected to short Khmer equivalents consistent
+  with English nav labels.
+
 ---
 
 *Alpha eLibrary — Built by Corasoft, Phnom Penh, Cambodia*  

@@ -1,5 +1,6 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Link, usePage, useForm } from '@inertiajs/react';
+import { useTranslation } from 'react-i18next';
 import {
     BookOpen, RefreshCw, AlertCircle, Users,
     TrendingUp, Monitor, BarChart2, Plus, ArrowRight,
@@ -8,6 +9,7 @@ import {
 
 export default function Dashboard({ stats, recentLoans = [], overdueLoans = [] }) {
     const { auth } = usePage().props;
+    const { t } = useTranslation();
     const userName = auth?.user?.name ?? 'there';
 
     const today = new Date().toLocaleDateString(undefined, {
@@ -16,17 +18,17 @@ export default function Dashboard({ stats, recentLoans = [], overdueLoans = [] }
 
     // Primary operational metrics (highlighted row)
     const primary = [
-        { label: 'Loans Today',   value: stats.loansToday,   icon: BookOpen,    from: 'from-blue-500',    to: 'to-blue-600',    soft: 'bg-blue-50',    text: 'text-blue-600' },
-        { label: 'Returns Today', value: stats.returnsToday, icon: RefreshCw,   from: 'from-emerald-500', to: 'to-emerald-600', soft: 'bg-emerald-50', text: 'text-emerald-600' },
-        { label: 'Overdue',       value: stats.overdue,      icon: AlertCircle, from: 'from-rose-500',    to: 'to-rose-600',    soft: 'bg-rose-50',    text: 'text-rose-600' },
-        { label: 'New Patrons',   value: stats.newPatrons,   icon: Users,       from: 'from-violet-500',  to: 'to-violet-600',  soft: 'bg-violet-50',  text: 'text-violet-600' },
+        { label: t('admin.ui.loans_today'),   value: stats.loansToday,   icon: BookOpen,    from: 'from-blue-500',    to: 'to-blue-600',    soft: 'bg-blue-50',    text: 'text-blue-600' },
+        { label: t('admin.ui.returns_today'), value: stats.returnsToday, icon: RefreshCw,   from: 'from-emerald-500', to: 'to-emerald-600', soft: 'bg-emerald-50', text: 'text-emerald-600' },
+        { label: t('admin.ui.overdue_count'), value: stats.overdue,      icon: AlertCircle, from: 'from-rose-500',    to: 'to-rose-600',    soft: 'bg-rose-50',    text: 'text-rose-600' },
+        { label: t('admin.ui.new_patrons'),   value: stats.newPatrons,   icon: Users,       from: 'from-violet-500',  to: 'to-violet-600',  soft: 'bg-violet-50',  text: 'text-violet-600' },
     ];
 
     // Collection-wide totals (secondary row)
     const secondary = [
-        { label: 'Total Titles',  value: stats.totalTitles,  icon: Library,     text: 'text-indigo-600', soft: 'bg-indigo-50' },
-        { label: 'Total Patrons', value: stats.totalPatrons, icon: TrendingUp,  text: 'text-teal-600',   soft: 'bg-teal-50' },
-        { label: 'Digital Views', value: stats.digitalViews, icon: Monitor,     text: 'text-amber-600',  soft: 'bg-amber-50' },
+        { label: t('admin.ui.total_titles'),  value: stats.totalTitles,  icon: Library,     text: 'text-indigo-600', soft: 'bg-indigo-50' },
+        { label: t('admin.ui.total_patrons'), value: stats.totalPatrons, icon: TrendingUp,  text: 'text-teal-600',   soft: 'bg-teal-50' },
+        { label: t('admin.ui.digital_views'), value: stats.digitalViews, icon: Monitor,     text: 'text-amber-600',  soft: 'bg-amber-50' },
     ];
 
     const fmtDate = (d) => {
@@ -38,7 +40,7 @@ export default function Dashboard({ stats, recentLoans = [], overdueLoans = [] }
     const nf = (n) => (n ?? 0).toLocaleString();
 
     return (
-        <AdminLayout title="Dashboard">
+        <AdminLayout title={t('admin.nav.dashboard')}>
             <div className="space-y-6">
                 {/* ── Welcome header ─────────────────────────────── */}
                 <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 px-6 py-7 sm:px-8 shadow-lg">
@@ -51,7 +53,7 @@ export default function Dashboard({ stats, recentLoans = [], overdueLoans = [] }
                                 {today}
                             </div>
                             <h1 className="mt-1.5 text-2xl font-bold text-white">
-                                Welcome back, <span className="capitalize">{userName}</span> 👋
+                                {t('admin.ui.welcome')}, <span className="capitalize">{userName}</span> 👋
                             </h1>
                             <p className="mt-1 text-sm text-slate-300">
                                 Here’s what’s happening across your library today.
@@ -62,13 +64,13 @@ export default function Dashboard({ stats, recentLoans = [], overdueLoans = [] }
                                 href={route('admin.catalog.create')}
                                 className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3.5 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-100"
                             >
-                                <Plus className="h-4 w-4" /> Add Title
+                                <Plus className="h-4 w-4" /> {t('admin.ui.add_title')}
                             </Link>
                             <Link
                                 href={route('admin.loans.index')}
                                 className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3.5 py-2 text-sm font-semibold text-white ring-1 ring-inset ring-white/20 transition hover:bg-white/20"
                             >
-                                Manage Loans
+                                {t('admin.ui.manage_loans')}
                             </Link>
                         </div>
                     </div>
@@ -128,7 +130,7 @@ export default function Dashboard({ stats, recentLoans = [], overdueLoans = [] }
                                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                                     <BookOpen className="h-4 w-4" />
                                 </div>
-                                <h2 className="text-sm font-semibold text-gray-800">Recent Active Loans</h2>
+                                <h2 className="text-sm font-semibold text-gray-800">{t('admin.ui.recent_loans')}</h2>
                             </div>
                             <Link href={route('admin.loans.index')} className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700">
                                 View all <ArrowRight className="h-3.5 w-3.5" />
@@ -156,7 +158,7 @@ export default function Dashboard({ stats, recentLoans = [], overdueLoans = [] }
                                 ))}
                             </ul>
                         ) : (
-                            <EmptyState icon={BookOpen} text="No active loans right now." />
+                            <EmptyState icon={BookOpen} text={t('admin.ui.no_loans')} />
                         )}
                     </section>
 
@@ -167,7 +169,7 @@ export default function Dashboard({ stats, recentLoans = [], overdueLoans = [] }
                                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
                                     <AlertCircle className="h-4 w-4" />
                                 </div>
-                                <h2 className="text-sm font-semibold text-gray-800">Overdue Items</h2>
+                                <h2 className="text-sm font-semibold text-gray-800">{t('admin.ui.overdue_items')}</h2>
                             </div>
                             <Link href={route('admin.loans.overdue')} className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700">
                                 View all <ArrowRight className="h-3.5 w-3.5" />
@@ -197,7 +199,7 @@ export default function Dashboard({ stats, recentLoans = [], overdueLoans = [] }
                                 })}
                             </ul>
                         ) : (
-                            <EmptyState icon={AlertCircle} text="No overdue items. Great job! 🎉" />
+                            <EmptyState icon={AlertCircle} text={t('admin.ui.no_overdue')} />
                         )}
                     </section>
                 </div>

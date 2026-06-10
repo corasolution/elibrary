@@ -1,10 +1,12 @@
 import OpacLayout from '@/Layouts/OpacLayout';
 import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, Clock, Bookmark, History, User, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function MyAccount({ patron }) {
     const { tenant } = usePage().props;
     const base = tenant?.base_url ?? '';
+    const { t } = useTranslation();
 
     const memberSince = patron.created_at
         ? new Date(patron.created_at).getFullYear()
@@ -32,30 +34,30 @@ export default function MyAccount({ patron }) {
                             <p className="text-gray-500 font-khmer">{patron.first_name_km} {patron.last_name_km}</p>
                         )}
                         <p className="text-sm text-gray-500 mt-1">
-                            Card: <span className="font-mono font-medium">{patron.patron_number}</span>
+                            {t('account.card')}: <span className="font-mono font-medium">{patron.patron_number}</span>
                             {' · '}
                             {patron.category?.name ?? 'Member'}
                             {' · '}
-                            Member since {memberSince}
+                            {t('account.member_since')} {memberSince}
                         </p>
                     </div>
                     <div className="text-right">
-                        <p className="text-xs text-gray-400">Membership expires</p>
+                        <p className="text-xs text-gray-400">{t('account.membership_expires')}</p>
                         <p className={`font-semibold text-sm ${isExpired ? 'text-red-600' : 'text-gray-700'}`}>
                             {expiryDate}
                         </p>
                         {isExpired && (
-                            <span className="badge badge-amber text-xs mt-1">Expired</span>
+                            <span className="badge badge-amber text-xs mt-1">{t('account.expired')}</span>
                         )}
                     </div>
                 </div>
 
                 {/* Stats */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-                    <StatCard icon={Clock} label="Active Loans" value={patron.active_loans ?? 0} color="blue" />
-                    <StatCard icon={BookOpen} label="Total Checkouts" value={patron.total_checkouts ?? 0} color="green" />
-                    <StatCard icon={Bookmark} label="Reservations" value="—" color="amber" />
-                    <StatCard icon={AlertCircle} label="Fines" value="$0.00" color="red" />
+                    <StatCard icon={Clock} label={t('account.active_loans')} value={patron.active_loans ?? 0} color="blue" />
+                    <StatCard icon={BookOpen} label={t('account.total_checkouts')} value={patron.total_checkouts ?? 0} color="green" />
+                    <StatCard icon={Bookmark} label={t('account.reservations')} value="—" color="amber" />
+                    <StatCard icon={AlertCircle} label={t('account.fines')} value="$0.00" color="red" />
                 </div>
 
                 {/* Navigation cards */}
@@ -63,26 +65,26 @@ export default function MyAccount({ patron }) {
                     <AccountLink
                         href={`${base}/account/loans`}
                         icon={Clock}
-                        title="Current Loans"
-                        description="View books you currently have checked out and their due dates"
+                        title={t('account.current_loans')}
+                        description={t('account.current_loans_desc')}
                     />
                     <AccountLink
                         href={`${base}/account/reservations`}
                         icon={Bookmark}
-                        title="My Reservations"
-                        description="Track items you've reserved that are on hold or waiting"
+                        title={t('account.my_reservations')}
+                        description={t('account.reservations_desc')}
                     />
                     <AccountLink
                         href={`${base}/account/history`}
                         icon={History}
-                        title="Loan History"
-                        description="Browse everything you've previously borrowed"
+                        title={t('account.loan_history')}
+                        description={t('account.history_desc')}
                     />
                     <AccountLink
                         href={`${base}/catalog`}
                         icon={BookOpen}
-                        title="Browse Catalog"
-                        description="Search and discover new titles in the library collection"
+                        title={t('account.browse_catalog')}
+                        description={t('account.browse_catalog_desc')}
                     />
                 </div>
             </div>

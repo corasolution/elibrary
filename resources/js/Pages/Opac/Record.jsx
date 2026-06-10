@@ -1,32 +1,73 @@
 import OpacLayout from '@/Layouts/OpacLayout';
 import { Link, usePage, useForm } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
-import { BookOpen, Download, Eye, BookmarkPlus, MapPin, Tag, Quote } from 'lucide-react';
+import { BookOpen, Download, Eye, BookmarkPlus, MapPin, Tag, Quote, Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, Music, Film } from 'lucide-react';
 import RecordCard from '@/Components/Opac/RecordCard';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 export default function RecordDetail({ record, related = [] }) {
     const { t } = useTranslation();
-    const { auth, tenant } = usePage().props;
+    const { auth, tenant, videoUrl } = usePage().props;
     const base = tenant?.base_url ?? '';
     const reserveForm = useForm({ biblio_id: record.id });
+    const [showPlayer, setShowPlayer] = useState(false);
 
     const availableCopies = record.physical_items?.filter(i => i.item_status === 'available').length ?? 0;
     const hasDigital = record.digital_resources?.length > 0;
     const primaryAuthor = record.authors?.[0]?.name;
+    const isAudio = record.material_type?.code === 'audio';
+    const isVideo = record.material_type?.code === 'video';
+    const primaryResource = record.digital_resources?.[0];
+    const mediaUrl = primaryResource
+        ? (primaryResource.is_external && primaryResource.url
+            ? primaryResource.url
+            : primaryResource.file_path
+                ? `/storage/${primaryResource.file_path}`
+                : primaryResource.url ?? null)
+        : null;
+    const audioUrl = isAudio ? mediaUrl : null;
+    const playerSrc = videoUrl ?? mediaUrl;
 
     return (
         <OpacLayout>
             <div className="max-w-6xl mx-auto px-4 py-10">
                 <div className="grid md:grid-cols-[220px_1fr] gap-10">
-                    {/* Cover */}
+                    {/* Cover / Audio Panel */}
                     <div className="flex flex-col gap-4">
-                        <div className="aspect-[3/4] bg-gray-100 rounded-xl overflow-hidden border border-gray-200 flex items-center justify-center">
-                            {record.cover_image_url
-                                ? <img src={record.cover_image_url} alt={record.title} className="object-cover w-full h-full" />
-                                : <BookOpen className="w-16 h-16 text-gray-300" />
-                            }
-                        </div>
+                        {isAudio ? (
+                            <div className="aspect-[3/4] bg-gradient-to-br from-blue-900 via-blue-700 to-blue-500 rounded-xl overflow-hidden flex flex-col items-center justify-center gap-3 relative">
+                                <div className="w-20 h-20 rounded-full bg-white/10 border-4 border-white/20 flex items-center justify-center">
+                                    <Music className="w-10 h-10 text-white/80" />
+                                </div>
+                                <div className="absolute bottom-0 left-0 right-0 h-12 flex items-end justify-center gap-0.5 px-4 pb-3 opacity-40">
+                                    {[3,5,8,6,4,7,5,9,4,6,8,5,3,7,6,4,8,5,6,3].map((h, i) => (
+                                        <div key={i} className="flex-1 bg-white rounded-sm" style={{ height: `${h * 4}px` }} />
+                                    ))}
+                                </div>
+                            </div>
+                        ) : isVideo ? (
+                            <div className="aspect-[3/4] bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 rounded-xl overflow-hidden flex flex-col items-center justify-center gap-4 relative">
+                                <div className="w-16 h-16 rounded-full bg-white/10 border-4 border-white/20 flex items-center justify-center">
+                                    <Film className="w-8 h-8 text-white/70" />
+                                </div>
+                                {hasDigital && playerSrc && (
+                                    <button
+                                        onClick={() => setShowPlayer(true)}
+                                        className="flex items-center gap-2 px-4 py-2 rounded-full bg-white text-gray-900 text-xs font-bold hover:bg-gray-100 transition-colors shadow-lg"
+                                    >
+                                        <Play className="w-3.5 h-3.5" fill="currentColor" /> Watch Now
+                                    </button>
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+                            </div>
+                        ) : (
+                            <div className="aspect-[3/4] bg-gray-100 rounded-xl overflow-hidden border border-gray-200 flex items-center justify-center">
+                                {record.cover_image_url
+                                    ? <img src={record.cover_image_url} alt={record.title} className="object-cover w-full h-full" />
+                                    : <BookOpen className="w-16 h-16 text-gray-300" />
+                                }
+                            </div>
+                        )}
 
                         {/* Availability */}
                         <div className="card p-4 text-sm space-y-2">
@@ -36,11 +77,19 @@ export default function RecordDetail({ record, related = [] }) {
                             ) : (
                                 <div className="text-red-500 font-medium">{t('catalog.checked_out')}</div>
                             )}
-                            {hasDigital && (
+                            {hasDigital && !isAudio && !isVideo && (
                                 <Link href={`${base}/reader/${record.digital_resources[0].id}`}
                                     className="flex items-center gap-2 btn-primary text-xs mt-2 justify-center">
                                     <Eye className="w-3.5 h-3.5" /> {t('catalog.digital_access')}
                                 </Link>
+                            )}
+                            {isVideo && hasDigital && playerSrc && (
+                                <button
+                                    onClick={() => setShowPlayer(true)}
+                                    className="flex items-center gap-2 btn-primary text-xs mt-2 justify-center w-full"
+                                >
+                                    <Play className="w-3.5 h-3.5" fill="currentColor" /> Watch Video
+                                </button>
                             )}
                             {availableCopies === 0 && !hasDigital && auth?.patron && (
                                 <button
@@ -112,6 +161,16 @@ export default function RecordDetail({ record, related = [] }) {
                             </div>
                         )}
 
+                        {/* Inline Audio Player */}
+                        {isAudio && audioUrl && (
+                            <AudioPlayer src={audioUrl} title={record.title} author={primaryAuthor} />
+                        )}
+
+                        {/* Inline Video Player */}
+                        {isVideo && playerSrc && showPlayer && (
+                            <InlineVideoPlayer src={playerSrc} title={record.title} onClose={() => setShowPlayer(false)} />
+                        )}
+
                         {/* Subjects */}
                         {record.subjects?.length > 0 && (
                             <div className="mb-6">
@@ -181,6 +240,198 @@ export default function RecordDetail({ record, related = [] }) {
                 )}
             </div>
         </OpacLayout>
+    );
+}
+
+// ─── Inline Video Player ─────────────────────────────────────────────────────
+function getYouTubeEmbedUrl(url) {
+    // Handles: youtube.com/watch?v=ID, youtu.be/ID, youtube.com/embed/ID
+    const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=1` : null;
+}
+
+function InlineVideoPlayer({ src, title, onClose }) {
+    const youtubeEmbed = src ? getYouTubeEmbedUrl(src) : null;
+
+    return (
+        <div className="mb-6 bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl overflow-hidden shadow-xl">
+            <div className="flex items-center justify-between px-4 py-2">
+                <span className="text-white/70 text-xs font-medium truncate">{title}</span>
+                <button onClick={onClose} className="text-white/50 hover:text-white text-xl leading-none ml-2">×</button>
+            </div>
+            {youtubeEmbed ? (
+                <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
+                    <iframe
+                        src={youtubeEmbed}
+                        title={title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="absolute inset-0 w-full h-full"
+                    />
+                </div>
+            ) : (
+                <video
+                    controls
+                    autoPlay
+                    src={src}
+                    className="w-full max-h-[60vh] object-contain bg-black"
+                >
+                    Your browser does not support the video tag.
+                </video>
+            )}
+        </div>
+    );
+}
+
+// ─── Inline Audio Player ─────────────────────────────────────────────────────
+function AudioPlayer({ src, title, author }) {
+    const audioRef = useRef(null);
+    const [playing, setPlaying]       = useState(false);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration]     = useState(0);
+    const [volume, setVolume]         = useState(1);
+    const [muted, setMuted]           = useState(false);
+
+    useEffect(() => {
+        const el = audioRef.current;
+        if (!el) return;
+        const onTime = () => setCurrentTime(el.currentTime);
+        const onLoaded = () => setDuration(el.duration || 0);
+        const onEnded = () => setPlaying(false);
+        el.addEventListener('timeupdate', onTime);
+        el.addEventListener('loadedmetadata', onLoaded);
+        el.addEventListener('durationchange', onLoaded);
+        el.addEventListener('ended', onEnded);
+        return () => {
+            el.removeEventListener('timeupdate', onTime);
+            el.removeEventListener('loadedmetadata', onLoaded);
+            el.removeEventListener('durationchange', onLoaded);
+            el.removeEventListener('ended', onEnded);
+        };
+    }, []);
+
+    const togglePlay = () => {
+        const el = audioRef.current;
+        if (!el) return;
+        if (playing) { el.pause(); setPlaying(false); }
+        else { el.play(); setPlaying(true); }
+    };
+
+    const seek = (e) => {
+        const el = audioRef.current;
+        if (!el || !duration) return;
+        const val = parseFloat(e.target.value);
+        el.currentTime = val;
+        setCurrentTime(val);
+    };
+
+    const changeVolume = (e) => {
+        const val = parseFloat(e.target.value);
+        setVolume(val);
+        if (audioRef.current) audioRef.current.volume = val;
+        if (val === 0) setMuted(true);
+        else setMuted(false);
+    };
+
+    const toggleMute = () => {
+        const el = audioRef.current;
+        if (!el) return;
+        el.muted = !muted;
+        setMuted(!muted);
+    };
+
+    const skip = (secs) => {
+        const el = audioRef.current;
+        if (!el) return;
+        el.currentTime = Math.max(0, Math.min(duration, el.currentTime + secs));
+    };
+
+    const fmt = (s) => {
+        if (!s || isNaN(s)) return '0:00';
+        const m = Math.floor(s / 60);
+        const sec = Math.floor(s % 60).toString().padStart(2, '0');
+        return `${m}:${sec}`;
+    };
+
+    const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+    return (
+        <div className="mb-6 bg-gradient-to-br from-blue-900 to-blue-700 rounded-2xl p-5 text-white">
+            <audio ref={audioRef} src={src} preload="metadata" />
+
+            {/* Track info */}
+            <div className="flex items-center gap-3 mb-5">
+                <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+                    <Music className="w-6 h-6 text-white/80" />
+                </div>
+                <div className="min-w-0">
+                    <div className="font-semibold text-sm leading-tight truncate">{title}</div>
+                    {author && <div className="text-white/60 text-xs mt-0.5 truncate">{author}</div>}
+                </div>
+            </div>
+
+            {/* Waveform bar */}
+            <div className="flex items-end justify-center gap-0.5 h-8 mb-4 opacity-30">
+                {[3,5,8,6,4,7,5,9,4,6,8,5,3,7,6,4,8,5,6,3,4,7,5,8,3,6,9,4,5,7].map((h, i) => (
+                    <div key={i} className="flex-1 bg-white rounded-sm" style={{ height: `${h * 3}px` }} />
+                ))}
+            </div>
+
+            {/* Progress bar */}
+            <div className="mb-1">
+                <input
+                    type="range" min={0} max={duration || 100} step={0.5}
+                    value={currentTime}
+                    onChange={seek}
+                    className="w-full h-1.5 appearance-none rounded-full cursor-pointer"
+                    style={{
+                        background: `linear-gradient(to right, #fff ${progress}%, rgba(255,255,255,0.2) ${progress}%)`,
+                        outline: 'none',
+                    }}
+                />
+            </div>
+            <div className="flex justify-between text-[11px] text-white/50 mb-4">
+                <span>{fmt(currentTime)}</span>
+                <span>{fmt(duration)}</span>
+            </div>
+
+            {/* Controls */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <button onClick={() => skip(-10)} className="text-white/60 hover:text-white transition-colors" title="-10s">
+                        <SkipBack className="w-4 h-4" />
+                    </button>
+                    <button
+                        onClick={togglePlay}
+                        className="w-10 h-10 rounded-full bg-white text-blue-800 flex items-center justify-center hover:scale-105 transition-transform shadow-lg"
+                    >
+                        {playing
+                            ? <Pause className="w-4 h-4" fill="currentColor" />
+                            : <Play className="w-4 h-4 ml-0.5" fill="currentColor" />}
+                    </button>
+                    <button onClick={() => skip(10)} className="text-white/60 hover:text-white transition-colors" title="+10s">
+                        <SkipForward className="w-4 h-4" />
+                    </button>
+                </div>
+
+                {/* Volume */}
+                <div className="flex items-center gap-2">
+                    <button onClick={toggleMute} className="text-white/60 hover:text-white transition-colors">
+                        {muted || volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                    </button>
+                    <input
+                        type="range" min={0} max={1} step={0.05}
+                        value={muted ? 0 : volume}
+                        onChange={changeVolume}
+                        className="w-20 h-1 appearance-none rounded-full cursor-pointer"
+                        style={{
+                            background: `linear-gradient(to right, rgba(255,255,255,0.8) ${(muted ? 0 : volume) * 100}%, rgba(255,255,255,0.2) ${(muted ? 0 : volume) * 100}%)`,
+                            outline: 'none',
+                        }}
+                    />
+                </div>
+            </div>
+        </div>
     );
 }
 

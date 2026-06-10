@@ -25,13 +25,13 @@ export default function LandingLayout({ children }) {
                             </>
                         )}
                     </Link>
-                    <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
+                    <nav className="hidden md:flex items-center gap-6 text-base font-medium text-gray-600">
                         <Link href="/features" className="hover:text-brand-600">{t('landing.features_title')}</Link>
                         <Link href="/pricing" className="hover:text-brand-600">{t('landing.pricing_title')}</Link>
                         <Link href="/about" className="hover:text-brand-600">{t('landing.about_title')}</Link>
                         <LanguageSwitcher />
-                        <Link href="/demo" className="btn-secondary text-xs py-1.5 px-3">{t('landing.cta_demo')}</Link>
-                        <Link href="/register" className="btn-primary text-xs py-1.5 px-3">{t('landing.cta_trial')}</Link>
+                        <Link href="/demo" className="btn-secondary text-sm py-1.5 px-3">{t('landing.cta_demo')}</Link>
+                        <Link href="/register" className="btn-primary text-sm py-1.5 px-3">{t('landing.cta_trial')}</Link>
                     </nav>
                 </div>
             </header>
