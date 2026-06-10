@@ -1705,6 +1705,107 @@ STORAGE_MIGRATION_VERIFY=true
 
 ---
 
+## 25. CURRENT OPERATIONAL STATE (updated June 2026)
+
+> This section records what is **actually true in the running project** and supersedes
+> earlier aspirational notes where they conflict.
+
+### 25.1 Database — PostgreSQL (local dev via Laragon)
+
+The project now runs on **PostgreSQL 18** (Laragon), not SQLite.
+
+```env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=alpha_elibrary_central   # central DB
+DB_USERNAME=postgres
+DB_PASSWORD=                         # Laragon default: empty
+```
+
+- Central DB: `alpha_elibrary_central`. Tenant DBs: prefix `alpha_elibrary_tenant_<uuid>`
+  (`config/tenancy.php` → `database.prefix`). Tenant id is a **UUID** (so DB names contain
+  hyphens — quote them in raw `psql`).
+- `psql` lives at `C:\laragon\bin\postgresql\postgresql\bin\psql.exe` (not on PATH).
+- **pgvector is NOT installed** on this PG18/Windows box → semantic/vector search stays
+  disabled and `HybridSearchService` falls back to tsvector. Full-text search uses the
+  `search_vector` tsvector + trigger (`...add_fulltext_search_trigger`).
+
+**Running migrations** (central migrations are split across two folders):
+```bash
+# Central (root + central/ subfolder must both be loaded, in date order)
+php artisan migrate --path=database/migrations --path=database/migrations/central --force
+# Tenant DBs are created/migrated/seeded automatically on tenant creation (see 25.2)
+```
+
+### 25.2 Tenancy is now fully wired
+
+`app/Providers/TenancyServiceProvider.php` (registered in `bootstrap/providers.php`) maps the
+stancl lifecycle events to jobs: **CreateDatabase → MigrateDatabase → SeedDatabase**
+(`TenantDatabaseSeeder`). Creating a `Tenant` now auto-provisions its PostgreSQL database.
+(SQLite previously masked the missing provider because it auto-creates DB files on connect.)
+
+- Permission tables exist **per tenant** (`database/migrations/tenant/2026_01_02_000000_create_permission_tables.php`,
+  with UUID morph keys + a `description` column on `roles`).
+- Demo tenant: slug **`elibrary`**. Staff login: `http://127.0.0.1:8000/elibrary/admin/login`
+  (`bora@gmail.com` / `12345678`, or seeded `library.admin@bannalai.com` / `password`).
+  Central super admin: `/central/login` → `admin@bannalai.com` / `password`.
+
+### 25.3 Auth / middleware ordering (important)
+
+Staff use the default `web` guard (provider model `App\Models\Tenant\User`). Tenancy **must
+initialize before `auth`** or the guard queries the central DB and login loops. This is enforced
+in `bootstrap/app.php`:
+```php
+$middleware->prependToPriorityList(
+    before: \Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests::class,
+    prepend: \App\Http\Middleware\InitializeTenancyBySlug::class,
+);
+```
+`InitializeTenancyBySlug` also calls `URL::defaults(['slug' => $slug])` so `route('admin.*')`
+redirects don't fail. Guests are redirected per-area via `$middleware->redirectGuestsTo(...)`.
+
+### 25.4 Catalog interoperability (added this cycle)
+
+- **OAI-PMH 2.0 provider**: `app/Http/Controllers/OaiPmhController.php`, public at `/{slug}/oai`
+  (verbs: Identify, ListMetadataFormats, ListSets, ListRecords, ListIdentifiers, GetRecord;
+  formats `oai_dc` + `marc21`). XML via the `Response::xml()` macro in `AppServiceProvider`
+  (uses DOMDocument — handles namespaced tags like `dc:title`).
+- **MARC helpers** on `BibliographicRecord`: `getMarcField()`, `getMarcFieldsArray()`,
+  `marcToDublinCore()`.
+- **Tenant-scoped JSON API** under `/{slug}/api/v1/catalog/...` (defined in `routes/web.php`
+  inside the `{slug}` group, NOT `routes/api.php` — catalog data is per-tenant). Endpoints:
+  search, show, `bibframe`, `marc`, `dublincore`, `similar`. Controller methods take
+  `(string $slug, string $id)` because of the two route params.
+- **Semantic search infra** (disabled until pgvector): `HybridSearchService`,
+  `GenerateBibliographicEmbedding` job, `BibliographicRecordObserver`,
+  `add_vector_search_support` migration (safely skips when pgvector is absent).
+- **Z39.50**: `app/Services/Z3950/Z3950Client.php` + `php artisan z3950:check` (needs the YAZ
+  PHP extension; optional).
+
+### 25.5 Frontend / dev-run gotchas
+
+- Admin panel is React + Inertia, built assets in `public/build`. After editing JSX run
+  **`npm run build`** (or `npm run dev` for HMR).
+- ⚠️ If `npm run dev` is killed, a stale **`public/hot`** file can remain pointing at a dead
+  Vite server → the UI loads no JS ("buttons do nothing"). Delete `public/hot` to fall back to
+  built assets, or restart Vite.
+- `CACHE_STORE=array` (file cache can't satisfy the tenant cache **tagging** that full tenancy
+  bootstrapping requires; no Redis locally). Spatie permission cache is therefore per-request.
+- Recently redesigned: `resources/js/Pages/Admin/Dashboard.jsx` and the sidebar in
+  `resources/js/Layouts/AdminLayout.jsx`.
+
+### 25.6 Multi-branch (Koha-style) — PLANNED, not yet built
+
+Branches = `locations` rows with `is_branch = true` (hierarchy via `parent_id`). The schema
+exists but is **operationally disconnected**: staff have no branch, data isn't branch-scoped,
+and circulation doesn't record a branch. A core multi-branch implementation is planned
+(Koha model: titles shared institution-wide, copies/loans/patrons/staff per branch;
+"default to home branch, admins can switch"). Note `locations.id` is a **bigint** — branch FKs
+must be `foreignId`, not `foreignUuid`.
+
+---
+
 *Alpha eLibrary — Built by Corasoft, Phnom Penh, Cambodia*  
 *Cambodia's AI-native software agency — Laravel · React · Claude Code*
 
