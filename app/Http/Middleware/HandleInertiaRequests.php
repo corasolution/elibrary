@@ -92,6 +92,22 @@ class HandleInertiaRequests extends Middleware
                 'logo' => PlatformSetting::get('platform_logo'),
                 'favicon' => PlatformSetting::get('platform_favicon'),
             ],
+            'ai' => (function () {
+                // Per-library AI feature flags (tenant context only; safe on landing pages).
+                try {
+                    $platform = filter_var(PlatformSetting::get('ai_platform_enabled', true), FILTER_VALIDATE_BOOLEAN);
+                    $features = filter_var(\App\Models\Tenant\LibrarySetting::get('ai_features_enabled', false), FILTER_VALIDATE_BOOLEAN);
+                    $on = fn (string $k) => $platform && $features
+                        && filter_var(\App\Models\Tenant\LibrarySetting::get($k, false), FILTER_VALIDATE_BOOLEAN);
+                    return [
+                        'features_enabled' => $platform && $features,
+                        'chatbot_enabled'  => $on('ai_chatbot_enabled'),
+                        'search_enabled'   => $on('ai_search_enabled'),
+                    ];
+                } catch (\Throwable) {
+                    return ['features_enabled' => false, 'chatbot_enabled' => false, 'search_enabled' => false];
+                }
+            })(),
             'translations' => $this->getDynamicTranslations(),
         ]);
     }

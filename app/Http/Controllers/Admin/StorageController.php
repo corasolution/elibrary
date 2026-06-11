@@ -32,15 +32,20 @@ class StorageController extends Controller
     public function update(Request $request)
     {
         $validated = $request->validate([
-            'driver' => 'required|string|in:default,r2,s3,spaces,wasabi,gcs,custom',
+            'driver' => 'required|string|in:default,r2,s3,spaces,wasabi,minio,gcs,custom',
             'credentials' => 'required|array',
             'bucket' => 'required|string',
             'region' => 'nullable|string',
             'endpoint' => 'nullable|url',
             'path_prefix' => 'nullable|string',
+            'auto_migrate' => 'nullable|boolean',
         ]);
 
         try {
+            // Capture current disk before making changes
+            $previousDisk = $this->storageProvider->getActiveDisk();
+            $previousDriver = \App\Models\Tenant\LibrarySetting::get('storage_driver', 'default');
+
             // Set credentials
             $this->storageProvider->setCredentials($validated['credentials']);
 
@@ -62,6 +67,47 @@ class StorageController extends Controller
 
             // Clear cache
             \Illuminate\Support\Facades\Cache::forget('storage.active_disk');
+
+            // Check if provider changed and auto_migrate is requested
+            $providerChanged = $previousDriver !== $validated['driver'];
+            $autoMigrate = $validated['auto_migrate'] ?? false;
+
+            if ($providerChanged && $autoMigrate) {
+                // Start automatic migration
+                $migrationId = (string) Str::uuid();
+                $totalResources = DigitalResource::whereNotNull('file_path')->count();
+
+                if ($totalResources > 0) {
+                    $progressService = app(MigrationProgressService::class);
+
+                    // Get new disk name
+                    $newDisk = $this->storageProvider->getActiveDisk();
+
+                    // Create migration tracking
+                    $progressService->createMigration($migrationId, $totalResources, [
+                        'from_disk' => $previousDisk,
+                        'to_disk' => $newDisk,
+                    ]);
+                    $progressService->registerMigration($migrationId);
+
+                    // Dispatch first chunk
+                    StorageMigrationJob::dispatch(
+                        $previousDisk,
+                        $newDisk,
+                        $migrationId,
+                        config('storage-providers.migration.chunk_size', 50),
+                        0
+                    );
+
+                    return redirect()
+                        ->route('admin.settings.storage')
+                        ->with('success', 'Storage provider updated and migration started.')
+                        ->with('migration_started', [
+                            'migration_id' => $migrationId,
+                            'total_files' => $totalResources,
+                        ]);
+                }
+            }
 
             return redirect()
                 ->route('admin.settings.storage')
@@ -110,6 +156,14 @@ class StorageController extends Controller
                     'region' => $validated['region'] ?? 'us-east-1',
                     'bucket' => $validated['bucket'],
                     'endpoint' => "https://s3.{$validated['region']}.wasabisys.com",
+                ],
+                'minio' => [
+                    'key' => $validated['credentials']['access_key_id'] ?? '',
+                    'secret' => $validated['credentials']['secret_access_key'] ?? '',
+                    'region' => $validated['region'] ?? 'us-east-1',
+                    'bucket' => $validated['bucket'],
+                    'endpoint' => $validated['endpoint'],
+                    'use_path_style_endpoint' => true,
                 ],
                 'gcs' => [
                     'driver' => 'gcs',
@@ -205,6 +259,18 @@ class StorageController extends Controller
                 ],
             ],
             [
+                'value' => 'minio',
+                'label' => 'MinIO (Self-Hosted)',
+                'description' => 'Self-hosted S3-compatible storage',
+                'fields' => [
+                    ['name' => 'endpoint', 'label' => 'Endpoint URL', 'type' => 'text', 'required' => true, 'placeholder' => 'https://minio.example.com or http://192.168.1.100:9000'],
+                    ['name' => 'access_key_id', 'label' => 'Access Key', 'type' => 'text', 'required' => true],
+                    ['name' => 'secret_access_key', 'label' => 'Secret Key', 'type' => 'password', 'required' => true],
+                    ['name' => 'bucket', 'label' => 'Bucket Name', 'type' => 'text', 'required' => true],
+                    ['name' => 'region', 'label' => 'Region', 'type' => 'text', 'required' => false, 'placeholder' => 'us-east-1 (optional)'],
+                ],
+            ],
+            [
                 'value' => 'gcs',
                 'label' => 'Google Cloud Storage',
                 'description' => 'Google Cloud object storage',
@@ -215,6 +281,29 @@ class StorageController extends Controller
                 ],
             ],
         ];
+    }
+
+    public function getMigrationInfo(Request $request)
+    {
+        $validated = $request->validate([
+            'new_driver' => 'required|string',
+        ]);
+
+        $currentDriver = \App\Models\Tenant\LibrarySetting::get('storage_driver', 'default');
+        $totalFiles = DigitalResource::whereNotNull('file_path')->count();
+        $totalSize = DigitalResource::sum('file_size_bytes') ?? 0;
+
+        // Estimate: 50 files per 5 seconds = 600 files/minute
+        $estimatedMinutes = $totalFiles > 0 ? ceil($totalFiles / 600) : 0;
+
+        return response()->json([
+            'current_provider' => $this->storageProvider->getProviderName($currentDriver),
+            'new_provider' => $this->storageProvider->getProviderName($validated['new_driver']),
+            'total_files' => $totalFiles,
+            'total_size_gb' => round($totalSize / 1024 / 1024 / 1024, 2),
+            'estimated_minutes' => $estimatedMinutes,
+            'provider_changed' => $currentDriver !== $validated['new_driver'],
+        ]);
     }
 
     public function startMigration(Request $request, MigrationProgressService $progressService)

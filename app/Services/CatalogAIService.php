@@ -4,7 +4,13 @@ namespace App\Services;
 
 class CatalogAIService
 {
-    public function __construct(private GeminiService $gemini) {}
+    /** Resolved AI provider for cataloging + search features (Gemini or Claude). */
+    private \App\Services\AI\AiTextService $gemini;
+
+    public function __construct()
+    {
+        $this->gemini = app(\App\Services\AI\AiManager::class)->for('cataloging');
+    }
 
     /**
      * Suggest DDC and LCC classifications based on bibliographic metadata

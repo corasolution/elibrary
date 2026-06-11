@@ -188,6 +188,7 @@ Route::prefix('central')
             Route::get('/ai', [PlatformSettingsController::class, 'aiSettings'])->name('ai');
             Route::post('/ai', [PlatformSettingsController::class, 'updateAISettings'])->name('ai.update');
             Route::post('/ai/test-connection', [PlatformSettingsController::class, 'testConnection'])->name('ai.test-connection');
+            Route::get('/ai-usage', [PlatformSettingsController::class, 'aiUsage'])->name('ai-usage');
 
             // Storage Settings
             Route::get('/storage', [PlatformSettingsController::class, 'storageSettings'])->name('storage');

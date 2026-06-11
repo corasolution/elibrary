@@ -47,4 +47,14 @@ return [
         'max_retries' => 2,
     ],
 
+    'anthropic' => [
+        'api_key' => env('ANTHROPIC_API_KEY'),
+        'base_url' => env('ANTHROPIC_API_URL', 'https://api.anthropic.com/v1'),
+        'version' => env('ANTHROPIC_VERSION', '2023-06-01'),
+        // Default to the cost-effective Haiku for high-volume features; selectable up to Opus.
+        'model' => env('ANTHROPIC_MODEL', 'claude-haiku-4-5'),
+        'timeout' => 30,
+        'max_retries' => 2,
+    ],
+
 ];

@@ -24,6 +24,8 @@ use App\Http\Controllers\Admin\StorageController;
 use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\Admin\UserPreferenceController;
+use App\Http\Controllers\Admin\CardMakerController;
+use App\Http\Controllers\Admin\LabelMakerController;
 
 // TEST ROUTE
 Route::get('/test-admin', function() {
@@ -54,6 +56,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::post('/', [CatalogController::class, 'store'])->name('store');
                 Route::get('/trash', [CatalogController::class, 'trash'])->name('trash');
                 Route::get('/lookup-isbn/{isbn}', [CatalogController::class, 'lookupIsbn'])->name('isbn-lookup');
+                Route::post('/ai-classify', [CatalogController::class, 'aiClassify'])->name('ai-classify');
                 Route::get('/import-search', [CatalogController::class, 'importSearch'])->name('import-search');
 
                 // Excel import/export (must be before /{id} wildcard)
@@ -107,6 +110,40 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('/{id}/edit', [PatronController::class, 'edit'])->name('edit');
                 Route::put('/{id}', [PatronController::class, 'update'])->name('update');
                 Route::delete('/{id}', [PatronController::class, 'destroy'])->name('destroy');
+            });
+
+            // Card Maker (patron ID cards)
+            Route::prefix('cards')->name('cards.')->group(function () {
+                Route::get('/',          [CardMakerController::class, 'index'])->name('index');
+                Route::post('/generate', [CardMakerController::class, 'generate'])->name('generate');
+
+                Route::prefix('templates')->name('templates.')->group(function () {
+                    Route::get('/',              [CardMakerController::class, 'templatesIndex'])->name('index');
+                    Route::get('/create',        [CardMakerController::class, 'templateCreate'])->name('create');
+                    Route::post('/',             [CardMakerController::class, 'templateStore'])->name('store');
+                    Route::get('/{id}/edit',     [CardMakerController::class, 'templateEdit'])->name('edit');
+                    Route::put('/{id}',          [CardMakerController::class, 'templateUpdate'])->name('update');
+                    Route::post('/{id}/default', [CardMakerController::class, 'setDefault'])->name('default');
+                    Route::delete('/{id}',       [CardMakerController::class, 'templateDestroy'])->name('destroy');
+                });
+            });
+
+            // Barcode Labels (Koha-style label creator)
+            Route::prefix('labels')->name('labels.')->group(function () {
+                Route::get('/',                 [LabelMakerController::class, 'index'])->name('index');
+                Route::post('/generate',        [LabelMakerController::class, 'generate'])->name('generate');
+                Route::post('/settings',        [LabelMakerController::class, 'saveSettings'])->name('settings');
+                Route::post('/assign-barcodes', [LabelMakerController::class, 'assignBarcodes'])->name('assign-barcodes');
+
+                Route::prefix('templates')->name('templates.')->group(function () {
+                    Route::get('/',              [LabelMakerController::class, 'templatesIndex'])->name('index');
+                    Route::get('/create',        [LabelMakerController::class, 'templateCreate'])->name('create');
+                    Route::post('/',             [LabelMakerController::class, 'templateStore'])->name('store');
+                    Route::get('/{id}/edit',     [LabelMakerController::class, 'templateEdit'])->name('edit');
+                    Route::put('/{id}',          [LabelMakerController::class, 'templateUpdate'])->name('update');
+                    Route::post('/{id}/default', [LabelMakerController::class, 'setDefault'])->name('default');
+                    Route::delete('/{id}',       [LabelMakerController::class, 'templateDestroy'])->name('destroy');
+                });
             });
 
             // Circulation
@@ -197,6 +234,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
             Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
 
+            // AI feature controls (per library)
+            Route::get('/settings/ai', [SettingsController::class, 'ai'])->name('settings.ai');
+            Route::post('/settings/ai', [SettingsController::class, 'updateAi'])->name('settings.ai.update');
+
             // Theme Settings
             Route::prefix('settings/theme')->name('settings.theme.')->group(function () {
                 Route::get('/', [ThemeController::class, 'index'])->name('index');
@@ -209,6 +250,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('/', [StorageController::class, 'index'])->name('index');
                 Route::post('/', [StorageController::class, 'update'])->name('update');
                 Route::post('/test', [StorageController::class, 'testConnection'])->name('test');
+                Route::post('/migration-info', [StorageController::class, 'getMigrationInfo'])->name('migration-info');
                 Route::post('/migrate', [StorageController::class, 'startMigration'])->name('migrate');
                 Route::get('/migrations', [StorageController::class, 'allMigrations'])->name('migrations');
                 Route::get('/migrations/{id}', [StorageController::class, 'migrationProgress'])->name('migration-progress');

@@ -62,6 +62,7 @@ class StorageProviderService
             's3' => $this->buildS3Config($credentials),
             'spaces' => $this->buildSpacesConfig($credentials),
             'wasabi' => $this->buildWasabiConfig($credentials),
+            'minio' => $this->buildMinIOConfig($credentials),
             'gcs' => $this->buildGcsConfig($credentials),
             default => throw new \Exception("Unsupported storage driver: {$driver}"),
         };
@@ -132,6 +133,30 @@ class StorageProviderService
             'bucket' => $creds['bucket'],
             'endpoint' => "https://s3.{$creds['region']}.wasabisys.com",
             'use_path_style_endpoint' => false,
+            'throw' => false,
+        ];
+    }
+
+    /**
+     * Build MinIO configuration
+     */
+    protected function buildMinIOConfig(array $creds): array
+    {
+        $endpoint = $creds['endpoint'];
+
+        // Ensure endpoint has protocol
+        if (!str_starts_with($endpoint, 'http://') && !str_starts_with($endpoint, 'https://')) {
+            $endpoint = 'https://' . $endpoint;
+        }
+
+        return [
+            'driver' => 's3',
+            'key' => $creds['access_key_id'],
+            'secret' => $creds['secret_access_key'],
+            'region' => $creds['region'] ?? 'us-east-1',
+            'bucket' => $creds['bucket'],
+            'endpoint' => $endpoint,
+            'use_path_style_endpoint' => ($creds['use_path_style'] ?? 'true') === 'true',
             'throw' => false,
         ];
     }
@@ -266,6 +291,7 @@ class StorageProviderService
             's3' => 'Amazon S3',
             'spaces' => 'DigitalOcean Spaces',
             'wasabi' => 'Wasabi',
+            'minio' => 'MinIO (Self-Hosted)',
             'gcs' => 'Google Cloud Storage',
             default => 'Unknown Provider',
         };
@@ -359,6 +385,24 @@ class StorageProviderService
                 if (empty($credentials['secret_key'])) $errors[] = 'Secret Key is required';
                 if (empty($credentials['region'])) $errors[] = 'Region is required';
                 if (empty($credentials['bucket'])) $errors[] = 'Bucket name is required';
+                break;
+
+            case 'minio':
+                if (empty($credentials['endpoint'])) $errors[] = 'Endpoint URL is required';
+                if (empty($credentials['access_key_id'])) $errors[] = 'Access Key is required';
+                if (empty($credentials['secret_access_key'])) $errors[] = 'Secret Key is required';
+                if (empty($credentials['bucket'])) $errors[] = 'Bucket name is required';
+
+                // Validate endpoint URL format
+                if (!empty($credentials['endpoint'])) {
+                    $endpoint = $credentials['endpoint'];
+                    if (!str_starts_with($endpoint, 'http://') && !str_starts_with($endpoint, 'https://')) {
+                        $endpoint = 'https://' . $endpoint;
+                    }
+                    if (!filter_var($endpoint, FILTER_VALIDATE_URL)) {
+                        $errors[] = 'Invalid endpoint URL format';
+                    }
+                }
                 break;
 
             case 'gcs':

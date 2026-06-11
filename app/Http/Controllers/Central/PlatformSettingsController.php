@@ -22,12 +22,13 @@ class PlatformSettingsController extends Controller
         return Inertia::render('Central/Settings/AI', [
             'settings' => $settings,
             'apiKeyConfigured' => !empty($settings['gemini_api_key'] ?? ''),
+            'claudeKeyConfigured' => !empty($settings['anthropic_api_key'] ?? ''),
             'connectionStatus' => $this->testGeminiConnection(),
         ]);
     }
 
     /**
-     * Update AI settings
+     * Update AI settings (Gemini + Claude/Anthropic, per-feature provider, markup)
      */
     public function updateAISettings(Request $request)
     {
@@ -35,14 +36,21 @@ class PlatformSettingsController extends Controller
             'gemini_api_key' => 'nullable|string',
             'gemini_api_url' => 'nullable|url',
             'gemini_model' => 'nullable|string',
+            'anthropic_api_key' => 'nullable|string',
+            'anthropic_model' => 'nullable|string',
+            'ai_provider_chatbot' => 'nullable|in:gemini,claude',
+            'ai_provider_cataloging' => 'nullable|in:gemini,claude',
             'ai_markup_percentage' => 'nullable|numeric|min:0|max:100',
             'ai_platform_enabled' => 'nullable|boolean',
         ]);
 
+        $encrypted = ['gemini_api_key', 'anthropic_api_key'];
+
         foreach ($validated as $key => $value) {
             if ($value !== null) {
                 PlatformSetting::set($key, $value, [
-                    'is_encrypted' => $key === 'gemini_api_key',
+                    'is_encrypted' => in_array($key, $encrypted, true),
+                    'group' => 'ai',
                 ]);
             }
         }
@@ -51,13 +59,17 @@ class PlatformSettingsController extends Controller
     }
 
     /**
-     * Test Gemini API connection
+     * Test an AI provider connection. Body: { provider: 'gemini' | 'claude' }
      */
-    public function testConnection()
+    public function testConnection(Request $request)
     {
+        $provider = $request->input('provider', 'gemini');
+
         try {
-            $geminiService = app(\App\Services\GeminiService::class);
-            $result = $geminiService->testConnection();
+            $service = $provider === 'claude'
+                ? app(\App\Services\ClaudeService::class)
+                : app(\App\Services\GeminiService::class);
+            $result = $service->testConnection();
 
             return response()->json([
                 'success' => $result['success'] ?? false,
@@ -70,6 +82,51 @@ class PlatformSettingsController extends Controller
                 'message' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * AI usage + earnings dashboard (cross-tenant, from the central ledger).
+     */
+    public function aiUsage(Request $request)
+    {
+        $ledger = \App\Models\Central\AiUsageLedger::query();
+
+        $totals = (clone $ledger)->selectRaw(
+            'COUNT(*) as calls, SUM(input_tokens) as input_tokens, SUM(output_tokens) as output_tokens, '
+            . 'SUM(api_cost_usd) as api_cost, SUM(billed_usd) as billed, SUM(earning_usd) as earning'
+        )->first();
+
+        $byProvider = (clone $ledger)->selectRaw(
+            'provider, COUNT(*) as calls, SUM(input_tokens + output_tokens) as tokens, '
+            . 'SUM(api_cost_usd) as api_cost, SUM(billed_usd) as billed, SUM(earning_usd) as earning'
+        )->groupBy('provider')->get();
+
+        $byFeature = (clone $ledger)->selectRaw(
+            'feature, COUNT(*) as calls, SUM(input_tokens + output_tokens) as tokens, SUM(earning_usd) as earning'
+        )->groupBy('feature')->orderByDesc('earning')->limit(20)->get();
+
+        $byTenant = (clone $ledger)->selectRaw(
+            'tenant_id, COUNT(*) as calls, SUM(input_tokens + output_tokens) as tokens, '
+            . 'SUM(billed_usd) as billed, SUM(earning_usd) as earning'
+        )->groupBy('tenant_id')->orderByDesc('billed')->limit(50)->get();
+
+        // Attach tenant names
+        $names = \App\Models\Central\Tenant::whereIn('id', $byTenant->pluck('tenant_id')->filter())
+            ->pluck('name', 'id');
+        $byTenant->transform(function ($row) use ($names) {
+            $row->tenant_name = $names[$row->tenant_id] ?? '—';
+            return $row;
+        });
+
+        $monthEarning = \App\Models\Central\AiUsageLedger::thisMonth()->sum('earning_usd');
+
+        return Inertia::render('Central/Reports/AiUsage', [
+            'totals'       => $totals,
+            'byProvider'   => $byProvider,
+            'byFeature'    => $byFeature,
+            'byTenant'     => $byTenant,
+            'monthEarning' => (float) $monthEarning,
+        ]);
     }
 
     /**

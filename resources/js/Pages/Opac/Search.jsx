@@ -5,10 +5,11 @@ import { Search, SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import RecordCard from '@/Components/Opac/RecordCard';
 import FacetedFilter from '@/Components/Opac/FacetedFilter';
+import AISearchBar from '@/Components/Opac/AISearchBar';
 
 export default function SearchPage({ results, query: initialQuery, filters: initialFilters, materialTypes }) {
     const { t } = useTranslation();
-    const { tenant } = usePage().props;
+    const { tenant, ai } = usePage().props;
     const base = tenant?.base_url ?? '';
     const [query, setQuery] = useState(initialQuery);
     const [showFilters, setShowFilters] = useState(false);
@@ -26,25 +27,37 @@ export default function SearchPage({ results, query: initialQuery, filters: init
         <OpacLayout>
             {/* Search bar */}
             <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 py-8 px-4">
-                <form onSubmit={handleSearch} className="max-w-3xl mx-auto flex gap-2">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                            type="text"
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            placeholder={t('nav.search_placeholder')}
-                            className="w-full pl-10 pr-4 h-11 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                        />
+                {ai?.search_enabled ? (
+                    <div className="max-w-3xl mx-auto flex gap-2 items-start">
+                        <div className="flex-1">
+                            <AISearchBar librarySlug={tenant?.slug} initialQuery={query} placeholder={t('nav.search_placeholder')} />
+                        </div>
+                        <button type="button" onClick={() => setShowFilters(!showFilters)}
+                            className="bg-blue-600 text-white px-3 h-11 rounded-xl hover:bg-blue-500 transition-colors">
+                            <SlidersHorizontal className="w-5 h-5" />
+                        </button>
                     </div>
-                    <button type="submit" className="bg-white text-blue-700 px-6 h-11 rounded-xl text-sm font-semibold hover:bg-blue-50 transition-colors">
-                        Search
-                    </button>
-                    <button type="button" onClick={() => setShowFilters(!showFilters)}
-                        className="bg-blue-600 text-white px-3 h-11 rounded-xl hover:bg-blue-500 transition-colors">
-                        <SlidersHorizontal className="w-5 h-5" />
-                    </button>
-                </form>
+                ) : (
+                    <form onSubmit={handleSearch} className="max-w-3xl mx-auto flex gap-2">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                            <input
+                                type="text"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder={t('nav.search_placeholder')}
+                                className="w-full pl-10 pr-4 h-11 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                            />
+                        </div>
+                        <button type="submit" className="bg-white text-blue-700 px-6 h-11 rounded-xl text-sm font-semibold hover:bg-blue-50 transition-colors">
+                            Search
+                        </button>
+                        <button type="button" onClick={() => setShowFilters(!showFilters)}
+                            className="bg-blue-600 text-white px-3 h-11 rounded-xl hover:bg-blue-500 transition-colors">
+                            <SlidersHorizontal className="w-5 h-5" />
+                        </button>
+                    </form>
+                )}
             </div>
 
             <div className="max-w-7xl mx-auto px-4 py-8 flex gap-8">

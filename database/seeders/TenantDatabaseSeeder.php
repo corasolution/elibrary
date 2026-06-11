@@ -13,6 +13,8 @@ class TenantDatabaseSeeder extends Seeder
             PatronCategorySeeder::class,
             DefaultSettingsSeeder::class,
             StaffUserSeeder::class,
+            CardTemplateSeeder::class,
+            LabelTemplateSeeder::class,
             DemoSeeder::class,
         ]);
     }

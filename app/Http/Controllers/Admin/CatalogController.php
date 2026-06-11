@@ -53,7 +53,8 @@ class CatalogController extends Controller
         try {
             $record = $this->catalog->createRecord($request->all());
         } catch (\Throwable $e) {
-            return back()->withErrors(['general' => $e->getMessage()]);
+            \Illuminate\Support\Facades\Log::error('Catalog createRecord failed: ' . $e->getMessage(), ['exception' => $e]);
+            return back()->withErrors(['general' => 'Could not save the record: ' . $e->getMessage()]);
         }
 
         return redirect()->route('admin.catalog.show', $record->id)
@@ -164,6 +165,34 @@ class CatalogController extends Controller
     {
         $data = $this->catalog->lookupByISBN($isbn);
         return response()->json(['data' => $data]);
+    }
+
+    /**
+     * AI-suggest DDC + LCC classification from the in-progress record metadata.
+     * POST /admin/catalog/ai-classify
+     */
+    public function aiClassify(Request $request)
+    {
+        $enabled = filter_var(\App\Models\Tenant\LibrarySetting::get('ai_features_enabled', false), FILTER_VALIDATE_BOOLEAN)
+            && filter_var(\App\Models\Tenant\LibrarySetting::get('ai_cataloging_enabled', false), FILTER_VALIDATE_BOOLEAN);
+
+        if (! $enabled) {
+            return response()->json(['error' => 'AI cataloging is disabled for this library.'], 403);
+        }
+
+        $data = $request->validate([
+            'title'            => 'required|string|max:500',
+            'subtitle'         => 'nullable|string|max:500',
+            'abstract'         => 'nullable|string',
+            'authors'          => 'nullable|array',
+            'subjects'         => 'nullable|array',
+            'publisher'        => 'nullable|string|max:300',
+            'publication_year' => 'nullable',
+        ]);
+
+        $result = app(\App\Services\CatalogAIService::class)->classifyRecord($data);
+
+        return response()->json($result);
     }
 
     /**

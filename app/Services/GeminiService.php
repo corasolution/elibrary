@@ -2,24 +2,26 @@
 
 namespace App\Services;
 
-use App\Models\Tenant\AIUsageLog;
+use App\Services\AI\AiTextService;
+use App\Services\AI\LogsAiUsage;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 
-class GeminiService
+class GeminiService implements AiTextService
 {
+    use LogsAiUsage;
+
     private string $apiKey;
     private string $baseUrl;
     private string $model;
     private int $timeout;
     private int $maxRetries;
 
-    /**
-     * Service markup percentage (30% profit margin)
-     * Gemini API cost + 30% = Library billing price
-     */
-    private const MARKUP_PERCENTAGE = 0.30;
+    public function providerKey(): string
+    {
+        return 'gemini';
+    }
 
     public function __construct()
     {
@@ -188,62 +190,24 @@ class GeminiService
     }
 
     /**
-     * Log API usage for billing/analytics
+     * Log API usage for billing/analytics (markup + central ledger via LogsAiUsage).
      */
     private function logUsage(string $feature, array $metadata, string $status, bool $cacheHit): void
     {
-        $cost = $this->estimateCost(
+        $apiCost = $this->apiCost(
             $metadata['input_tokens'] ?? 0,
             $metadata['output_tokens'] ?? 0
         );
 
-        AIUsageLog::create([
-            'feature' => $feature,
-            'input_tokens' => $metadata['input_tokens'] ?? 0,
-            'output_tokens' => $metadata['output_tokens'] ?? 0,
-            'cost_usd' => $cost,
-            'response_time_ms' => $metadata['response_time_ms'] ?? 0,
-            'cache_hit' => $cacheHit,
-            'status' => $status,
-            'error_message' => $metadata['error'] ?? null,
-            'user_id' => auth()->id(),
-        ]);
-
-        // Check budget and send notifications if thresholds reached
-        // Only check on successful non-cached calls (cached calls cost $0)
-        if ($status === 'success' && !$cacheHit) {
-            try {
-                $budgetMonitor = app(\App\Services\BudgetMonitorService::class);
-                $budgetMonitor->checkBudgetAndNotify();
-            } catch (\Throwable $e) {
-                Log::warning("Budget monitoring failed: " . $e->getMessage());
-            }
-        }
+        $this->recordUsage('gemini', $feature, $metadata, $status, $cacheHit, $apiCost);
     }
 
     /**
-     * Estimate cost based on Gemini pricing + 30% markup
-     *
-     * gemini-1.5-flash pricing (as of June 2024):
-     * - Input: $0.075 per 1M tokens
-     * - Output: $0.30 per 1M tokens
-     *
-     * Billing structure:
-     * - API cost: calculated from Gemini rates
-     * - Markup: 30% added for service/platform fee
-     * - Library pays: API cost × 1.30
+     * Raw Gemini API cost (no markup). gemini-1.5-flash: input $0.075/1M, output $0.30/1M.
      */
-    private function estimateCost(int $inputTokens, int $outputTokens): float
+    private function apiCost(int $inputTokens, int $outputTokens): float
     {
-        // Calculate actual Gemini API cost
-        $inputCost = ($inputTokens / 1_000_000) * 0.075;
-        $outputCost = ($outputTokens / 1_000_000) * 0.30;
-        $apiCost = $inputCost + $outputCost;
-
-        // Add 30% markup for platform fee
-        $totalCost = $apiCost * (1 + self::MARKUP_PERCENTAGE);
-
-        return round($totalCost, 6);
+        return ($inputTokens / 1_000_000) * 0.075 + ($outputTokens / 1_000_000) * 0.30;
     }
 
     /**

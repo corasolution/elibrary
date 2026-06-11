@@ -35,8 +35,10 @@ class GenerateBibliographicEmbedding implements ShouldQueue
      */
     public function handle(): void
     {
-        // Skip if semantic search disabled globally
-        if (!PlatformSetting::get('enable_semantic_search', false)) {
+        // Skip if semantic search disabled globally.
+        // Settings are stored as strings — the string "false" is truthy in PHP, so
+        // coerce explicitly with filter_var.
+        if (! filter_var(PlatformSetting::get('enable_semantic_search', false), FILTER_VALIDATE_BOOLEAN)) {
             Log::info('Skipping embedding generation - semantic search disabled globally', [
                 'record_id' => $this->record->id
             ]);

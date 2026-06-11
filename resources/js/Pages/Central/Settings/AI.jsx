@@ -3,11 +3,15 @@ import CentralLayout from '@/Layouts/CentralLayout';
 import { Sparkles, Key, DollarSign, Check, X, Loader2, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 
-export default function AISettings({ settings, apiKeyConfigured, connectionStatus }) {
+export default function AISettings({ settings, apiKeyConfigured, claudeKeyConfigured, connectionStatus }) {
     const { data, setData, post, processing, errors } = useForm({
         gemini_api_key: settings.gemini_api_key || '',
         gemini_api_url: settings.gemini_api_url || 'https://generativelanguage.googleapis.com/v1beta',
         gemini_model: settings.gemini_model || 'gemini-1.5-flash',
+        anthropic_api_key: settings.anthropic_api_key || '',
+        anthropic_model: settings.anthropic_model || 'claude-haiku-4-5',
+        ai_provider_chatbot: settings.ai_provider_chatbot || 'claude',
+        ai_provider_cataloging: settings.ai_provider_cataloging || 'gemini',
         ai_markup_percentage: settings.ai_markup_percentage || '30',
         ai_platform_enabled: settings.ai_platform_enabled === 'true',
     });
@@ -21,7 +25,7 @@ export default function AISettings({ settings, apiKeyConfigured, connectionStatu
         post(route('central.settings.ai.update'));
     };
 
-    const handleTestConnection = async () => {
+    const handleTestConnection = async (provider = 'gemini') => {
         setTesting(true);
         setTestStatus(null);
 
@@ -32,6 +36,7 @@ export default function AISettings({ settings, apiKeyConfigured, connectionStatu
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                 },
+                body: JSON.stringify({ provider }),
             });
 
             const result = await response.json();
@@ -181,6 +186,85 @@ export default function AISettings({ settings, apiKeyConfigured, connectionStatu
                         </div>
                     </div>
 
+                    {/* Claude (Anthropic) API Configuration */}
+                    <div className="bg-white border rounded-lg p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <Key className="w-5 h-5 text-orange-600" />
+                            Claude (Anthropic) API Configuration
+                        </h3>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">API Key</label>
+                                <input
+                                    type="password"
+                                    value={data.anthropic_api_key}
+                                    onChange={(e) => setData('anthropic_api_key', e.target.value)}
+                                    placeholder="sk-ant-..."
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                                />
+                                {claudeKeyConfigured && (
+                                    <p className="mt-1 text-xs text-green-600">A key is already saved. Leave blank to keep it.</p>
+                                )}
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Get a key from{' '}
+                                    <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:underline">Anthropic Console</a>
+                                </p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Model</label>
+                                <select
+                                    value={data.anthropic_model}
+                                    onChange={(e) => setData('anthropic_model', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                                >
+                                    <option value="claude-haiku-4-5">claude-haiku-4-5 (Recommended — $1 / $5 per 1M)</option>
+                                    <option value="claude-sonnet-4-6">claude-sonnet-4-6 (Balanced — $3 / $15 per 1M)</option>
+                                    <option value="claude-opus-4-8">claude-opus-4-8 (Most capable — $5 / $25 per 1M)</option>
+                                </select>
+                                <p className="mt-1 text-xs text-gray-500">Haiku keeps the high-volume OPAC chatbot affordable.</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => handleTestConnection('claude')}
+                                disabled={testing}
+                                className="px-4 py-2 text-sm font-medium text-orange-700 bg-orange-50 border border-orange-200 rounded-md hover:bg-orange-100 disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {testing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                                Test Claude Connection
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Per-feature provider routing */}
+                    <div className="bg-white border rounded-lg p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <Sparkles className="w-5 h-5 text-indigo-600" />
+                            Provider per Feature
+                        </h3>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">OPAC Chatbot</label>
+                                <select value={data.ai_provider_chatbot} onChange={(e) => setData('ai_provider_chatbot', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500">
+                                    <option value="claude">Claude</option>
+                                    <option value="gemini">Gemini</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Cataloging &amp; Search</label>
+                                <select value={data.ai_provider_cataloging} onChange={(e) => setData('ai_provider_cataloging', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500">
+                                    <option value="gemini">Gemini</option>
+                                    <option value="claude">Claude</option>
+                                </select>
+                            </div>
+                        </div>
+                        <p className="mt-3 text-xs text-gray-500">
+                            Choose which API powers each feature. Usage &amp; earnings are tracked per provider in{' '}
+                            <a href={route('central.settings.ai-usage')} className="text-indigo-600 hover:underline">AI Usage</a>.
+                        </p>
+                    </div>
+
                     {/* Pricing Configuration */}
                     <div className="bg-white border rounded-lg p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -271,7 +355,7 @@ export default function AISettings({ settings, apiKeyConfigured, connectionStatu
                     <div className="flex items-center justify-between">
                         <button
                             type="button"
-                            onClick={handleTestConnection}
+                            onClick={() => handleTestConnection('gemini')}
                             disabled={testing || !data.gemini_api_key}
                             className="px-4 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-md hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                         >

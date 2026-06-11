@@ -1,11 +1,18 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { HardDrive, CheckCircle, XCircle, Loader2, Database } from 'lucide-react';
+import MigrationConfirmationModal from '@/Components/Storage/MigrationConfirmationModal';
+import MigrationProgressWidget from '@/Components/Storage/MigrationProgressWidget';
 
 export default function Storage({ currentProvider, usageStats, providers }) {
+    const { flash } = usePage().props;
     const [testingConnection, setTestingConnection] = useState(false);
     const [testResult, setTestResult] = useState(null);
+    const [showMigrationModal, setShowMigrationModal] = useState(false);
+    const [migrationInfo, setMigrationInfo] = useState(null);
+    const [activeMigration, setActiveMigration] = useState(null);
+    const [pollingInterval, setPollingInterval] = useState(null);
 
     const { data, setData, post, processing, errors } = useForm({
         driver: currentProvider.driver || 'default',
@@ -62,16 +69,107 @@ export default function Storage({ currentProvider, usageStats, providers }) {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Check if provider changed
+        if (data.driver !== currentProvider.driver) {
+            try {
+                const response = await fetch(route('admin.settings.storage.migration-info'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({ new_driver: data.driver }),
+                });
+
+                const info = await response.json();
+
+                if (info.provider_changed && info.total_files > 0) {
+                    setMigrationInfo(info);
+                    setShowMigrationModal(true);
+                    return; // Don't submit yet, wait for user confirmation
+                }
+            } catch (error) {
+                console.error('Failed to fetch migration info:', error);
+            }
+        }
+
+        // No migration needed or error occurred, proceed normally
         post(route('admin.settings.storage.update'));
     };
+
+    const handleConfirmMigration = (shouldMigrate) => {
+        setShowMigrationModal(false);
+
+        // Submit with auto_migrate flag
+        post(route('admin.settings.storage.update'), {
+            data: { ...data, auto_migrate: shouldMigrate },
+            preserveScroll: true,
+            onSuccess: () => {
+                if (flash?.migration_started) {
+                    setActiveMigration(flash.migration_started);
+                    startPolling(flash.migration_started.migration_id);
+                }
+            },
+        });
+    };
+
+    const startPolling = (migrationId) => {
+        const interval = setInterval(async () => {
+            try {
+                const response = await fetch(route('admin.settings.storage.migration-progress', migrationId));
+                const progress = await response.json();
+
+                setActiveMigration(prev => ({ ...prev, progress }));
+
+                if (progress.status === 'completed' || progress.status === 'failed') {
+                    clearInterval(interval);
+                    setPollingInterval(null);
+                }
+            } catch (error) {
+                console.error('Failed to fetch progress:', error);
+            }
+        }, 3000); // Poll every 3 seconds
+
+        setPollingInterval(interval);
+    };
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (pollingInterval) clearInterval(pollingInterval);
+        };
+    }, [pollingInterval]);
+
+    // Check for migration started on mount (from flash message)
+    useEffect(() => {
+        if (flash?.migration_started) {
+            setActiveMigration(flash.migration_started);
+            startPolling(flash.migration_started.migration_id);
+        }
+    }, []);
 
     return (
         <AdminLayout title="Storage Settings">
             <Head title="Storage Settings" />
 
             <div className="max-w-5xl">
+                {/* Migration Confirmation Modal */}
+                {showMigrationModal && (
+                    <MigrationConfirmationModal
+                        migrationInfo={migrationInfo}
+                        onConfirm={handleConfirmMigration}
+                        onCancel={() => setShowMigrationModal(false)}
+                    />
+                )}
+
+                {/* Migration Progress Widget */}
+                {activeMigration && (
+                    <MigrationProgressWidget migration={activeMigration} />
+                )}
+
                 {/* Current Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">

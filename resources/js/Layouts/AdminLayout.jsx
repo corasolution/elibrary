@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import {
     LayoutDashboard, BookOpen, RefreshCw, Users, ShoppingCart,
     Newspaper, BarChart2, Settings, ChevronDown, ChevronRight,
-    Menu, X, LogOut, Bell, Boxes, BookMarked, Building2, CreditCard,
+    Menu, X, LogOut, Bell, Boxes, BookMarked, Building2, CreditCard, ScanBarcode,
 } from 'lucide-react';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 
@@ -45,7 +45,25 @@ export default function AdminLayout({ children, title }) {
                 { label: t('admin.nav.fines'), href: 'admin.fines.index' },
             ],
         },
+        {
+            group: t('admin.nav.labels'),
+            groupKey: 'Labels',
+            icon: ScanBarcode,
+            items: [
+                { label: t('admin.nav.labels_print'), href: 'admin.labels.index' },
+                { label: t('admin.nav.label_templates'), href: 'admin.labels.templates.index' },
+            ],
+        },
         { label: t('admin.nav.patrons'), icon: Users, href: 'admin.patrons.index' },
+        {
+            group: t('admin.nav.cards'),
+            groupKey: 'Cards',
+            icon: CreditCard,
+            items: [
+                { label: t('admin.nav.card_maker'), href: 'admin.cards.index' },
+                { label: t('admin.nav.card_templates'), href: 'admin.cards.templates.index' },
+            ],
+        },
         {
             group: t('admin.nav.acquisitions'),
             groupKey: 'Acquisitions',
@@ -79,6 +97,7 @@ export default function AdminLayout({ children, title }) {
             icon: Settings,
             items: [
                 { label: t('admin.nav.general'), href: 'admin.settings' },
+                { label: t('admin.nav.ai_features'), href: 'admin.settings.ai' },
                 { label: t('admin.nav.theme'), href: 'admin.settings.theme.index' },
                 { label: t('admin.nav.storage'), href: 'admin.settings.storage.index' },
                 { label: t('admin.nav.collections_locations'), href: 'admin.collections-locations.index' },

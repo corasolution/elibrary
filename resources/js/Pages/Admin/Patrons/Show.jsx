@@ -1,8 +1,10 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Link, router } from '@inertiajs/react';
+import axios from 'axios';
+import { useState } from 'react';
 import {
     ChevronRight, Edit2, Trash2, User, Mail, Phone, MapPin,
-    Calendar, CreditCard, BookOpen, Clock, AlertCircle, Hash,
+    Calendar, CreditCard, BookOpen, Clock, AlertCircle, Hash, Loader2,
 } from 'lucide-react';
 
 const STATUS_COLORS = {
@@ -19,9 +21,31 @@ const LOAN_STATUS_COLORS = {
 };
 
 export default function PatronShow({ patron }) {
+    const [printing, setPrinting] = useState(false);
+
     const deletePatron = () => {
         if (!confirm(`Delete patron "${patron.first_name} ${patron.last_name}"? This cannot be undone.`)) return;
         router.delete(route('admin.patrons.destroy', patron.id));
+    };
+
+    const printCard = async () => {
+        setPrinting(true);
+        try {
+            const res = await axios.post(route('admin.cards.generate'),
+                { patron_ids: [patron.id] }, { responseType: 'blob' });
+            const url = URL.createObjectURL(res.data);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `library-card-${patron.patron_number}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        } catch {
+            alert('Could not generate the card. Make sure a card template exists.');
+        } finally {
+            setPrinting(false);
+        }
     };
 
     const isOverdue = (loan) => !loan.returned_at && new Date(loan.due_date) < new Date();
@@ -70,6 +94,10 @@ export default function PatronShow({ patron }) {
                                 </div>
                             </div>
                             <div className="flex gap-2 flex-shrink-0">
+                                <button onClick={printCard} disabled={printing}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 disabled:opacity-50">
+                                    {printing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CreditCard className="w-3.5 h-3.5" />} Print Card
+                                </button>
                                 <Link href={route('admin.patrons.edit', patron.id)}
                                     className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100">
                                     <Edit2 className="w-3.5 h-3.5" /> Edit

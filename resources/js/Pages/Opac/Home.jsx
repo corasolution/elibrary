@@ -197,25 +197,31 @@ export default function OpacHome({ ebooks = [], epublications = [], audio = [], 
                                 href={`${base}/catalog/${record.id}`}
                                 className="book-card group block"
                             >
-                                <div className={`relative aspect-[2/3] rounded-xl bg-gradient-to-br ${
-                                    i % 8 === 0 ? 'from-blue-800 to-blue-600' :
-                                    i % 8 === 1 ? 'from-blue-950 to-blue-700' :
-                                    i % 8 === 2 ? 'from-blue-600 to-blue-400' :
-                                    i % 8 === 3 ? 'from-blue-900 to-blue-600' :
-                                    i % 8 === 4 ? 'from-blue-400 to-blue-200' :
-                                    i % 8 === 5 ? 'from-gray-700 to-blue-800' :
-                                    i % 8 === 6 ? 'from-cyan-500 to-blue-800' :
-                                    'from-blue-700 to-blue-950'
-                                } shadow-sm overflow-hidden cover-stripes`}>
+                                <div className={`relative aspect-[2/3] rounded-xl shadow-sm overflow-hidden ${
+                                    !record.cover_image_url ? `bg-gradient-to-br cover-stripes ${
+                                        i % 8 === 0 ? 'from-blue-800 to-blue-600' :
+                                        i % 8 === 1 ? 'from-blue-950 to-blue-700' :
+                                        i % 8 === 2 ? 'from-blue-600 to-blue-400' :
+                                        i % 8 === 3 ? 'from-blue-900 to-blue-600' :
+                                        i % 8 === 4 ? 'from-blue-400 to-blue-200' :
+                                        i % 8 === 5 ? 'from-gray-700 to-blue-800' :
+                                        i % 8 === 6 ? 'from-cyan-500 to-blue-800' :
+                                        'from-blue-700 to-blue-950'
+                                    }` : ''
+                                }`}>
+                                    {record.cover_image_url && (
+                                        <img
+                                            src={record.cover_image_url}
+                                            alt={record.title}
+                                            className="absolute inset-0 w-full h-full object-cover"
+                                        />
+                                    )}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                                     <div className="absolute inset-0 flex flex-col justify-end p-3">
-                                        <div className={`text-[13px] font-bold leading-tight line-clamp-3 ${
-                                            i % 8 === 4 ? 'text-blue-900' : 'text-white'
-                                        }`}>
+                                        <div className="text-[13px] font-bold leading-tight line-clamp-3 text-white">
                                             {record.title}
                                         </div>
-                                        <div className={`text-[10px] mt-1 ${
-                                            i % 8 === 4 ? 'text-blue-700/80' : 'text-white/80'
-                                        }`}>
+                                        <div className="text-[10px] mt-1 text-white/80">
                                             {record.authors?.[0]?.name || 'Unknown'}
                                         </div>
                                     </div>
@@ -258,25 +264,31 @@ export default function OpacHome({ ebooks = [], epublications = [], audio = [], 
                                 href={`${base}/catalog/${record.id}`}
                                 className="book-card group block"
                             >
-                                <div className={`relative aspect-[2/3] rounded-xl bg-gradient-to-br ${
-                                    i % 8 === 0 ? 'from-blue-600 to-blue-400' :
-                                    i % 8 === 1 ? 'from-blue-700 to-blue-800' :
-                                    i % 8 === 2 ? 'from-blue-950 to-blue-700' :
-                                    i % 8 === 3 ? 'from-blue-400 to-blue-200' :
-                                    i % 8 === 4 ? 'from-blue-800 to-blue-600' :
-                                    i % 8 === 5 ? 'from-blue-600 to-blue-400' :
-                                    i % 8 === 6 ? 'from-blue-900 to-blue-700' :
-                                    'from-gray-700 to-blue-800'
-                                } shadow-sm overflow-hidden cover-stripes`}>
+                                <div className={`relative aspect-[2/3] rounded-xl shadow-sm overflow-hidden ${
+                                    !record.cover_image_url ? `bg-gradient-to-br cover-stripes ${
+                                        i % 8 === 0 ? 'from-blue-600 to-blue-400' :
+                                        i % 8 === 1 ? 'from-blue-700 to-blue-800' :
+                                        i % 8 === 2 ? 'from-blue-950 to-blue-700' :
+                                        i % 8 === 3 ? 'from-blue-400 to-blue-200' :
+                                        i % 8 === 4 ? 'from-blue-800 to-blue-600' :
+                                        i % 8 === 5 ? 'from-blue-600 to-blue-400' :
+                                        i % 8 === 6 ? 'from-blue-900 to-blue-700' :
+                                        'from-gray-700 to-blue-800'
+                                    }` : ''
+                                }`}>
+                                    {record.cover_image_url && (
+                                        <img
+                                            src={record.cover_image_url}
+                                            alt={record.title}
+                                            className="absolute inset-0 w-full h-full object-cover"
+                                        />
+                                    )}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                                     <div className="absolute inset-0 flex flex-col justify-end p-3">
-                                        <div className={`text-[13px] font-bold leading-tight line-clamp-3 ${
-                                            i % 8 === 3 ? 'text-blue-900' : 'text-white'
-                                        }`}>
+                                        <div className="text-[13px] font-bold leading-tight line-clamp-3 text-white">
                                             {record.title}
                                         </div>
-                                        <div className={`text-[10px] mt-1 ${
-                                            i % 8 === 3 ? 'text-blue-700/80' : 'text-white/80'
-                                        }`}>
+                                        <div className="text-[10px] mt-1 text-white/80">
                                             {record.authors?.[0]?.name || 'Unknown'}
                                         </div>
                                     </div>
@@ -324,15 +336,24 @@ export default function OpacHome({ ebooks = [], epublications = [], audio = [], 
                                     href={`${base}/catalog/${record.id}`}
                                     className="book-card flex items-center gap-4 bg-white border border-slate-200 rounded-2xl p-3 pr-4"
                                 >
-                                    <div className={`relative w-20 h-20 rounded-xl shrink-0 flex items-center justify-center ${
-                                        i % 8 === 0 ? 'cv-1' :
-                                        i % 8 === 1 ? 'cv-2' :
-                                        i % 8 === 2 ? 'cv-3' :
-                                        i % 8 === 3 ? 'cv-4' :
-                                        i % 8 === 4 ? 'cv-7' :
-                                        'cv-8'
-                                    } cover-stripes`}>
-                                        <div className="w-10 h-10 rounded-full bg-white/95 flex items-center justify-center">
+                                    <div className={`relative w-20 h-20 rounded-xl shrink-0 overflow-hidden flex items-center justify-center ${
+                                        !record.cover_image_url ? `cover-stripes ${
+                                            i % 8 === 0 ? 'cv-1' :
+                                            i % 8 === 1 ? 'cv-2' :
+                                            i % 8 === 2 ? 'cv-3' :
+                                            i % 8 === 3 ? 'cv-4' :
+                                            i % 8 === 4 ? 'cv-7' :
+                                            'cv-8'
+                                        }` : ''
+                                    }`}>
+                                        {record.cover_image_url && (
+                                            <img
+                                                src={record.cover_image_url}
+                                                alt={record.title}
+                                                className="absolute inset-0 w-full h-full object-cover"
+                                            />
+                                        )}
+                                        <div className="relative z-10 w-10 h-10 rounded-full bg-white/95 flex items-center justify-center shadow">
                                             <Play className="w-5 h-5 text-blue-700 ml-0.5" fill="currentColor" />
                                         </div>
                                     </div>
@@ -384,13 +405,22 @@ export default function OpacHome({ ebooks = [], epublications = [], audio = [], 
                                     className="book-card group block"
                                 >
                                     <div className={`relative aspect-video rounded-xl overflow-hidden shadow-sm ${
-                                        i % 4 === 0 ? 'cv-2' :
-                                        i % 4 === 1 ? 'cv-1' :
-                                        i % 4 === 2 ? 'cv-6' :
-                                        'cv-8'
-                                    } cover-stripes`}>
+                                        !record.cover_image_url ? `cover-stripes ${
+                                            i % 4 === 0 ? 'cv-2' :
+                                            i % 4 === 1 ? 'cv-1' :
+                                            i % 4 === 2 ? 'cv-6' :
+                                            'cv-8'
+                                        }` : ''
+                                    }`}>
+                                        {record.cover_image_url && (
+                                            <img
+                                                src={record.cover_image_url}
+                                                alt={record.title}
+                                                className="absolute inset-0 w-full h-full object-cover"
+                                            />
+                                        )}
                                         {duration && (
-                                            <div className="absolute bottom-2.5 right-2.5 text-[10px] font-bold bg-black/60 text-white px-1.5 py-0.5 rounded">
+                                            <div className="absolute bottom-2.5 right-2.5 text-[10px] font-bold bg-black/60 text-white px-1.5 py-0.5 rounded z-10">
                                                 {durationStr}
                                             </div>
                                         )}
@@ -436,25 +466,31 @@ export default function OpacHome({ ebooks = [], epublications = [], audio = [], 
                                 href={`${base}/catalog/${record.id}`}
                                 className="book-card group block"
                             >
-                                <div className={`relative aspect-[2/3] rounded-xl bg-gradient-to-br ${
-                                    i % 8 === 0 ? 'from-blue-800 to-blue-600' :
-                                    i % 8 === 1 ? 'from-blue-950 to-blue-700' :
-                                    i % 8 === 2 ? 'from-blue-600 to-blue-400' :
-                                    i % 8 === 3 ? 'from-blue-900 to-blue-600' :
-                                    i % 8 === 4 ? 'from-blue-400 to-blue-200' :
-                                    i % 8 === 5 ? 'from-gray-700 to-blue-800' :
-                                    i % 8 === 6 ? 'from-cyan-500 to-blue-800' :
-                                    'from-blue-700 to-blue-950'
-                                } shadow-sm overflow-hidden cover-stripes`}>
+                                <div className={`relative aspect-[2/3] rounded-xl shadow-sm overflow-hidden ${
+                                    !record.cover_image_url ? `bg-gradient-to-br cover-stripes ${
+                                        i % 8 === 0 ? 'from-blue-800 to-blue-600' :
+                                        i % 8 === 1 ? 'from-blue-950 to-blue-700' :
+                                        i % 8 === 2 ? 'from-blue-600 to-blue-400' :
+                                        i % 8 === 3 ? 'from-blue-900 to-blue-600' :
+                                        i % 8 === 4 ? 'from-blue-400 to-blue-200' :
+                                        i % 8 === 5 ? 'from-gray-700 to-blue-800' :
+                                        i % 8 === 6 ? 'from-cyan-500 to-blue-800' :
+                                        'from-blue-700 to-blue-950'
+                                    }` : ''
+                                }`}>
+                                    {record.cover_image_url && (
+                                        <img
+                                            src={record.cover_image_url}
+                                            alt={record.title}
+                                            className="absolute inset-0 w-full h-full object-cover"
+                                        />
+                                    )}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                                     <div className="absolute inset-0 flex flex-col justify-end p-3">
-                                        <div className={`text-[13px] font-bold leading-tight line-clamp-3 ${
-                                            i % 8 === 4 ? 'text-blue-900' : 'text-white'
-                                        }`}>
+                                        <div className="text-[13px] font-bold leading-tight line-clamp-3 text-white">
                                             {record.title}
                                         </div>
-                                        <div className={`text-[10px] mt-1 ${
-                                            i % 8 === 4 ? 'text-blue-700/80' : 'text-white/80'
-                                        }`}>
+                                        <div className="text-[10px] mt-1 text-white/80">
                                             {record.authors?.[0]?.name || 'Unknown'}
                                         </div>
                                     </div>

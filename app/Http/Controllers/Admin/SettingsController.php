@@ -21,6 +21,49 @@ class SettingsController extends Controller
         return Inertia::render('Admin/Settings/Index', compact('settings'));
     }
 
+    /** Per-library AI feature controls. */
+    public function ai()
+    {
+        $keys = ['ai_features_enabled', 'ai_chatbot_enabled', 'ai_search_enabled', 'ai_cataloging_enabled', 'ai_monthly_budget'];
+        $settings = [];
+        foreach ($keys as $k) {
+            $settings[$k] = rescue(fn () => LibrarySetting::get($k), null);
+        }
+
+        $usage = rescue(fn () => [
+            'month_cost'     => (float) \App\Models\Tenant\AIUsageLog::monthlyTotal(),
+            'by_feature'     => \App\Models\Tenant\AIUsageLog::statsByFeature(),
+            'cache_hit_rate' => \App\Models\Tenant\AIUsageLog::cacheHitRate(),
+        ], ['month_cost' => 0, 'by_feature' => [], 'cache_hit_rate' => 0]);
+
+        $platformEnabled = rescue(
+            fn () => filter_var(\App\Models\Central\PlatformSetting::get('ai_platform_enabled', true), FILTER_VALIDATE_BOOLEAN),
+            true
+        );
+
+        return Inertia::render('Admin/Settings/Ai', compact('settings', 'usage', 'platformEnabled'));
+    }
+
+    public function updateAi(Request $request)
+    {
+        $request->validate([
+            'ai_features_enabled'   => 'nullable|boolean',
+            'ai_chatbot_enabled'    => 'nullable|boolean',
+            'ai_search_enabled'     => 'nullable|boolean',
+            'ai_cataloging_enabled' => 'nullable|boolean',
+            'ai_monthly_budget'     => 'nullable|numeric|min:0',
+        ]);
+
+        foreach (['ai_features_enabled', 'ai_chatbot_enabled', 'ai_search_enabled', 'ai_cataloging_enabled'] as $k) {
+            LibrarySetting::set($k, $request->boolean($k) ? '1' : '0');
+        }
+        if ($request->filled('ai_monthly_budget')) {
+            LibrarySetting::set('ai_monthly_budget', (string) $request->input('ai_monthly_budget'));
+        }
+
+        return back()->with('success', 'AI settings updated.');
+    }
+
     public function update(Request $request)
     {
         $request->validate([

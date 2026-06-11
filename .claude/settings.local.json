@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php:*)",
+      "Bash(php artisan:*)",
+      "Bash(npm:*)",
+      "Bash(composer:*)",
+      "Bash(node:*)",
+      "Bash(curl:*)",
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(find:*)",
+      "Bash(sed:*)",
+      "Bash(awk:*)",
+      "Bash(echo:*)",
+      "Bash(test:*)",
+      "Bash(for:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(mkdir:*)",
+      "Bash(rm storage/app/*)",
+      "Read(//d/My project/alpha eLibrary/**)",
+      "Write(//d/My project/alpha eLibrary/**)",
+      "Edit(//d/My project/alpha eLibrary/**)"
+    ],
+    "deny": []
+  }
+}

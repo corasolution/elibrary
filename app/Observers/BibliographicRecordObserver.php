@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\Tenant\BibliographicRecord;
 use App\Models\Central\PlatformSetting;
 use App\Jobs\GenerateBibliographicEmbedding;
+use Illuminate\Support\Facades\Log;
 
 class BibliographicRecordObserver
 {
@@ -15,7 +16,7 @@ class BibliographicRecordObserver
     {
         // Dispatch embedding generation if semantic search enabled
         if ($this->shouldGenerateEmbedding()) {
-            GenerateBibliographicEmbedding::dispatch($record);
+            $this->dispatchEmbedding($record);
         }
     }
 
@@ -26,16 +27,34 @@ class BibliographicRecordObserver
     {
         // Regenerate embedding if searchable fields changed
         if ($this->shouldRegenerateEmbedding($record)) {
-            GenerateBibliographicEmbedding::dispatch($record);
+            $this->dispatchEmbedding($record);
         }
     }
 
     /**
-     * Check if embedding generation should be triggered
+     * Dispatch the embedding job defensively — a queue/Redis outage must never
+     * break the user's record save (the embedding is a best-effort background task).
+     */
+    private function dispatchEmbedding(BibliographicRecord $record): void
+    {
+        try {
+            GenerateBibliographicEmbedding::dispatch($record);
+        } catch (\Throwable $e) {
+            Log::warning('BibliographicRecord embedding dispatch failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Check if embedding generation should be triggered.
+     * Settings are stored as strings, so the string "false"/"0"/"" must coerce to
+     * false (a raw non-empty string like "false" is truthy in PHP).
      */
     private function shouldGenerateEmbedding(): bool
     {
-        return PlatformSetting::get('enable_semantic_search', false);
+        return filter_var(
+            PlatformSetting::get('enable_semantic_search', false),
+            FILTER_VALIDATE_BOOLEAN
+        );
     }
 
     /**

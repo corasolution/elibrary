@@ -11,6 +11,7 @@ import NavbarDark from '@/Components/Opac/variants/NavbarDark';
 import NavbarMinimal from '@/Components/Opac/variants/NavbarMinimal';
 import NavbarColorful from '@/Components/Opac/variants/NavbarColorful';
 import NavbarELibrary from '@/Components/Opac/variants/NavbarELibrary';
+import ChatbotWidget from '@/Components/Opac/ChatbotWidget';
 
 export default function OpacLayout({ children }) {
     const { theme, tenant } = usePage().props;
@@ -41,6 +42,9 @@ export default function OpacLayout({ children }) {
             <main className="flex-1">
                 {children}
             </main>
+
+            {/* AI assistant (renders only when enabled) */}
+            <ChatbotWidget />
 
             {/* Footer - eLibrary style */}
             <footer className="mt-20 bg-[#0B1F52] text-white/80">

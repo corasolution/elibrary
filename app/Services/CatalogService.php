@@ -436,13 +436,21 @@ XML;
 
     private function createPhysicalItems(BibliographicRecord $biblio, array $physical): void
     {
-        $quantity = (int) ($physical['quantity'] ?? 1);
-        for ($i = 0; $i < $quantity; $i++) {
-            PhysicalItem::create(array_merge(
-                collect($physical)->except('quantity')->toArray(),
-                ['biblio_id' => $biblio->id]
-            ));
+        // Inline cataloging creates exactly ONE copy (with its own barcode).
+        // Additional copies are added individually from the record page so each
+        // gets a unique, scannable barcode — duplicating one barcode N times would
+        // break circulation and trip the unique constraint.
+        $data = collect($physical)->except(['quantity', 'id'])->toArray();
+
+        // Auto-assign a barcode value when blank and auto-barcode is enabled.
+        if (empty($data['barcode'])) {
+            $seq = app(\App\Services\BarcodeSequenceService::class);
+            if ($seq->enabled()) {
+                $data['barcode'] = $seq->next();
+            }
         }
+
+        PhysicalItem::create(array_merge($data, ['biblio_id' => $biblio->id]));
     }
 
     private function syncPhysicalItems(BibliographicRecord $biblio, array $physical): void

@@ -66,15 +66,8 @@ class ImportService
                 default  => "dc.title any \"{$query}\"",
             };
 
-            $response = Http::timeout(15)->get('https://catalog.loc.gov/vwebv/search', [
-                'searchCode' => 'GKEY%5E*',
-                'searchType' => 1,
-                'recCount'   => 5,
-                'filter'     => 'all',
-            ]);
-
             // LOC SRU endpoint
-            $sruResponse = Http::timeout(15)
+            $sruResponse = Http::timeout(8)
                 ->withHeaders(['Accept' => 'application/xml'])
                 ->get('https://lx2.loc.gov/sru/catalog', [
                     'version'            => '1.1',
@@ -101,7 +94,7 @@ class ImportService
             if ($type === 'isbn') {
                 // Detailed record via ISBN
                 $isbn = preg_replace('/[^0-9X]/', '', strtoupper($query));
-                $response = Http::timeout(10)->get('https://openlibrary.org/api/books', [
+                $response = Http::timeout(8)->get('https://openlibrary.org/api/books', [
                     'bibkeys' => "ISBN:{$isbn}",
                     'format'  => 'json',
                     'jscmd'   => 'data',
@@ -114,7 +107,7 @@ class ImportService
 
             // Title/author search
             $field = $type === 'author' ? 'author' : 'title';
-            $response = Http::timeout(10)->get('https://openlibrary.org/search.json', [
+            $response = Http::timeout(8)->get('https://openlibrary.org/search.json', [
                 $field  => $query,
                 'limit' => 5,
                 'fields' => 'key,title,author_name,isbn,publisher,first_publish_year,subject,cover_i,language,number_of_pages_median,lccn,oclc',
@@ -147,7 +140,7 @@ class ImportService
                 $params['key'] = $key;
             }
 
-            $response = Http::timeout(10)->get('https://www.googleapis.com/books/v1/volumes', $params);
+            $response = Http::timeout(8)->get('https://www.googleapis.com/books/v1/volumes', $params);
             if (! $response->ok()) return [];
 
             return collect($response->json()['items'] ?? [])
@@ -169,7 +162,7 @@ class ImportService
         return Cache::remember($cacheKey, now()->addHours(24), function () use ($query, $type) {
             if ($type === 'doi') {
                 $doi = ltrim($query, '/');
-                $response = Http::timeout(10)
+                $response = Http::timeout(8)
                     ->withHeaders(['User-Agent' => 'AlphaeLibrary/1.0 (mailto:' . config('mail.from.address', 'admin@bannalai.com') . ')'])
                     ->get("https://api.crossref.org/works/{$doi}");
                 if (! $response->ok()) return [];
@@ -178,7 +171,7 @@ class ImportService
                 return [$this->normalizeCrossRefItem($item)];
             }
 
-            $response = Http::timeout(10)
+            $response = Http::timeout(8)
                 ->withHeaders(['User-Agent' => 'AlphaeLibrary/1.0 (mailto:' . config('mail.from.address', 'admin@bannalai.com') . ')'])
                 ->get('https://api.crossref.org/works', [
                     'query'  => $query,

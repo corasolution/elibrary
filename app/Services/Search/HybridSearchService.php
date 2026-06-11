@@ -24,7 +24,8 @@ class HybridSearchService
     ): LengthAwarePaginator {
         // Check if semantic search is available and enabled
         $hasVectorSupport = $this->hasVectorSupport();
-        $semanticEnabled = PlatformSetting::get('enable_semantic_search', false);
+        // Settings are strings — "false" is truthy in PHP; coerce explicitly.
+        $semanticEnabled = filter_var(PlatformSetting::get('enable_semantic_search', false), FILTER_VALIDATE_BOOLEAN);
 
         if ($hasVectorSupport && $semanticEnabled) {
             try {

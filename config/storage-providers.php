@@ -239,6 +239,75 @@ return [
             ],
         ],
 
+        'minio' => [
+            'name' => 'MinIO (Self-Hosted)',
+            'driver' => 's3',
+            'description' => 'Self-hosted S3-compatible object storage',
+            'documentation' => 'https://min.io/docs/minio/linux/index.html',
+            'benefits' => [
+                'Full data control',
+                'No vendor lock-in',
+                'S3-compatible API',
+                'High performance',
+                'Open source',
+            ],
+            'pricing' => [
+                'storage' => 'Self-hosted (hardware costs only)',
+                'egress' => 'FREE',
+                'operations' => 'FREE',
+            ],
+            'fields' => [
+                [
+                    'name' => 'endpoint',
+                    'label' => 'Endpoint URL',
+                    'type' => 'text',
+                    'required' => true,
+                    'placeholder' => 'https://minio.example.com or http://192.168.1.100:9000',
+                    'help' => 'MinIO server endpoint (include protocol and port)',
+                ],
+                [
+                    'name' => 'access_key_id',
+                    'label' => 'Access Key',
+                    'type' => 'text',
+                    'required' => true,
+                    'help' => 'MinIO access key (username)',
+                ],
+                [
+                    'name' => 'secret_access_key',
+                    'label' => 'Secret Key',
+                    'type' => 'password',
+                    'required' => true,
+                    'help' => 'MinIO secret key (password)',
+                ],
+                [
+                    'name' => 'bucket',
+                    'label' => 'Bucket Name',
+                    'type' => 'text',
+                    'required' => true,
+                    'help' => 'MinIO bucket name (must exist)',
+                ],
+                [
+                    'name' => 'region',
+                    'label' => 'Region',
+                    'type' => 'text',
+                    'required' => false,
+                    'placeholder' => 'us-east-1',
+                    'help' => 'Optional: Region name (defaults to us-east-1)',
+                ],
+                [
+                    'name' => 'use_path_style',
+                    'label' => 'Use Path Style',
+                    'type' => 'select',
+                    'required' => false,
+                    'options' => [
+                        'true' => 'Yes (Default for MinIO)',
+                        'false' => 'No (Virtual-hosted style)',
+                    ],
+                    'help' => 'MinIO typically uses path-style URLs',
+                ],
+            ],
+        ],
+
         'google_cloud_storage' => [
             'name' => 'Google Cloud Storage',
             'driver' => 'gcs',

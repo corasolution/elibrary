@@ -15,7 +15,8 @@ import {
     Home,
     Crown,
     DollarSign,
-    FileText
+    FileText,
+    Sparkles
 } from 'lucide-react';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 
@@ -104,7 +105,14 @@ export default function CentralLayout({ children }) {
             name: 'AI Settings',
             href: route('central.settings.ai'),
             icon: Settings,
-            current: route().current('central.settings.ai*')
+            current: route().current('central.settings.ai')
+        });
+
+        navigation.push({
+            name: 'AI Usage',
+            href: route('central.settings.ai-usage'),
+            icon: Sparkles,
+            current: route().current('central.settings.ai-usage')
         });
 
         navigation.push({

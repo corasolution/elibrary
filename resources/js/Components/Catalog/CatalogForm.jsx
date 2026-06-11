@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import {
     BookOpen, FileText, Headphones, Film, Globe, Map, Database,
-    Disc, Search, X, Plus, Trash2, Loader2, ChevronDown, ChevronRight, Download,
+    Disc, Search, X, Plus, Trash2, Loader2, ChevronDown, ChevronRight, Download, Sparkles,
 } from 'lucide-react';
 import ImportModal from '@/Components/Catalog/ImportModal';
 
@@ -97,10 +97,51 @@ export default function CatalogForm({ record = null, materialTypes = [], collect
 
     const [errors, setErrors]             = useState({});
     const [submitting, setSubmitting]     = useState(false);
-    const [isbnLoading, setIsbnLoading]   = useState(false);
     const [activeTab, setActiveTab]       = useState('biblio');
     const [showBibframe, setShowBibframe] = useState(false);
     const [showImport, setShowImport]     = useState(false);
+    const [importSeed, setImportSeed]     = useState({ query: '', type: 'isbn' });
+
+    // Open the multi-source Import panel, optionally pre-seeded (e.g. from the ISBN icon).
+    const openImport = (query = '', type = 'isbn') => {
+        setImportSeed({ query, type });
+        setShowImport(true);
+    };
+
+    const aiEnabled = usePage().props?.ai?.features_enabled;
+    const [classifying, setClassifying] = useState(false);
+    const [classifyInfo, setClassifyInfo] = useState(null);
+
+    const aiClassify = async () => {
+        if (!data.title) { setClassifyInfo({ error: 'Enter a title first.' }); return; }
+        setClassifying(true);
+        setClassifyInfo(null);
+        try {
+            const res = await fetch(route('admin.catalog.ai-classify'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '' },
+                body: JSON.stringify({
+                    title: data.title, subtitle: data.subtitle, abstract: data.abstract,
+                    authors: data.authors, subjects: data.subjects, publisher: data.publisher,
+                    publication_year: data.publication_year,
+                }),
+            });
+            const r = await res.json();
+            if (!res.ok || r.error) { setClassifyInfo({ error: r.error || 'AI suggestion failed.' }); return; }
+            setData(d => ({
+                ...d,
+                ddc_class: r.ddc?.code || d.ddc_class,
+                lcc_class: r.lcc?.code || d.lcc_class,
+            }));
+            setClassifyInfo({
+                ddc: r.ddc, lcc: r.lcc,
+            });
+        } catch {
+            setClassifyInfo({ error: 'Network error.' });
+        } finally {
+            setClassifying(false);
+        }
+    };
 
     const selectedType = MATERIAL_TYPES.find(mt => mt.code === data._materialTypeCode);
     const showPhysical = selectedType?.hasPhysical ?? false;
@@ -118,8 +159,11 @@ export default function CatalogForm({ record = null, materialTypes = [], collect
         if (mt) setData(d => ({ ...d, material_type_id: mt.id }));
     }, [data._materialTypeCode, materialTypes]);
 
-    const set = useCallback((field, value) =>
-        setData(d => ({ ...d, [field]: value })), []);
+    const set = useCallback((field, value) => {
+        setData(d => ({ ...d, [field]: value }));
+        // Clear a stale server validation error for this field as soon as it's edited.
+        setErrors(e => (e[field] ? { ...e, [field]: undefined } : e));
+    }, []);
 
     const setPhysical = useCallback((field, value) =>
         setData(d => ({ ...d, physical: { ...d.physical, [field]: value } })), []);
@@ -166,23 +210,12 @@ export default function CatalogForm({ record = null, materialTypes = [], collect
     const removeIdentifier = (i) => setData(d => ({ ...d, identifiers: (d.identifiers || []).filter((_, idx) => idx !== i) }));
 
     // ─── ISBN Lookup ──────────────────────────────────────────────────────────
-    const lookupISBN = async () => {
-        if (!data.isbn || data.isbn.length < 10) return;
-        setIsbnLoading(true);
-        try {
-            const res = await fetch(`/api/catalog/lookup-isbn/${data.isbn.replace(/[-\s]/g, '')}`);
-            if (!res.ok) throw new Error('Not found');
-            const filled = await res.json();
-            setData(d => ({ ...d, ...filled }));
-        } catch {
-            // ISBN lookup is optional — silently ignore failures
-        } finally {
-            setIsbnLoading(false);
-        }
-    };
+    // ISBN lookup is handled by the multi-source Import panel (opened from the ISBN
+    // search icon, pre-seeded), so the cataloger reviews candidates before importing.
 
     // ─── Import from Library ─────────────────────────────────────────────────
     const handleImport = (record) => {
+        setErrors({});
         setData(d => ({
             ...d,
             title:            record.title            || d.title,
@@ -253,6 +286,8 @@ export default function CatalogForm({ record = null, materialTypes = [], collect
             {/* ── Import Modal ────────────────────────────────────────────── */}
             {showImport && (
                 <ImportModal
+                    initialQuery={importSeed.query}
+                    initialType={importSeed.type}
                     onImport={handleImport}
                     onClose={() => setShowImport(false)}
                 />
@@ -264,7 +299,7 @@ export default function CatalogForm({ record = null, materialTypes = [], collect
                     <h2 className="text-sm font-semibold text-gray-700">Material Type</h2>
                     <button
                         type="button"
-                        onClick={() => setShowImport(true)}
+                        onClick={() => openImport('', 'isbn')}
                         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
                     >
                         <Download className="w-3.5 h-3.5" />
@@ -388,14 +423,11 @@ export default function CatalogForm({ record = null, materialTypes = [], collect
                                 <Field label="ISBN">
                                     <div className="flex gap-1">
                                         <input value={data.isbn} onChange={e => set('isbn', e.target.value)}
-                                            className="input flex-1" placeholder="978-0-xxx-xxxxx-x"
-                                            onBlur={lookupISBN} />
-                                        <button type="button" onClick={lookupISBN}
+                                            className="input flex-1" placeholder="978-0-xxx-xxxxx-x" />
+                                        <button type="button" onClick={() => openImport(data.isbn || '', 'isbn')}
                                             className="px-2 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50"
-                                            title="Lookup ISBN">
-                                            {isbnLoading
-                                                ? <Loader2 className="w-4 h-4 animate-spin" />
-                                                : <Search className="w-4 h-4 text-gray-400" />}
+                                            title="Search this ISBN online & import">
+                                            <Search className="w-4 h-4 text-gray-400" />
                                         </button>
                                     </div>
                                 </Field>
@@ -445,6 +477,22 @@ export default function CatalogForm({ record = null, materialTypes = [], collect
                             </div>
 
                             {/* Classification */}
+                            {aiEnabled && (
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    <button type="button" onClick={aiClassify} disabled={classifying}
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 disabled:opacity-50">
+                                        {classifying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                                        AI Suggest DDC &amp; LCC
+                                    </button>
+                                    {classifyInfo?.error && <span className="text-xs text-red-600">{classifyInfo.error}</span>}
+                                    {classifyInfo && !classifyInfo.error && (
+                                        <span className="text-xs text-gray-500">
+                                            DDC {classifyInfo.ddc?.code ?? '—'} ({Math.round((classifyInfo.ddc?.confidence ?? 0) * 100)}%) ·
+                                            LCC {classifyInfo.lcc?.code ?? '—'} ({Math.round((classifyInfo.lcc?.confidence ?? 0) * 100)}%) — review before saving
+                                        </span>
+                                    )}
+                                </div>
+                            )}
                             <div className="grid md:grid-cols-2 gap-4">
                                 <Field label="DDC Class" hint="Dewey Decimal e.g. 005.133">
                                     <input value={data.ddc_class} onChange={e => set('ddc_class', e.target.value)}
@@ -752,7 +800,7 @@ export default function CatalogForm({ record = null, materialTypes = [], collect
                                 </Field>
                             </div>
 
-                            <div className="grid md:grid-cols-4 gap-4">
+                            <div className="grid md:grid-cols-3 gap-4">
                                 <Field label="Condition">
                                     <select value={data.physical.condition}
                                         onChange={e => setPhysical('condition', e.target.value)}
@@ -762,11 +810,6 @@ export default function CatalogForm({ record = null, materialTypes = [], collect
                                         <option value="fair">Fair</option>
                                         <option value="poor">Poor</option>
                                     </select>
-                                </Field>
-                                <Field label="Quantity">
-                                    <input type="number" value={data.physical.quantity}
-                                        onChange={e => setPhysical('quantity', e.target.value)}
-                                        className="input" min="1" />
                                 </Field>
                                 <Field label="Price (USD)">
                                     <input type="number" step="0.01" value={data.physical.price}
@@ -779,6 +822,11 @@ export default function CatalogForm({ record = null, materialTypes = [], collect
                                         className="input" />
                                 </Field>
                             </div>
+
+                            <p className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                                This adds <strong>one copy</strong>. To add more copies, open the record after
+                                saving and use <strong>Add Item</strong> — each copy gets its own unique barcode.
+                            </p>
                         </>
                     )}
 

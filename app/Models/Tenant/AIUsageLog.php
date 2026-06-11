@@ -14,6 +14,7 @@ class AIUsageLog extends Model
     const UPDATED_AT = null; // Only created_at timestamp
 
     protected $fillable = [
+        'provider',
         'feature',
         'input_tokens',
         'output_tokens',
@@ -90,7 +91,7 @@ class AIUsageLog extends Model
     /**
      * Get usage stats by feature
      */
-    public static function statsBy Feature(): array
+    public static function statsByFeature(): array
     {
         return static::thisMonth()
             ->selectRaw('feature, COUNT(*) as calls, SUM(cost_usd) as cost')

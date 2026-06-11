@@ -67,20 +67,34 @@ class PhysicalItemController extends Controller
         ]);
 
         try {
-            $item = PhysicalItem::create(array_merge(
-                collect($request->all())->only([
-                    'biblio_id', 'barcode', 'accession_number', 'call_number',
-                    'collection_id', 'location_id', 'shelf',
-                    'condition', 'price', 'currency', 'acquired_date',
-                    'supplier', 'purchase_order', 'notes',
-                ])->toArray(),
-                ['item_status' => 'available']
-            ));
+            $data = collect($request->all())->only([
+                'biblio_id', 'barcode', 'accession_number', 'call_number',
+                'collection_id', 'location_id', 'shelf',
+                'condition', 'price', 'currency', 'acquired_date',
+                'supplier', 'purchase_order', 'notes',
+            ])->toArray();
+
+            // Auto-assign a barcode value when blank and auto-barcode is enabled.
+            if (empty($data['barcode'])) {
+                $seq = app(\App\Services\BarcodeSequenceService::class);
+                if ($seq->enabled()) {
+                    $data['barcode'] = $seq->next();
+                }
+            }
+
+            $item = PhysicalItem::create(array_merge($data, ['item_status' => 'available']));
         } catch (\Throwable $e) {
             return back()->withErrors(['general' => $e->getMessage()]);
         }
 
         if ($request->filled('biblio_id')) {
+            // "Save & add another copy" → blank form for the same title so each
+            // copy is entered individually with its own unique barcode (Koha-style).
+            if ($request->boolean('add_another')) {
+                return redirect()->route('admin.items.create', ['biblio_id' => $request->biblio_id])
+                    ->with('success', 'Copy added. Add the next one.');
+            }
+
             return redirect()->route('admin.catalog.show', $request->biblio_id)
                 ->with('success', 'Item added successfully.');
         }

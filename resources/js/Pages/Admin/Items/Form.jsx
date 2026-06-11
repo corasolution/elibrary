@@ -8,7 +8,7 @@ const ITEM_STATUSES = ['available', 'checked_out', 'on_hold', 'in_repair', 'lost
 export default function ItemForm({ item, biblio, collections = [], locations = [] }) {
     const isEdit = !!item;
 
-    const { data, setData, post, put, processing, errors } = useForm({
+    const { data, setData, post, put, transform, processing, errors } = useForm({
         biblio_id:         item?.biblio_id         ?? biblio?.id ?? '',
         barcode:           item?.barcode            ?? '',
         accession_number:  item?.accession_number   ?? '',
@@ -31,8 +31,18 @@ export default function ItemForm({ item, biblio, collections = [], locations = [
         if (isEdit) {
             put(route('admin.items.update', item.id));
         } else {
+            transform(d => ({ ...d, add_another: false }));
             post(route('admin.items.store'));
         }
+    };
+
+    // Save this copy, then return to a blank Add-Item form for the same title —
+    // the fast, safe way to add multiple copies (each with its own barcode).
+    const saveAndAddAnother = () => {
+        transform(d => ({ ...d, add_another: true }));
+        post(route('admin.items.store'), {
+            onFinish: () => transform(d => ({ ...d, add_another: false })),
+        });
     };
 
     const backHref = biblio?.id
@@ -241,13 +251,22 @@ export default function ItemForm({ item, biblio, collections = [], locations = [
                     </Field>
 
                     {/* Actions */}
-                    <div className="flex gap-3 pt-2">
+                    <div className="flex flex-wrap gap-3 pt-2">
                         <button
                             type="submit"
                             disabled={processing}
                             className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg">
                             {processing ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Item'}
                         </button>
+                        {!isEdit && biblio?.id && (
+                            <button
+                                type="button"
+                                onClick={saveAndAddAnother}
+                                disabled={processing}
+                                className="px-5 py-2 bg-blue-50 hover:bg-blue-100 disabled:opacity-50 text-blue-700 border border-blue-200 text-sm font-medium rounded-lg">
+                                Save &amp; add another copy
+                            </button>
+                        )}
                         <Link href={backHref}
                             className="px-5 py-2 border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm font-medium rounded-lg">
                             Cancel

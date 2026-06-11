@@ -6,6 +6,7 @@ use App\Http\Controllers\Opac\CatalogController;
 use App\Http\Controllers\Opac\ReaderController;
 use App\Http\Controllers\Opac\AccountController;
 use App\Http\Controllers\Opac\OpacAIController;
+use App\Http\Controllers\Opac\ChatbotController;
 use App\Http\Controllers\Auth\PatronAuthController;
 use App\Http\Controllers\Central\TenantRegistrationController;
 use App\Http\Controllers\Admin\AdminAuthController;
@@ -50,18 +51,19 @@ Route::prefix('{slug}')
 
         Route::prefix('catalog')->name('opac.catalog.')->group(function () {
             Route::get('/', [CatalogController::class, 'search'])->name('search');
-            Route::get('/{id}', [CatalogController::class, 'show'])->name('show');
+            Route::get('/{id}', [CatalogController::class, 'show'])->name('show')->whereUuid('id');
         });
 
-        Route::get('/catalog/{id}/cite/{format}', [CatalogController::class, 'citation'])->name('opac.catalog.cite');
-        Route::get('/reader/{resourceId}', [ReaderController::class, 'show'])->name('opac.reader');
-        Route::get('/download/{resourceId}', [ReaderController::class, 'download'])->name('opac.download');
+        Route::get('/catalog/{id}/cite/{format}', [CatalogController::class, 'citation'])->name('opac.catalog.cite')->whereUuid('id');
+        Route::get('/reader/{resourceId}', [ReaderController::class, 'show'])->name('opac.reader')->whereUuid('resourceId');
+        Route::get('/download/{resourceId}', [ReaderController::class, 'download'])->name('opac.download')->whereUuid('resourceId');
 
         // AI-powered search (public)
         Route::prefix('ai')->name('opac.ai.')->group(function () {
             Route::post('/parse-query', [OpacAIController::class, 'parseQuery'])->name('parse-query');
             Route::post('/expand-query', [OpacAIController::class, 'expandQuery'])->name('expand-query');
             Route::post('/suggest', [OpacAIController::class, 'suggest'])->name('suggest');
+            Route::post('/chat', [ChatbotController::class, 'chat'])->name('chat')->middleware('throttle:30,1');
         });
 
         // OAI-PMH 2.0 Provider (public, no auth required)
@@ -74,11 +76,11 @@ Route::prefix('{slug}')
             Route::get('/catalog/search', [CatalogApiController::class, 'search'])->name('catalog.search');
             Route::post('/catalog/semantic-search', [CatalogApiController::class, 'semanticSearch'])->name('catalog.semantic');
             Route::get('/catalog/isbn/{isbn}', [CatalogApiController::class, 'isbnLookup'])->name('catalog.isbn');
-            Route::get('/catalog/{id}', [CatalogApiController::class, 'show'])->name('catalog.show');
-            Route::get('/catalog/{id}/bibframe', [CatalogApiController::class, 'bibframe'])->name('catalog.bibframe');
-            Route::get('/catalog/{id}/marc', [CatalogApiController::class, 'marc'])->name('catalog.marc');
-            Route::get('/catalog/{id}/dublincore', [CatalogApiController::class, 'dublinCore'])->name('catalog.dublincore');
-            Route::get('/catalog/{id}/similar', [CatalogApiController::class, 'similar'])->name('catalog.similar');
+            Route::get('/catalog/{id}', [CatalogApiController::class, 'show'])->name('catalog.show')->whereUuid('id');
+            Route::get('/catalog/{id}/bibframe', [CatalogApiController::class, 'bibframe'])->name('catalog.bibframe')->whereUuid('id');
+            Route::get('/catalog/{id}/marc', [CatalogApiController::class, 'marc'])->name('catalog.marc')->whereUuid('id');
+            Route::get('/catalog/{id}/dublincore', [CatalogApiController::class, 'dublinCore'])->name('catalog.dublincore')->whereUuid('id');
+            Route::get('/catalog/{id}/similar', [CatalogApiController::class, 'similar'])->name('catalog.similar')->whereUuid('id');
         });
 
         // Patron auth
