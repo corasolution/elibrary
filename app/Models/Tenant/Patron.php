@@ -5,6 +5,7 @@ namespace App\Models\Tenant;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 class Patron extends Authenticatable
 {
@@ -16,8 +17,9 @@ class Patron extends Authenticatable
     protected $guard = 'patron';
 
     protected $fillable = [
-        'patron_number', 'email', 'password',
+        'patron_number', 'qr_token', 'email', 'password',
         'first_name', 'last_name', 'first_name_km', 'last_name_km',
+        'photo_url',
         'gender', 'date_of_birth', 'phone',
         'address', 'city', 'country',
         'patron_category_id', 'status', 'membership_expiry',
@@ -27,7 +29,7 @@ class Patron extends Authenticatable
     protected $hidden = ['password', 'remember_token'];
 
     protected $casts = [
-        'date_of_birth'    => 'date',
+        'date_of_birth'     => 'date',
         'membership_expiry' => 'date',
         'email_verified_at' => 'datetime',
     ];
@@ -36,7 +38,10 @@ class Patron extends Authenticatable
     {
         static::creating(function (self $p) {
             if (empty($p->id)) {
-                $p->id = (string) \Illuminate\Support\Str::uuid();
+                $p->id = (string) Str::uuid();
+            }
+            if (empty($p->qr_token)) {
+                $p->qr_token = hash('sha256', ($p->id) . config('app.key'));
             }
         });
     }

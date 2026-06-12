@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers\Admin;
 
@@ -7,6 +7,7 @@ use App\Models\Tenant\Patron;
 use App\Models\Tenant\PatronCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -61,9 +62,15 @@ class PatronController extends Controller
             'last_name'          => 'nullable|string|max:100',
             'email'              => 'nullable|email|unique:patrons,email',
             'phone'              => 'nullable|string|max:30',
+            'gender'             => 'nullable|in:male,female,other',
+            'date_of_birth'      => 'nullable|date',
+            'address'            => 'nullable|string',
+            'city'               => 'nullable|string|max:100',
             'patron_category_id' => 'nullable|integer',
             'status'             => 'nullable|in:active,expired,suspended,blocked',
             'membership_expiry'  => 'nullable|date',
+            'notes'              => 'nullable|string',
+            'photo'              => 'nullable|string', // base64 string
         ]);
 
         try {
@@ -72,6 +79,12 @@ class PatronController extends Controller
 
             if (! empty($validated['email'])) {
                 $validated['password'] = Hash::make(Str::random(12));
+            }
+
+            // Handle photo upload
+            if (!empty($validated['photo'])) {
+                $validated['photo_url'] = $this->savePhotoFromBase64($validated['photo']);
+                unset($validated['photo']);
             }
 
             Patron::create($validated);
@@ -121,13 +134,31 @@ class PatronController extends Controller
             'last_name'          => 'nullable|string|max:100',
             'email'              => "nullable|email|unique:patrons,email,{$id}",
             'phone'              => 'nullable|string|max:30',
+            'gender'             => 'nullable|in:male,female,other',
+            'date_of_birth'      => 'nullable|date',
+            'address'            => 'nullable|string',
+            'city'               => 'nullable|string|max:100',
             'patron_category_id' => 'nullable|integer',
             'status'             => 'nullable|in:active,expired,suspended,blocked',
             'membership_expiry'  => 'nullable|date',
+            'notes'              => 'nullable|string',
+            'photo'              => 'nullable|string', // base64 string
         ]);
 
         try {
-            Patron::findOrFail($id)->update($validated);
+            $patron = Patron::findOrFail($id);
+
+            // Handle photo upload
+            if (!empty($validated['photo'])) {
+                // Delete old photo if exists
+                if ($patron->photo_url) {
+                    Storage::disk('public')->delete($patron->photo_url);
+                }
+                $validated['photo_url'] = $this->savePhotoFromBase64($validated['photo']);
+                unset($validated['photo']);
+            }
+
+            $patron->update($validated);
         } catch (\Throwable $e) {
             return back()->withErrors(['general' => $e->getMessage()]);
         }
@@ -146,10 +177,57 @@ class PatronController extends Controller
         return redirect()->route('admin.patrons.index')->with('success', 'Patron deleted.');
     }
 
+
+    public function regenerateQr(string $id): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $patron = Patron::findOrFail($id);
+            $patron->update([
+                'qr_token' => hash('sha256', $patron->id . config('app.key')),
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
+
+        return response()->json(['qr_token' => $patron->qr_token]);
+    }
+
     private function generatePatronNumber(): string
     {
         $last = Patron::withTrashed()->orderByDesc('created_at')->value('patron_number');
         $num  = $last ? ((int) preg_replace('/\D/', '', $last)) + 1 : 1;
         return 'P' . str_pad($num, 5, '0', STR_PAD_LEFT);
     }
+
+    /**
+     * Save base64 encoded photo to storage
+     *
+     * @param string $base64String
+     * @return string Path to saved file
+     */
+    private function savePhotoFromBase64(string $base64String): string
+    {
+        // Extract the base64 encoded binary data
+        if (preg_match('/^data:image\/(\w+);base64,/', $base64String, $matches)) {
+            $imageData = substr($base64String, strpos($base64String, ',') + 1);
+            $imageType = strtolower($matches[1]);
+        } else {
+            throw new \Exception('Invalid base64 image format');
+        }
+
+        $imageData = base64_decode($imageData);
+
+        if ($imageData === false) {
+            throw new \Exception('Base64 decode failed');
+        }
+
+        // Generate unique filename
+        $filename = 'patron-photos/' . Str::uuid() . '.' . $imageType;
+
+        // Save to public disk
+        Storage::disk('public')->put($filename, $imageData);
+
+        return $filename;
+    }
 }
+

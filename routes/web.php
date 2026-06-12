@@ -92,6 +92,7 @@ Route::prefix('{slug}')
         Route::post('/logout', [PatronAuthController::class, 'logout'])->name('opac.logout');
         Route::get('/register', [PatronAuthController::class, 'showRegister'])->name('opac.register');
         Route::post('/register', [PatronAuthController::class, 'register'])->name('opac.register.post');
+        Route::post('/login/qr', [PatronAuthController::class, 'loginByQr'])->name('opac.login.qr');
 
         // Patron account (auth required)
         Route::middleware('auth:patron')->prefix('account')->name('opac.account.')->group(function () {
@@ -101,5 +102,6 @@ Route::prefix('{slug}')
             Route::get('/reservations', [AccountController::class, 'reservations'])->name('reservations');
             Route::post('/reserve', [AccountController::class, 'reserve'])->name('reserve');
             Route::delete('/reservations/{id}', [AccountController::class, 'cancelReservation'])->name('reservations.cancel');
+            Route::get('/qr-token', [PatronAuthController::class, 'getQrToken'])->name('qr');
         });
     });

@@ -26,6 +26,8 @@ use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\Admin\UserPreferenceController;
 use App\Http\Controllers\Admin\CardMakerController;
 use App\Http\Controllers\Admin\LabelMakerController;
+use App\Http\Controllers\Admin\InventoryController;
+use App\Http\Controllers\Admin\BatchController;
 
 // TEST ROUTE
 Route::get('/test-admin', function() {
@@ -83,6 +85,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('/', [PhysicalItemController::class, 'index'])->name('index');
                 Route::get('/create', [PhysicalItemController::class, 'create'])->name('create');
                 Route::post('/', [PhysicalItemController::class, 'store'])->name('store');
+                Route::get('/{id}/history', [LoanController::class, 'itemHistory'])->name('history');
                 Route::get('/{id}/edit', [PhysicalItemController::class, 'edit'])->name('edit');
                 Route::put('/{id}', [PhysicalItemController::class, 'update'])->name('update');
                 Route::delete('/{id}', [PhysicalItemController::class, 'destroy'])->name('destroy');
@@ -110,6 +113,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('/{id}/edit', [PatronController::class, 'edit'])->name('edit');
                 Route::put('/{id}', [PatronController::class, 'update'])->name('update');
                 Route::delete('/{id}', [PatronController::class, 'destroy'])->name('destroy');
+                Route::post('/{id}/regenerate-qr', [PatronController::class, 'regenerateQr'])->name('regenerate-qr');
             });
 
             // Card Maker (patron ID cards)
@@ -157,17 +161,46 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::post('/renew/{loanId}', [QuickCheckoutController::class, 'renew'])->name('renew');
             });
 
+            // Batch Tools
+            Route::prefix('batch')->name('batch.')->group(function () {
+                Route::get('/',                          [BatchController::class, 'index'])->name('index');
+                Route::get('/item-modification',         [BatchController::class, 'itemModification'])->name('item-modification');
+                Route::post('/resolve-barcodes',         [BatchController::class, 'resolveBarcodes'])->name('resolve-barcodes');
+                Route::post('/apply-item-modification',  [BatchController::class, 'applyItemModification'])->name('apply-item-modification');
+                Route::get('/item-deletion',             [BatchController::class, 'itemDeletion'])->name('item-deletion');
+                Route::post('/apply-item-deletion',      [BatchController::class, 'applyItemDeletion'])->name('apply-item-deletion');
+                Route::get('/record-modification',       [BatchController::class, 'recordModification'])->name('record-modification');
+                Route::post('/resolve-records',          [BatchController::class, 'resolveRecords'])->name('resolve-records');
+                Route::post('/apply-record-modification',[BatchController::class, 'applyRecordModification'])->name('apply-record-modification');
+            });
+
+            // Inventory / Stocktaking
+            Route::prefix('inventory')->name('inventory.')->group(function () {
+                Route::get('/',                  [InventoryController::class, 'index'])->name('index');
+                Route::get('/create',            [InventoryController::class, 'create'])->name('create');
+                Route::post('/',                 [InventoryController::class, 'store'])->name('store');
+                Route::get('/{id}/session',      [InventoryController::class, 'session'])->name('session');
+                Route::post('/{id}/scan',        [InventoryController::class, 'scan'])->name('scan');
+                Route::post('/{id}/close',       [InventoryController::class, 'close'])->name('close');
+                Route::get('/{id}/report',       [InventoryController::class, 'report'])->name('report');
+            });
+
             Route::prefix('loans')->name('loans.')->group(function () {
                 Route::get('/', [LoanController::class, 'index'])->name('index');
                 Route::get('/overdue', [LoanController::class, 'overdue'])->name('overdue');
+                Route::get('/overdue-notices', [LoanController::class, 'overdueNotices'])->name('overdue-notices');
+                Route::post('/send-overdue-notices', [LoanController::class, 'sendOverdueNotices'])->name('send-overdue-notices');
                 Route::post('/{id}/return', [LoanController::class, 'return'])->name('return');
                 Route::post('/{id}/renew', [LoanController::class, 'renew'])->name('renew');
             });
 
             Route::prefix('reservations')->name('reservations.')->group(function () {
                 Route::get('/', [ReservationController::class, 'index'])->name('index');
+                Route::get('/holds-to-pull', [ReservationController::class, 'holdsToPull'])->name('holds-to-pull');
+                Route::get('/hold-ratios', [ReservationController::class, 'holdRatios'])->name('hold-ratios');
                 Route::post('/{id}/cancel', [ReservationController::class, 'cancel'])->name('cancel');
                 Route::post('/{id}/ready', [ReservationController::class, 'markReady'])->name('ready');
+                Route::post('/{id}/pull', [ReservationController::class, 'pull'])->name('pull');
             });
 
             // Acquisitions
@@ -225,7 +258,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::prefix('reports')->name('reports.')->group(function () {
                 Route::get('/circulation',  [ReportController::class, 'circulation'])->name('circulation');
                 Route::get('/collection',   [ReportController::class, 'collection'])->name('collection');
+                Route::get('/catalog',      [ReportController::class, 'catalog'])->name('catalog');
+                Route::get('/catalog/export', [ReportController::class, 'exportCatalog'])->name('catalog.export');
                 Route::get('/digital',      [ReportController::class, 'digital'])->name('digital');
+                Route::get('/digital/export', [ReportController::class, 'exportDigital'])->name('digital.export');
                 Route::get('/overdue',      [ReportController::class, 'overdue'])->name('overdue');
                 Route::get('/acquisitions', [ReportController::class, 'acquisitions'])->name('acquisitions');
             });

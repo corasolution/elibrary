@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tenant\Patron;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -32,8 +33,40 @@ class PatronAuthController extends Controller
 
         $request->session()->regenerate();
 
-        $slug = $request->route('slug');
+        $slug = $request->segment(1);
         return redirect()->intended("/{$slug}/account");
+    }
+
+    public function loginByQr(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $request->validate(['qr_token' => ['required', 'string', 'size:64']]);
+
+        $patron = Patron::where('qr_token', $request->qr_token)
+                        ->where('status', 'active')
+                        ->first();
+
+        if (! $patron) {
+            return back()->withErrors(['qr' => 'Invalid or unrecognised QR code.']);
+        }
+
+        Auth::guard('patron')->login($patron, false);
+        $request->session()->regenerate();
+
+        $slug = $request->segment(1);
+        return redirect("/{$slug}/account");
+    }
+
+    public function getQrToken(Request $request): JsonResponse
+    {
+        $patron = Auth::guard('patron')->user();
+
+        if (! $patron->qr_token) {
+            $patron->update([
+                'qr_token' => hash('sha256', $patron->id . config('app.key')),
+            ]);
+        }
+
+        return response()->json(['qr_token' => $patron->qr_token]);
     }
 
     public function showRegister(): \Inertia\Response
@@ -62,7 +95,7 @@ class PatronAuthController extends Controller
 
         Auth::guard('patron')->login($patron);
 
-        $slug = $request->route('slug');
+        $slug = $request->segment(1);
         return redirect("/{$slug}/account");
     }
 
@@ -72,7 +105,7 @@ class PatronAuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        $slug = $request->route('slug');
+        $slug = $request->segment(1);
         return redirect("/{$slug}");
     }
 
