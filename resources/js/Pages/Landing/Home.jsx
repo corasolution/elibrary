@@ -1,13 +1,13 @@
 import LandingLayout from '@/Layouts/LandingLayout';
-import { Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import {
-    BookOpen, ArrowRight, CheckCircle, BookMarked, RefreshCw, Layers, BarChart2, Users, Globe,
-    Search, Sparkles, FileText, Headphones, Film, GraduationCap, Cloud, Palette, Languages,
-    Zap, Shield, TrendingUp, Smartphone, Eye, Download
+    BookOpen, ArrowRight, CheckCircle, RefreshCw, Layers, BarChart2, Users, Globe,
+    Search, Sparkles, Cloud, Palette, Languages,
+    Zap, Shield, Smartphone, Eye, Download
 } from 'lucide-react';
 
-export default function Home() {
+export default function Home({ featuredLibraries = [], plans = [] }) {
     const { t } = useTranslation();
 
     const FEATURES = [
@@ -67,61 +67,29 @@ export default function Home() {
         },
     ];
 
-    const MATERIAL_TYPES = [
-        { icon: BookOpen, name: t('home.material_ebooks'), count: '824K+', color: 'bg-blue-500' },
-        { icon: FileText, name: t('home.material_journals'), count: '312K+', color: 'bg-purple-500' },
-        { icon: Headphones, name: t('home.material_audio'), count: '48K+', color: 'bg-amber-500' },
-        { icon: Film, name: t('home.material_video'), count: '23K+', color: 'bg-red-500' },
-        { icon: GraduationCap, name: t('home.material_theses'), count: '105K+', color: 'bg-green-500' },
-    ];
-
     const TECH_STACK = [
-        { name: t('home.tech_laravel'), desc: 'Modern PHP framework' },
-        { name: t('home.tech_react'), desc: 'Fast UI library' },
-        { name: t('home.tech_postgres'), desc: 'Reliable database' },
-        { name: t('home.tech_r2'), desc: 'Global CDN storage' },
-        { name: t('home.tech_redis'), desc: 'Caching & queues' },
-        { name: t('home.tech_tailwind'), desc: 'Beautiful design' },
+        { name: t('home.tech_laravel'),  desc: t('home.tech_laravel_desc') },
+        { name: t('home.tech_react'),    desc: t('home.tech_react_desc') },
+        { name: t('home.tech_postgres'), desc: t('home.tech_postgres_desc') },
+        { name: t('home.tech_r2'),       desc: t('home.tech_r2_desc') },
+        { name: t('home.tech_redis'),    desc: t('home.tech_redis_desc') },
+        { name: t('home.tech_tailwind'), desc: t('home.tech_tailwind_desc') },
     ];
 
-    const PLANS = [
-        {
-            name: 'Free',
-            price: 0,
-            titles: '500',
-            patrons: '100',
-            storage: '1 GB',
-            features: ['Basic cataloging', 'Search & discovery', 'Patron management', 'Mobile responsive']
-        },
-        {
-            name: 'Starter',
-            price: 29,
-            titles: '5,000',
-            patrons: '1,000',
-            storage: '20 GB',
-            features: ['Everything in Free', 'Digital library', 'Email notifications', 'Basic analytics', 'Custom branding']
-        },
-        {
-            name: 'Pro',
-            price: 79,
-            titles: '50,000',
-            patrons: '10,000',
-            storage: '200 GB',
-            features: ['Everything in Starter', 'AI-powered search', 'Multiple locations', 'Advanced analytics', 'API access', 'Priority support'],
-            popular: true
-        },
-        {
-            name: 'Enterprise',
-            price: null,
-            titles: 'Unlimited',
-            patrons: 'Unlimited',
-            storage: 'Custom',
-            features: ['Everything in Pro', 'Dedicated instance', 'Custom integrations', 'SLA guarantee', 'Training & onboarding', '24/7 support']
-        },
-    ];
+    // Plans come from the live Plans table (Central Admin → Plans). The "popular"
+    // flag and prices are editable there; this section stays in sync automatically.
+    const PLANS = plans;
 
     return (
         <LandingLayout>
+            <Head>
+                <title>Cambodia's #1 Digital Library Platform — Alpha eLibrary</title>
+                <meta name="description" content="Cambodia's leading cloud-based library management system. Catalog books, manage loans, and run your eLibrary — free. Trusted by schools, universities and NGOs across Southeast Asia." head-key="description" />
+                <meta property="og:title" content="Cambodia's #1 Digital Library Platform — Alpha eLibrary" head-key="og:title" />
+                <meta property="og:description" content="Free library management system for Cambodia. Catalog, circulate, go digital. Start free today." head-key="og:description" />
+                <meta name="keywords" content="digital library cambodia, library management system cambodia, e-library cambodia, free library software, school library cambodia, university library software, បណ្ណាល័យឌីជីថលកម្ពុជា" head-key="keywords" />
+            </Head>
+
             {/* Hero */}
             <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 text-white">
                 {/* Background pattern */}
@@ -161,42 +129,59 @@ export default function Home() {
                         </p>
                     </div>
 
-                    {/* Material Types Preview */}
-                    <div className="mt-16 grid grid-cols-2 md:grid-cols-5 gap-4 max-w-4xl mx-auto">
-                        {MATERIAL_TYPES.map(({ icon: Icon, name, count, color }) => (
-                            <div key={name} className="flex flex-col items-center gap-3 p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
-                                <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center`}>
-                                    <Icon className="w-6 h-6 text-white" />
-                                </div>
-                                <div className="text-center">
-                                    <div className="text-2xl font-bold">{count}</div>
-                                    <div className="text-sm text-blue-200">{name}</div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
                 </div>
             </section>
 
-            {/* Stats */}
-            <section className="bg-white border-b border-gray-100 py-12">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-                        {[
-                            ['500+', t('home.stats_libraries'), TrendingUp],
-                            ['2M+', t('home.stats_records'), BookMarked],
-                            ['99.9%', t('home.stats_uptime'), Shield],
-                            ['6', t('home.stats_storage'), Cloud]
-                        ].map(([val, label, Icon]) => (
-                            <div key={label} className="flex flex-col items-center gap-2">
-                                <Icon className="w-8 h-8 text-blue-600 mb-2" />
-                                <div className="text-4xl font-extrabold text-gray-900">{val}</div>
-                                <div className="text-sm text-gray-600">{label}</div>
-                            </div>
-                        ))}
+            {/* Library Portfolio */}
+            {featuredLibraries?.length > 0 && (
+                <section className="bg-white border-b border-gray-100 py-16">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="text-center mb-10">
+                            <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">
+                                {t('home.portfolio_title', 'Libraries on our platform')}
+                            </h2>
+                            <p className="text-gray-600">
+                                {t('home.portfolio_subtitle', 'Trusted by libraries of all sizes')}
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-w-5xl mx-auto">
+                            {featuredLibraries.map(lib => (
+                                <Link
+                                    key={lib.slug}
+                                    href={`/${lib.slug}`}
+                                    className="flex flex-col items-center gap-3 p-5 rounded-2xl border border-gray-100 bg-gray-50 hover:bg-white hover:border-blue-200 hover:shadow-lg transition-all group"
+                                >
+                                    {lib.logo_url ? (
+                                        <img
+                                            src={lib.logo_url}
+                                            alt={lib.name}
+                                            className="w-16 h-16 rounded-2xl object-contain bg-white border border-gray-100"
+                                        />
+                                    ) : (
+                                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white text-2xl font-bold">
+                                            {lib.name.charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+                                    <span className="text-sm font-semibold text-gray-800 text-center leading-tight group-hover:text-blue-700">
+                                        {lib.name}
+                                    </span>
+                                </Link>
+                            ))}
+                        </div>
+
+                        <div className="text-center mt-10">
+                            <Link
+                                href="/libraries"
+                                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:border-blue-300 hover:text-blue-700 transition-all"
+                            >
+                                {t('home.portfolio_show_all', 'Show all libraries')}
+                                <ArrowRight className="w-4 h-4" />
+                            </Link>
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            )}
 
             {/* Features Grid */}
             <section className="py-24 px-6 bg-gradient-to-br from-gray-50 to-blue-50">
@@ -234,13 +219,13 @@ export default function Home() {
                     <div className="text-center mb-16">
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white text-sm font-semibold mb-4">
                             <Layers className="w-4 h-4" />
-                            Technology
+                            {t('home.tech_badge')}
                         </div>
                         <h2 className="text-4xl md:text-5xl font-extrabold mb-4">
-                            Built on Modern Technology
+                            {t('home.tech_stack_title')}
                         </h2>
                         <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-                            Fast, secure, and scalable. Built with the best tools in the industry.
+                            {t('home.tech_stack_subtitle')}
                         </p>
                     </div>
 

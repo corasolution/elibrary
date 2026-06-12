@@ -1,7 +1,7 @@
 import OpacLayout from '@/Layouts/OpacLayout';
 import { Link, usePage, useForm } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
-import { BookOpen, Download, Eye, BookmarkPlus, MapPin, Tag, Quote, Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, Music, Film } from 'lucide-react';
+import { BookOpen, Download, Eye, BookmarkPlus, MapPin, Tag, Quote, Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, Music, Film, Search, Calendar, ChevronRight } from 'lucide-react';
 import RecordCard from '@/Components/Opac/RecordCard';
 import { useState, useRef, useEffect } from 'react';
 
@@ -11,6 +11,7 @@ export default function RecordDetail({ record, related = [] }) {
     const base = tenant?.base_url ?? '';
     const reserveForm = useForm({ biblio_id: record.id });
     const [showPlayer, setShowPlayer] = useState(false);
+    const [searchQ, setSearchQ] = useState('');
 
     const availableCopies = record.physical_items?.filter(i => i.item_status === 'available').length ?? 0;
     const hasDigital = record.digital_resources?.length > 0;
@@ -30,12 +31,50 @@ export default function RecordDetail({ record, related = [] }) {
 
     return (
         <OpacLayout>
-            <div className="max-w-6xl mx-auto px-4 py-10">
-                <div className="grid md:grid-cols-[220px_1fr] gap-10">
-                    {/* Cover / Audio Panel */}
+            {/* ── Search bar strip ── */}
+            <div className="bg-white border-b border-gray-200 shadow-sm">
+                <div className="max-w-5xl mx-auto px-4 py-3">
+                    <form action={`${base}/catalog`} method="GET" className="flex gap-2">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                            <input
+                                type="text"
+                                name="q"
+                                value={searchQ}
+                                onChange={e => setSearchQ(e.target.value)}
+                                placeholder={t('nav.search_placeholder')}
+                                className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
+                            />
+                        </div>
+                        <button type="submit"
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5">
+                            <Search className="w-3.5 h-3.5" />
+                            {t('catalog.search_results') ? 'Search' : 'Search'}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {/* ── Breadcrumb ── */}
+            <div className="max-w-5xl mx-auto px-4 pt-4 pb-1">
+                <nav className="flex items-center gap-1.5 text-xs text-gray-400">
+                    <Link href={`${base}/`} className="hover:text-blue-600 transition-colors">{t('nav.home')}</Link>
+                    <ChevronRight className="w-3 h-3" />
+                    <Link href={`${base}/catalog`} className="hover:text-blue-600 transition-colors">{t('nav.catalog')}</Link>
+                    <ChevronRight className="w-3 h-3" />
+                    <span className="text-gray-600 truncate max-w-[200px]">{record.title}</span>
+                </nav>
+            </div>
+
+            {/* ── Main content ── */}
+            <div className="max-w-5xl mx-auto px-4 py-6">
+                <div className="grid md:grid-cols-[200px_1fr] gap-8">
+
+                    {/* ── Left column: Cover + Action card ── */}
                     <div className="flex flex-col gap-4">
+                        {/* Cover */}
                         {isAudio ? (
-                            <div className="aspect-[3/4] bg-gradient-to-br from-blue-900 via-blue-700 to-blue-500 rounded-xl overflow-hidden flex flex-col items-center justify-center gap-3 relative">
+                            <div className="aspect-[2/3] bg-gradient-to-br from-blue-900 via-blue-700 to-blue-500 rounded-2xl shadow-lg overflow-hidden flex flex-col items-center justify-center gap-3 relative">
                                 <div className="w-20 h-20 rounded-full bg-white/10 border-4 border-white/20 flex items-center justify-center">
                                     <Music className="w-10 h-10 text-white/80" />
                                 </div>
@@ -46,22 +85,20 @@ export default function RecordDetail({ record, related = [] }) {
                                 </div>
                             </div>
                         ) : isVideo ? (
-                            <div className="aspect-[3/4] bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 rounded-xl overflow-hidden flex flex-col items-center justify-center gap-4 relative">
+                            <div className="aspect-[2/3] bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 rounded-2xl shadow-lg overflow-hidden flex flex-col items-center justify-center gap-4 relative">
                                 <div className="w-16 h-16 rounded-full bg-white/10 border-4 border-white/20 flex items-center justify-center">
                                     <Film className="w-8 h-8 text-white/70" />
                                 </div>
                                 {hasDigital && playerSrc && (
-                                    <button
-                                        onClick={() => setShowPlayer(true)}
-                                        className="flex items-center gap-2 px-4 py-2 rounded-full bg-white text-gray-900 text-xs font-bold hover:bg-gray-100 transition-colors shadow-lg"
-                                    >
+                                    <button onClick={() => setShowPlayer(true)}
+                                        className="flex items-center gap-2 px-4 py-2 rounded-full bg-white text-gray-900 text-xs font-bold hover:bg-gray-100 transition-colors shadow-lg">
                                         <Play className="w-3.5 h-3.5" fill="currentColor" /> Watch Now
                                     </button>
                                 )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
                             </div>
                         ) : (
-                            <div className="aspect-[3/4] bg-gray-100 rounded-xl overflow-hidden border border-gray-200 flex items-center justify-center">
+                            <div className="aspect-[2/3] bg-gray-100 rounded-2xl shadow-lg overflow-hidden border border-gray-200 flex items-center justify-center">
                                 {record.cover_image_url
                                     ? <img src={record.cover_image_url} alt={record.title} className="object-cover w-full h-full" />
                                     : <BookOpen className="w-16 h-16 text-gray-300" />
@@ -69,104 +106,140 @@ export default function RecordDetail({ record, related = [] }) {
                             </div>
                         )}
 
-                        {/* Availability */}
-                        <div className="card p-4 text-sm space-y-2">
-                            <div className="font-medium text-gray-700">Availability</div>
+                        {/* Action card */}
+                        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 space-y-3">
+                            <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
+                                {t('catalog.available') ?? 'Availability'}
+                            </div>
+
+                            {/* Status pill */}
                             {availableCopies > 0 ? (
-                                <div className="text-green-600 font-medium">{availableCopies} {t('catalog.copies')}</div>
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+                                    <span className="text-sm font-semibold text-green-700">
+                                        {availableCopies} {t('catalog.copies')}
+                                    </span>
+                                </div>
+                            ) : hasDigital ? (
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
+                                    <span className="text-sm font-semibold text-blue-700">Online Access</span>
+                                </div>
                             ) : (
-                                <div className="text-red-500 font-medium">{t('catalog.checked_out')}</div>
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-red-400 flex-shrink-0" />
+                                    <span className="text-sm font-semibold text-red-600">{t('catalog.checked_out')}</span>
+                                </div>
                             )}
-                            {hasDigital && !isAudio && !isVideo && (
-                                <Link href={`${base}/reader/${record.digital_resources[0].id}`}
-                                    className="flex items-center gap-2 btn-primary text-xs mt-2 justify-center">
-                                    <Eye className="w-3.5 h-3.5" /> {t('catalog.digital_access')}
-                                </Link>
-                            )}
-                            {isVideo && hasDigital && playerSrc && (
-                                <button
-                                    onClick={() => setShowPlayer(true)}
-                                    className="flex items-center gap-2 btn-primary text-xs mt-2 justify-center w-full"
-                                >
-                                    <Play className="w-3.5 h-3.5" fill="currentColor" /> Watch Video
-                                </button>
-                            )}
-                            {availableCopies === 0 && !hasDigital && auth?.patron && (
-                                <button
-                                    onClick={() => reserveForm.post(route('library.opac.account.reserve', { slug: tenant?.slug }))}
-                                    disabled={reserveForm.processing}
-                                    className="btn-secondary w-full text-xs justify-center flex items-center gap-2 disabled:opacity-60"
-                                >
-                                    <BookmarkPlus className="w-3.5 h-3.5" /> {t('catalog.reserve')}
-                                </button>
-                            )}
-                            {availableCopies === 0 && !hasDigital && !auth?.patron && (
-                                <Link href={`${base}/login`}
-                                    className="btn-secondary w-full text-xs justify-center flex items-center gap-2">
-                                    <BookmarkPlus className="w-3.5 h-3.5" /> Login to Reserve
-                                </Link>
-                            )}
+
+                            <div className="flex flex-col gap-2 pt-1">
+                                {hasDigital && !isAudio && !isVideo && (
+                                    <Link href={`${base}/reader/${record.digital_resources[0].id}`}
+                                        className="flex items-center justify-center gap-2 w-full px-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors">
+                                        <Eye className="w-4 h-4" /> {t('catalog.digital_access')}
+                                    </Link>
+                                )}
+                                {isVideo && hasDigital && playerSrc && (
+                                    <button onClick={() => setShowPlayer(true)}
+                                        className="flex items-center justify-center gap-2 w-full px-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition-colors">
+                                        <Play className="w-4 h-4" fill="currentColor" /> Watch Video
+                                    </button>
+                                )}
+                                {availableCopies === 0 && !hasDigital && auth?.patron && (
+                                    <button
+                                        onClick={() => reserveForm.post(route('library.opac.account.reserve', { slug: tenant?.slug }))}
+                                        disabled={reserveForm.processing}
+                                        className="flex items-center justify-center gap-2 w-full px-3 py-2.5 border-2 border-blue-500 text-blue-600 hover:bg-blue-50 text-sm font-semibold rounded-xl transition-colors disabled:opacity-60">
+                                        <BookmarkPlus className="w-4 h-4" /> {t('catalog.reserve')}
+                                    </button>
+                                )}
+                                {availableCopies === 0 && !hasDigital && !auth?.patron && (
+                                    <Link href={`${base}/login`}
+                                        className="flex items-center justify-center gap-2 w-full px-3 py-2.5 border-2 border-gray-300 text-gray-600 hover:bg-gray-50 text-sm font-semibold rounded-xl transition-colors">
+                                        <BookmarkPlus className="w-4 h-4" /> Login to Reserve
+                                    </Link>
+                                )}
+                            </div>
                         </div>
                     </div>
 
-                    {/* Metadata */}
-                    <div>
-                        <div className="mb-1">
+                    {/* ── Right column: Metadata ── */}
+                    <div className="min-w-0">
+                        {/* Type + Language badges */}
+                        <div className="flex flex-wrap items-center gap-2 mb-3">
                             {record.material_type && (
-                                <span className="badge badge-blue mr-2">{record.material_type.name}</span>
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+                                    <BookOpen className="w-3 h-3" /> {record.material_type.name}
+                                </span>
                             )}
                             {record.language && (
-                                <span className="badge badge-amber">{record.language.toUpperCase()}</span>
+                                <span className="inline-flex items-center px-2.5 py-0.5 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">
+                                    {record.language.toUpperCase()}
+                                </span>
+                            )}
+                            {record.publication_year && (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                                    <Calendar className="w-3 h-3" /> {record.publication_year}
+                                </span>
                             )}
                         </div>
 
-                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mt-3 mb-1 leading-tight">
+                        {/* Title */}
+                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1 leading-tight">
                             {record.title}
                         </h1>
-                        {record.subtitle && <p className="text-gray-500 text-lg mb-3">{record.subtitle}</p>}
-                        {record.title_km && <p className="text-gray-600 font-khmer text-lg mb-4">{record.title_km}</p>}
+                        {record.subtitle && <p className="text-gray-500 text-base mb-2">{record.subtitle}</p>}
+                        {record.title_km && <p className="text-gray-600 text-base mb-3">{record.title_km}</p>}
 
-                        {primaryAuthor && (
-                            <p className="text-gray-700 mb-4">
-                                by{' '}
+                        {/* Authors */}
+                        {record.authors?.length > 0 && (
+                            <p className="text-sm text-gray-600 mb-5">
+                                <span className="text-gray-400 mr-1">by</span>
                                 {record.authors.map((a, i) => (
                                     <span key={i}>
                                         <Link href={`${base}/catalog?q=${encodeURIComponent(a.name)}`}
-                                            className="text-blue-600 hover:underline font-medium">
+                                            className="text-blue-600 hover:text-blue-800 hover:underline font-medium">
                                             {a.name}
                                         </Link>
-                                        {a.role !== 'author' && <span className="text-gray-400 text-sm"> ({a.role})</span>}
-                                        {i < record.authors.length - 1 && ', '}
+                                        {a.role !== 'author' && <span className="text-gray-400 text-xs"> ({a.role})</span>}
+                                        {i < record.authors.length - 1 && <span className="text-gray-400">, </span>}
                                     </span>
                                 ))}
                             </p>
                         )}
 
-                        {/* Bibliographic details grid */}
-                        <dl className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-2 text-sm mb-6 bg-gray-50 rounded-xl p-4">
-                            {record.isbn && <><dt className="text-gray-500">{t('catalog.isbn')}</dt><dd className="font-medium col-span-1">{record.isbn}</dd></>}
-                            {record.publisher && <><dt className="text-gray-500">{t('catalog.publisher')}</dt><dd className="font-medium">{record.publisher}</dd></>}
-                            {record.publication_year && <><dt className="text-gray-500">{t('catalog.year')}</dt><dd className="font-medium">{record.publication_year}</dd></>}
-                            {record.edition && <><dt className="text-gray-500">Edition</dt><dd className="font-medium">{record.edition}</dd></>}
-                            {record.ddc_class && <><dt className="text-gray-500">DDC</dt><dd className="font-medium">{record.ddc_class}</dd></>}
-                            {record.pages && <><dt className="text-gray-500">Pages</dt><dd className="font-medium">{record.pages}</dd></>}
-                        </dl>
+                        {/* Bibliographic details */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+                            {[
+                                { label: t('catalog.publisher'), value: record.publisher },
+                                { label: t('catalog.year'),      value: record.publication_year },
+                                { label: 'Edition',              value: record.edition },
+                                { label: t('catalog.isbn'),      value: record.isbn },
+                                { label: 'DDC',                  value: record.ddc_class },
+                                { label: 'Pages',                value: record.pages },
+                            ].filter(d => d.value).map(d => (
+                                <div key={d.label} className="bg-gray-50 rounded-xl px-3 py-2.5">
+                                    <div className="text-[10px] font-semibold uppercase tracking-wide text-gray-400 mb-0.5">{d.label}</div>
+                                    <div className="text-sm font-semibold text-gray-800 truncate">{d.value}</div>
+                                </div>
+                            ))}
+                        </div>
 
                         {/* Abstract */}
                         {record.abstract && (
-                            <div className="mb-6">
-                                <h3 className="font-semibold text-gray-900 mb-2">{t('catalog.abstract')}</h3>
+                            <div className="mb-6 bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+                                <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-2">{t('catalog.abstract')}</h3>
                                 <div className="text-sm text-gray-600 leading-relaxed"
                                     dangerouslySetInnerHTML={{ __html: record.abstract }} />
                             </div>
                         )}
 
-                        {/* Inline Audio Player */}
+                        {/* Audio Player */}
                         {isAudio && audioUrl && (
                             <AudioPlayer src={audioUrl} title={record.title} author={primaryAuthor} />
                         )}
 
-                        {/* Inline Video Player */}
+                        {/* Video Player */}
                         {isVideo && playerSrc && showPlayer && (
                             <InlineVideoPlayer src={playerSrc} title={record.title} onClose={() => setShowPlayer(false)} />
                         )}
@@ -174,14 +247,14 @@ export default function RecordDetail({ record, related = [] }) {
                         {/* Subjects */}
                         {record.subjects?.length > 0 && (
                             <div className="mb-6">
-                                <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                                    <Tag className="w-4 h-4" /> {t('catalog.subjects')}
+                                <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                                    <Tag className="w-3.5 h-3.5" /> {t('catalog.subjects')}
                                 </h3>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap gap-1.5">
                                     {record.subjects.map((s, i) => (
                                         <Link key={i}
                                             href={`${base}/catalog?q=${encodeURIComponent(s.term)}`}
-                                            className="badge badge-blue hover:bg-blue-200 cursor-pointer">
+                                            className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-medium rounded-lg border border-blue-100 transition-colors">
                                             {s.term}
                                         </Link>
                                     ))}
@@ -189,30 +262,34 @@ export default function RecordDetail({ record, related = [] }) {
                             </div>
                         )}
 
-                        {/* Physical copies table */}
+                        {/* Physical copies */}
                         {record.physical_items?.length > 0 && (
                             <div className="mb-6">
-                                <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                    <MapPin className="w-4 h-4" /> Physical Copies
+                                <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                                    <MapPin className="w-3.5 h-3.5" /> Physical Copies
                                 </h3>
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-sm border-collapse">
+                                <div className="overflow-x-auto rounded-xl border border-gray-200">
+                                    <table className="w-full text-sm">
                                         <thead>
                                             <tr className="bg-gray-50 border-b border-gray-200">
-                                                <th className="text-left py-2 px-3 font-medium text-gray-600">Call No.</th>
-                                                <th className="text-left py-2 px-3 font-medium text-gray-600">Location</th>
-                                                <th className="text-left py-2 px-3 font-medium text-gray-600">Collection</th>
-                                                <th className="text-left py-2 px-3 font-medium text-gray-600">Status</th>
+                                                <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Call No.</th>
+                                                <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Location</th>
+                                                <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Collection</th>
+                                                <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody className="divide-y divide-gray-100 bg-white">
                                             {record.physical_items.map((item) => (
-                                                <tr key={item.id} className="border-b border-gray-100">
-                                                    <td className="py-2 px-3 font-mono text-xs">{item.call_number || '—'}</td>
-                                                    <td className="py-2 px-3">{item.location?.name || '—'}</td>
-                                                    <td className="py-2 px-3">{item.collection?.name || '—'}</td>
-                                                    <td className="py-2 px-3">
-                                                        <span className={`badge ${item.item_status === 'available' ? 'badge-green' : 'badge-amber'}`}>
+                                                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                                                    <td className="py-2.5 px-4 font-mono text-xs text-gray-700">{item.call_number || '—'}</td>
+                                                    <td className="py-2.5 px-4 text-gray-700">{item.location?.name || '—'}</td>
+                                                    <td className="py-2.5 px-4 text-gray-700">{item.collection?.name || '—'}</td>
+                                                    <td className="py-2.5 px-4">
+                                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                                            item.item_status === 'available'
+                                                                ? 'bg-green-100 text-green-700'
+                                                                : 'bg-amber-100 text-amber-700'
+                                                        }`}>
                                                             {item.item_status.replace('_', ' ')}
                                                         </span>
                                                     </td>
@@ -231,8 +308,11 @@ export default function RecordDetail({ record, related = [] }) {
 
                 {/* Related Items */}
                 {related.length > 0 && (
-                    <div className="mt-12">
-                        <h2 className="text-xl font-bold text-gray-900 mb-6">{t('catalog.similar')}</h2>
+                    <div className="mt-10">
+                        <h2 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
+                            <BookOpen className="w-5 h-5 text-blue-500" />
+                            {t('catalog.similar')}
+                        </h2>
                         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
                             {related.map((r) => <RecordCard key={r.id} record={r} />)}
                         </div>

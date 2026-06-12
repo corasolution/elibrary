@@ -1,10 +1,15 @@
 import { Link, usePage, router } from '@inertiajs/react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     LayoutDashboard, BookOpen, RefreshCw, Users, ShoppingCart,
-    Newspaper, BarChart2, Settings, ChevronDown, ChevronRight,
-    Menu, X, LogOut, Bell, Boxes, BookMarked, Building2, CreditCard, ScanBarcode,
+    BarChart2, Settings, Building2, CreditCard, Wrench,
+    Menu, X, LogOut, Bell, BookMarked, ChevronLeft, ChevronRight,
+    List, Layers, FileDigit, ScanBarcode, ScanLine, AlertTriangle,
+    BellRing, CalendarClock, BookmarkCheck, TrendingUp, BadgeDollarSign,
+    UserRound, Tag, Printer, CreditCard as CardIcon, Package, Hammer,
+    ClipboardList, Rss, LineChart, LayoutGrid, Database, AlertCircle,
+    ShoppingBag, SlidersHorizontal, Sparkles, Palette, Cloud, FolderOpen,
 } from 'lucide-react';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 
@@ -14,7 +19,6 @@ export default function AdminLayout({ children, title }) {
     const url = page.url;
     const { t } = useTranslation();
 
-    // Active-route helper (path-aware, origin-safe)
     const isActive = (name) => {
         try {
             const resolved = route(name).replace(window.location.origin, '');
@@ -22,268 +26,273 @@ export default function AdminLayout({ children, title }) {
         } catch { return false; }
     };
 
-    const NAV = [
+    const MODULES = [
         {
-            group: t('admin.nav.catalog'),
-            groupKey: 'Catalog',
-            icon: BookOpen,
+            key: 'dashboard', label: t('admin.nav.dashboard'),
+            icon: LayoutDashboard, href: 'admin.dashboard', direct: true,
+        },
+        {
+            key: 'catalog', label: t('admin.nav.catalog'), icon: BookOpen,
             items: [
-                { label: t('admin.nav.bibliographic_records'), href: 'admin.catalog.index' },
-                { label: t('admin.nav.items'), href: 'admin.items.index' },
-                { label: t('admin.nav.digital_resources'), href: 'admin.digital.index' },
+                { icon: List,        label: t('admin.nav.bibliographic_records'), href: 'admin.catalog.index' },
+                { icon: ScanBarcode, label: t('admin.nav.items'),                 href: 'admin.items.index' },
+                { icon: FileDigit,   label: t('admin.nav.digital_resources'),     href: 'admin.digital.index' },
             ],
         },
         {
-            group: t('admin.nav.circulation'),
-            groupKey: 'Circulation',
-            icon: RefreshCw,
+            key: 'circulation', label: t('admin.nav.circulation'), icon: RefreshCw,
             items: [
-                { label: t('admin.nav.quick_checkout'), href: 'admin.circulation.quick-checkout' },
-                { label: t('admin.nav.active_loans'), href: 'admin.loans.index' },
-                { label: t('admin.nav.overdue'), href: 'admin.loans.overdue' },
-                { label: t('admin.nav.reservations'), href: 'admin.reservations.index' },
-                { label: t('admin.nav.fines'), href: 'admin.fines.index' },
+                { icon: ScanLine,       label: t('admin.nav.quick_checkout'),    href: 'admin.circulation.quick-checkout' },
+                { icon: BookMarked,     label: t('admin.nav.active_loans'),      href: 'admin.loans.index' },
+                { icon: AlertTriangle,  label: t('admin.nav.overdue'),           href: 'admin.loans.overdue' },
+                { icon: BellRing,       label: t('admin.nav.overdue_notices'),   href: 'admin.loans.overdue-notices' },
+                { icon: BookmarkCheck,  label: t('admin.nav.reservations'),      href: 'admin.reservations.index' },
+                { icon: CalendarClock,  label: t('admin.nav.holds_to_pull'),     href: 'admin.reservations.holds-to-pull' },
+                { icon: TrendingUp,     label: t('admin.nav.hold_ratios'),       href: 'admin.reservations.hold-ratios' },
+                { icon: BadgeDollarSign,label: t('admin.nav.fines'),             href: 'admin.fines.index' },
             ],
         },
         {
-            group: t('admin.nav.labels'),
-            groupKey: 'Labels',
-            icon: ScanBarcode,
+            key: 'members', label: t('admin.nav.members', 'Members'), icon: Users,
             items: [
-                { label: t('admin.nav.labels_print'), href: 'admin.labels.index' },
-                { label: t('admin.nav.label_templates'), href: 'admin.labels.templates.index' },
-            ],
-        },
-        { label: t('admin.nav.patrons'), icon: Users, href: 'admin.patrons.index' },
-        {
-            group: t('admin.nav.cards'),
-            groupKey: 'Cards',
-            icon: CreditCard,
-            items: [
-                { label: t('admin.nav.card_maker'), href: 'admin.cards.index' },
-                { label: t('admin.nav.card_templates'), href: 'admin.cards.templates.index' },
+                { icon: UserRound, label: t('admin.nav.patrons'),    href: 'admin.patrons.index' },
+                { icon: Tag,       label: t('admin.nav.categories'), href: 'admin.patron-categories.index' },
             ],
         },
         {
-            group: t('admin.nav.acquisitions'),
-            groupKey: 'Acquisitions',
-            icon: ShoppingCart,
+            key: 'tools', label: t('admin.nav.tools', 'Tools'), icon: Wrench,
             items: [
-                { label: t('admin.nav.orders'), href: 'admin.acquisitions.index' },
+                { icon: Printer,   label: t('admin.nav.labels_print'),      href: 'admin.labels.index' },
+                { icon: Layers,    label: t('admin.nav.label_templates'),   href: 'admin.labels.templates.index' },
+                { icon: CardIcon,  label: t('admin.nav.card_maker'),        href: 'admin.cards.index' },
+                { icon: LayoutGrid,label: t('admin.nav.card_templates'),    href: 'admin.cards.templates.index' },
+                { icon: Package,   label: t('admin.nav.inventory'),         href: 'admin.inventory.index' },
+                { icon: Hammer,    label: t('admin.nav.batch_tools'),       href: 'admin.batch.index' },
             ],
         },
         {
-            group: t('admin.nav.serials'),
-            groupKey: 'Serials',
-            icon: Newspaper,
+            key: 'acquisitions', label: t('admin.nav.acquisitions', 'Acquisitions'), icon: ShoppingCart,
             items: [
-                { label: t('admin.nav.subscriptions'), href: 'admin.serials.index' },
+                { icon: ShoppingBag, label: t('admin.nav.orders'),        href: 'admin.acquisitions.index' },
+                { icon: Rss,         label: t('admin.nav.subscriptions'), href: 'admin.serials.index' },
             ],
         },
         {
-            group: t('admin.nav.reports'),
-            groupKey: 'Reports',
-            icon: BarChart2,
+            key: 'reports', label: t('admin.nav.reports'), icon: BarChart2,
             items: [
-                { label: t('admin.nav.circulation_report'), href: 'admin.reports.circulation' },
-                { label: t('admin.nav.collection_report'), href: 'admin.reports.collection' },
-                { label: t('admin.nav.digital_usage'), href: 'admin.reports.digital' },
-                { label: t('admin.nav.overdue_report'), href: 'admin.reports.overdue' },
+                { icon: RefreshCw,    label: t('admin.nav.circulation_report'),  href: 'admin.reports.circulation' },
+                { icon: BookOpen,     label: t('admin.nav.collection_report'),   href: 'admin.reports.collection' },
+                { icon: ClipboardList,label: t('admin.nav.catalog_report'),      href: 'admin.reports.catalog' },
+                { icon: FileDigit,    label: t('admin.nav.digital_usage'),       href: 'admin.reports.digital' },
+                { icon: AlertCircle,  label: t('admin.nav.overdue_report'),      href: 'admin.reports.overdue' },
+                { icon: LineChart,    label: t('admin.nav.acquisitions_report'), href: 'admin.reports.acquisitions' },
             ],
         },
         {
-            group: t('admin.nav.settings'),
-            groupKey: 'Settings',
-            icon: Settings,
+            key: 'settings', label: t('admin.nav.settings'), icon: Settings,
             items: [
-                { label: t('admin.nav.general'), href: 'admin.settings' },
-                { label: t('admin.nav.ai_features'), href: 'admin.settings.ai' },
-                { label: t('admin.nav.theme'), href: 'admin.settings.theme.index' },
-                { label: t('admin.nav.storage'), href: 'admin.settings.storage.index' },
-                { label: t('admin.nav.collections_locations'), href: 'admin.collections-locations.index' },
-                { label: t('admin.nav.categories'), href: 'admin.patron-categories.index' },
+                { icon: SlidersHorizontal, label: t('admin.nav.general'),               href: 'admin.settings' },
+                { icon: Sparkles,          label: t('admin.nav.ai_features'),           href: 'admin.settings.ai' },
+                { icon: Palette,           label: t('admin.nav.theme'),                 href: 'admin.settings.theme.index' },
+                { icon: Cloud,             label: t('admin.nav.storage'),               href: 'admin.settings.storage.index' },
+                { icon: FolderOpen,        label: t('admin.nav.collections_locations'), href: 'admin.collections-locations.index' },
             ],
         },
     ];
 
-    const SUPER_ADMIN_NAV = [
-        { label: t('admin.nav.tenants'), icon: Building2, href: 'admin.tenants.index' },
-        { label: t('admin.nav.plans'),   icon: CreditCard, href: 'admin.plans.index' },
+    const SUPER_ADMIN_MODULES = [
+        { key: 'tenants', label: t('admin.nav.tenants'), icon: Building2, href: 'admin.tenants.index', direct: true },
+        { key: 'plans',   label: t('admin.nav.plans'),   icon: CreditCard, href: 'admin.plans.index',   direct: true },
     ];
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const navRef = useRef(null);
-    const [openGroups, setOpenGroups] = useState(() => {
-        const defaults = {};
-        NAV.forEach(n => { if (n.groupKey) defaults[n.groupKey] = true; });
-        return defaults;
-    });
 
-    const toggleGroup = (groupKey) => {
-        setOpenGroups(prev => ({ ...prev, [groupKey]: !prev[groupKey] }));
+    const [activeModule, setActiveModule] = useState(null);
+    const [subPanelOpen, setSubPanelOpen] = useState(true);
+    const [sidebarOpen, setSidebarOpen]   = useState(false);
+
+    // Auto-detect active module from current URL
+    useEffect(() => {
+        const found = MODULES.find(m =>
+            !m.direct && m.items?.some(item => isActive(item.href))
+        );
+        if (found) {
+            setActiveModule(found.key);
+            setSubPanelOpen(true);
+        }
+    }, [url]);
+
+    const handleModuleClick = (mod) => {
+        if (mod.direct) {
+            router.get(route(mod.href));
+            setSidebarOpen(false);
+            return;
+        }
+        if (activeModule === mod.key) {
+            setSubPanelOpen(prev => !prev);
+        } else {
+            setActiveModule(mod.key);
+            setSubPanelOpen(true);
+        }
     };
 
+    const isModuleActive = (mod) => {
+        if (mod.direct) return isActive(mod.href);
+        return mod.items?.some(item => isActive(item.href)) ?? false;
+    };
+
+    const currentModule = MODULES.find(m => m.key === activeModule);
     const logout = () => router.post(route('admin.logout'));
-
-    // Scroll active menu item into view on navigation/refresh
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (navRef.current) {
-                const activeItem = navRef.current.querySelector('[data-active="true"]');
-                if (activeItem) {
-                    activeItem.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'nearest',
-                        inline: 'nearest'
-                    });
-                }
-            }
-        }, 100);
-
-        return () => clearTimeout(timer);
-    }, [url]);
 
     return (
         <div className="min-h-screen bg-gray-100 flex">
-            {/* Sidebar overlay (mobile) */}
+            {/* Mobile backdrop */}
             {sidebarOpen && (
                 <div
-                    className="fixed inset-0 z-20 bg-black/40 lg:hidden"
+                    className="fixed inset-0 z-20 bg-black/50 lg:hidden"
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
 
-            {/* Sidebar */}
+            {/* Sidebar — fixed on mobile, static on desktop */}
             <aside className={`
-                fixed inset-y-0 left-0 z-30 w-64 flex flex-col
-                bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white
-                ring-1 ring-white/5 shadow-xl
+                fixed inset-y-0 left-0 z-30 flex
                 transform transition-transform duration-200 ease-in-out
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-                lg:static lg:translate-x-0 lg:flex
+                lg:static lg:translate-x-0
             `}>
-                {/* Brand */}
-                <div className="flex items-center gap-3 px-5 h-16 border-b border-white/5 flex-shrink-0">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-indigo-900/40">
-                        <BookMarked className="w-5 h-5 text-white" />
+                {/* ── Icon rail ──────────────────────────────────────── */}
+                <div className="w-14 flex flex-col bg-slate-950 border-r border-white/5">
+                    {/* Brand */}
+                    <div className="h-14 flex items-center justify-center border-b border-white/5 flex-shrink-0">
+                        <div className="w-8 h-8 flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-indigo-900/40">
+                            <BookMarked className="w-4 h-4 text-white" />
+                        </div>
                     </div>
-                    <span className="font-semibold text-sm leading-tight">
-                        <span className="truncate">{tenant?.name ?? 'Alpha eLibrary'}</span>
-                        <span className="block text-[11px] font-normal text-slate-400 tracking-wide">{t('admin.ui.staff')}</span>
-                    </span>
-                    <button
-                        className="ml-auto lg:hidden text-slate-400 hover:text-white"
-                        onClick={() => setSidebarOpen(false)}
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
 
-                {/* Nav */}
-                <nav ref={navRef} className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
-                    {/* Dashboard */}
-                    <NavItem href="admin.dashboard" label={t('admin.nav.dashboard')} icon={LayoutDashboard} flat active={isActive('admin.dashboard')} />
-
-                    {NAV.map((entry) => {
-                        const Icon = entry.icon;
-                        // Flat direct link (no sub-items)
-                        if (entry.href) {
+                    {/* Module icons */}
+                    <nav className="flex-1 flex flex-col items-center py-3 gap-0.5 overflow-y-auto scrollbar-hide">
+                        {MODULES.map(mod => {
+                            const active     = isModuleActive(mod);
+                            const panelShown = !mod.direct && activeModule === mod.key && subPanelOpen;
                             return (
-                                <NavItem
-                                    key={entry.href}
-                                    href={entry.href}
-                                    label={entry.label}
-                                    icon={Icon}
-                                    flat
-                                    active={isActive(entry.href)}
+                                <RailButton
+                                    key={mod.key}
+                                    icon={mod.icon}
+                                    label={mod.label}
+                                    active={active}
+                                    panelShown={panelShown}
+                                    onClick={() => handleModuleClick(mod)}
                                 />
                             );
-                        }
-                        // Expandable group
-                        const { group, groupKey, items } = entry;
-                        const groupActive = items.some(item => isActive(item.href));
-                        const open = openGroups[groupKey];
-                        return (
-                            <div key={groupKey}>
-                                <button
-                                    onClick={() => toggleGroup(groupKey)}
-                                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                                        groupActive
-                                            ? 'text-white'
-                                            : 'text-slate-300 hover:text-white hover:bg-white/5'
-                                    }`}
-                                >
-                                    <Icon className={`w-[18px] h-[18px] flex-shrink-0 ${groupActive ? 'text-blue-400' : ''}`} />
-                                    <span className="flex-1 text-left font-medium">{group}</span>
-                                    <ChevronRight className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-200 ${open ? 'rotate-90' : ''}`} />
-                                </button>
-                                {open && (
-                                    <div className="ml-[22px] pl-3 border-l border-white/10 mt-0.5 mb-1 space-y-0.5">
-                                        {items.map(item => (
-                                            <NavItem key={item.href} href={item.href} label={item.label} active={isActive(item.href)} />
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
+                        })}
+                    </nav>
 
-                    {/* Super Admin Section */}
+                    {/* Super admin icons */}
                     {auth?.user?.roles?.includes('super_admin') && (
-                        <div className="pt-3 mt-3 border-t border-white/5">
-                            <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest px-3 pb-1.5">
-                                Super Admin
-                            </div>
-                            {SUPER_ADMIN_NAV.map((entry) => {
-                                const Icon = entry.icon;
-                                return (
-                                    <NavItem
-                                        key={entry.href}
-                                        href={entry.href}
-                                        label={entry.label}
-                                        icon={Icon}
-                                        flat
-                                        active={isActive(entry.href)}
-                                    />
-                                );
-                            })}
+                        <div className="flex flex-col items-center pb-2 gap-0.5 border-t border-white/5 pt-2 flex-shrink-0">
+                            {SUPER_ADMIN_MODULES.map(mod => (
+                                <RailButton
+                                    key={mod.key}
+                                    icon={mod.icon}
+                                    label={mod.label}
+                                    active={isActive(mod.href)}
+                                    onClick={() => handleModuleClick(mod)}
+                                />
+                            ))}
                         </div>
                     )}
-                </nav>
 
-                {/* User */}
-                <div className="border-t border-white/5 p-3 flex-shrink-0">
-                    <div className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2.5 ring-1 ring-white/5">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-sm font-bold text-white shadow flex-shrink-0">
+                    {/* User + logout */}
+                    <div className="flex flex-col items-center py-3 border-t border-white/5 gap-2 flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-xs font-bold text-white shadow">
                             {auth?.user?.name?.charAt(0)?.toUpperCase() ?? 'S'}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="text-sm font-semibold text-white truncate capitalize">{auth?.user?.name ?? t('admin.ui.staff')}</div>
-                            <div className="text-xs text-slate-400 truncate">{auth?.user?.email}</div>
                         </div>
                         <button
                             onClick={logout}
                             title="Logout"
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-500/10 hover:text-rose-400"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition"
                         >
-                            <LogOut className="w-4 h-4" />
+                            <LogOut className="w-3.5 h-3.5" />
                         </button>
                     </div>
                 </div>
+
+                {/* ── Sub-panel ──────────────────────────────────────── */}
+                {currentModule && subPanelOpen && (
+                    <div className="w-[200px] flex flex-col bg-slate-900 border-r border-white/5">
+                        {/* Header */}
+                        <div className="h-14 flex items-center justify-between px-3 border-b border-white/5 flex-shrink-0">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 truncate pr-2">
+                                {currentModule.label}
+                            </span>
+                            <button
+                                onClick={() => setSubPanelOpen(false)}
+                                className="w-5 h-5 flex items-center justify-center text-slate-500 hover:text-white rounded hover:bg-white/5 transition flex-shrink-0"
+                                title="Collapse panel"
+                            >
+                                <ChevronLeft className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
+
+                        {/* Nav items */}
+                        <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
+                            {currentModule.items?.map(item => (
+                                <SubItem
+                                    key={item.href}
+                                    href={item.href}
+                                    label={item.label}
+                                    icon={item.icon}
+                                    active={isActive(item.href)}
+                                    onClick={() => setSidebarOpen(false)}
+                                />
+                            ))}
+                        </nav>
+
+                        {/* Tenant label */}
+                        <div className="px-3 py-2.5 border-t border-white/5 flex-shrink-0">
+                            <div className="text-[10px] text-slate-500 truncate font-medium">
+                                {tenant?.name ?? 'Alpha eLibrary'}
+                            </div>
+                            <div className="text-[10px] text-slate-600 truncate">
+                                {auth?.user?.email}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Mobile close button */}
+                <button
+                    onClick={() => setSidebarOpen(false)}
+                    className="lg:hidden absolute -right-8 top-3 w-7 h-7 flex items-center justify-center bg-slate-800/90 text-white rounded-r-lg"
+                >
+                    <X className="w-3.5 h-3.5" />
+                </button>
             </aside>
 
-            {/* Main */}
+            {/* ── Main area ──────────────────────────────────────────── */}
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Top bar */}
-                <header className="h-16 bg-white border-b border-gray-200 flex items-center gap-4 px-4 lg:px-6 flex-shrink-0">
+                <header className="h-14 bg-white border-b border-gray-200 flex items-center gap-3 px-4 lg:px-5 flex-shrink-0">
+                    {/* Mobile hamburger */}
                     <button
-                        className="lg:hidden text-gray-500 hover:text-gray-900"
+                        className="lg:hidden text-gray-500 hover:text-gray-900 -ml-1"
                         onClick={() => setSidebarOpen(true)}
                     >
                         <Menu className="w-5 h-5" />
                     </button>
 
+                    {/* Re-open sub-panel (desktop, when collapsed) */}
+                    {activeModule && !subPanelOpen && (
+                        <button
+                            onClick={() => setSubPanelOpen(true)}
+                            className="hidden lg:flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-700 border border-gray-200 rounded-lg px-2.5 py-1 hover:bg-gray-50 transition"
+                        >
+                            <ChevronRight className="w-3 h-3" />
+                            {currentModule?.label}
+                        </button>
+                    )}
+
                     {title && (
-                        <h1 className="text-base font-semibold text-gray-900 truncate">{title}</h1>
+                        <h1 className="text-sm font-semibold text-gray-900 truncate">{title}</h1>
                     )}
 
                     <div className="ml-auto flex items-center gap-3">
@@ -291,19 +300,21 @@ export default function AdminLayout({ children, title }) {
                         <button className="text-gray-400 hover:text-gray-600">
                             <Bell className="w-5 h-5" />
                         </button>
-                        <div className="text-sm text-gray-600 hidden sm:block">{auth?.user?.name}</div>
+                        <div className="text-sm text-gray-500 hidden sm:block truncate max-w-[140px]">
+                            {auth?.user?.name}
+                        </div>
                     </div>
                 </header>
 
-                {/* Flash */}
+                {/* Flash messages */}
                 {(flash?.success || flash?.error) && (
                     <div className="px-4 lg:px-6 pt-4">
-                        {flash.success && (
+                        {flash?.success && (
                             <div className="bg-green-50 border border-green-200 text-green-800 text-sm rounded-lg px-4 py-2.5">
                                 {flash.success}
                             </div>
                         )}
-                        {flash.error && (
+                        {flash?.error && (
                             <div className="bg-red-50 border border-red-200 text-red-800 text-sm rounded-lg px-4 py-2.5">
                                 {flash.error}
                             </div>
@@ -320,41 +331,62 @@ export default function AdminLayout({ children, title }) {
     );
 }
 
-function NavItem({ href, label, icon: Icon, flat = false, active: activeProp }) {
-    const { url } = usePage();
-    const resolvedHref = route(href);
-    const isActive = activeProp ?? url.startsWith(resolvedHref.replace(window.location.origin, ''));
+// ── Rail Button ───────────────────────────────────────────────────────────────
 
-    if (flat) {
-        return (
-            <Link
-                href={resolvedHref}
-                data-active={isActive}
-                className={`group relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                    isActive
-                        ? 'bg-gradient-to-r from-blue-600/25 to-indigo-600/10 text-white font-semibold'
-                        : 'text-slate-300 hover:bg-white/5 hover:text-white'
-                }`}
-            >
-                {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 rounded-r-full bg-blue-400" />}
-                {Icon && <Icon className={`w-[18px] h-[18px] flex-shrink-0 ${isActive ? 'text-blue-400' : 'text-slate-400 group-hover:text-slate-200'}`} />}
+function RailButton({ icon: Icon, label, active, panelShown, onClick }) {
+    return (
+        <button
+            onClick={onClick}
+            title={label}
+            className={`
+                relative group w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-150
+                ${active
+                    ? 'bg-indigo-500/20 ring-1 ring-indigo-500/30 text-indigo-400'
+                    : 'text-slate-500 hover:text-slate-200 hover:bg-white/5'
+                }
+            `}
+        >
+            <Icon className="w-[18px] h-[18px]" />
+
+            {/* Tooltip */}
+            <span className="
+                pointer-events-none absolute left-[calc(100%+10px)] top-1/2 -translate-y-1/2
+                bg-slate-700 text-white text-[11px] font-medium px-2.5 py-1 rounded-lg
+                whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50
+                shadow-xl shadow-black/30
+            ">
                 {label}
-            </Link>
-        );
-    }
+            </span>
 
+            {/* Dot: active but sub-panel collapsed */}
+            {active && !panelShown && (
+                <span className="absolute bottom-1.5 right-1.5 w-1 h-1 rounded-full bg-indigo-400" />
+            )}
+        </button>
+    );
+}
+
+// ── Sub-panel Item ────────────────────────────────────────────────────────────
+
+function SubItem({ href, label, icon: Icon, active, onClick }) {
+    const resolvedHref = route(href);
     return (
         <Link
             href={resolvedHref}
-            data-active={isActive}
-            className={`relative flex items-center px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                isActive
-                    ? 'text-white font-medium bg-white/5'
+            onClick={onClick}
+            className={`
+                relative flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-sm transition-colors
+                ${active
+                    ? 'text-white font-medium bg-white/8'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
-            }`}
+                }
+            `}
         >
-            <span className={`mr-2.5 h-1.5 w-1.5 rounded-full flex-shrink-0 ${isActive ? 'bg-blue-400' : 'bg-slate-600'}`} />
-            {label}
+            {Icon
+                ? <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${active ? 'text-indigo-400' : 'text-slate-500'}`} />
+                : <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${active ? 'bg-indigo-400' : 'bg-slate-600'}`} />
+            }
+            <span className="truncate">{label}</span>
         </Link>
     );
 }

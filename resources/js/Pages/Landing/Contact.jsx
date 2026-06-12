@@ -1,4 +1,5 @@
 import LandingLayout from '@/Layouts/LandingLayout';
+import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 import { Mail, Phone, MapPin, Send, Loader2 } from 'lucide-react';
 
@@ -20,6 +21,13 @@ export default function Contact() {
 
     return (
         <LandingLayout>
+            <Head>
+                <title>Contact Us | Alpha eLibrary Cambodia</title>
+                <meta name="description" content="Get in touch with Alpha eLibrary. Based in Phnom Penh, Cambodia. Contact us for demos, enterprise plans, or support. We speak Khmer and English." head-key="description" />
+                <meta property="og:title" content="Contact Us | Alpha eLibrary Cambodia" head-key="og:title" />
+                <meta property="og:description" content="Based in Phnom Penh, Cambodia. Contact us for demos, enterprise plans, or support." head-key="og:description" />
+            </Head>
+
             {/* Hero */}
             <section className="py-16 px-4 text-center">
                 <h1 className="text-4xl font-bold text-gray-900 mb-3">Contact Us</h1>

@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\AICatalogController;
 use App\Http\Controllers\Admin\AIUsageController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\OaiPmhController;
 use App\Http\Controllers\Api\CatalogApiController;
 
@@ -23,12 +24,14 @@ use App\Http\Controllers\Api\CatalogApiController;
 // This file contains only: Landing pages, Registration, and Tenant OPAC routes
 
 // ─── Marketing / Landing (Central) ───────────────────────────────────────────
-Route::get('/', fn () => Inertia::render('Landing/Home'))->name('home');
+Route::get('/', [LandingController::class, 'home'])->name('home');
 Route::get('/features', fn () => Inertia::render('Landing/Features'))->name('features');
 Route::get('/pricing', [LandingController::class, 'pricing'])->name('pricing');
 Route::get('/about', fn () => Inertia::render('Landing/About'))->name('about');
 Route::get('/contact', fn () => Inertia::render('Landing/Contact'))->name('contact');
 Route::get('/demo', fn () => Inertia::render('Landing/Demo'))->name('demo');
+Route::get('/libraries', [LandingController::class, 'libraries'])->name('libraries');
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
 // ─── Tenant Registration (Central) ────────────────────────────────────────────
 Route::middleware('web')->group(function () {

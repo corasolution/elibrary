@@ -37,7 +37,11 @@ class HandleInertiaRequests extends Middleware
             ]);
         }
 
-        $patron = $request->user('patron');
+        // Resolve session users defensively: the web/patron guards read tenant-side
+        // tables (users, patrons) that don't exist on the central connection. A
+        // tenant login session leaking onto a central-domain page must not 500.
+        try { $patron = $request->user('patron'); } catch (\Throwable) { $patron = null; }
+        try { $webUser = $request->user(); } catch (\Throwable) { $webUser = null; }
 
         return array_merge(parent::share($request), [
             'auth' => [
@@ -47,9 +51,9 @@ class HandleInertiaRequests extends Middleware
                     'email'      => $patron->email,
                     'active_loans' => $patron->active_loans,
                 ] : null,
-                'user' => $request->user() ? array_merge(
-                    $request->user()->only(['id', 'name', 'email']),
-                    ['preferred_language' => $request->user()->preferred_language ?? 'km']
+                'user' => $webUser ? array_merge(
+                    $webUser->only(['id', 'name', 'email']),
+                    ['preferred_language' => $webUser->preferred_language ?? 'km']
                 ) : null,
             ],
             'tenant' => (function () use ($request) {
@@ -63,7 +67,7 @@ class HandleInertiaRequests extends Middleware
                         $slug = $segments[0];
 
                         // Reserved words (landing pages, admin) - don't treat as tenant slugs
-                        $reserved = ['admin', 'features', 'pricing', 'about', 'contact', 'demo'];
+                        $reserved = ['admin', 'features', 'pricing', 'about', 'contact', 'demo', 'libraries'];
 
                         if (! in_array($slug, $reserved)) {
                             $t = \App\Models\Central\Tenant::where('slug', $slug)
@@ -74,18 +78,28 @@ class HandleInertiaRequests extends Middleware
                 }
 
                 if (! $t) return null;
+                $logoUrl  = null;
+                $tagline  = null;
+                $libName  = null;
+                try {
+                    $logoUrl = \App\Models\Tenant\LibrarySetting::get('logo_url');
+                    $tagline = \App\Models\Tenant\LibrarySetting::get('library_tagline');
+                    $libName = \App\Models\Tenant\LibrarySetting::get('library_name');
+                } catch (\Throwable) {}
                 return [
-                    'name'     => $t->name,
+                    'name'     => $libName ?: $t->name,
                     'slug'     => $t->slug,
                     'base_url' => '/' . $t->slug,
+                    'logo_url' => $logoUrl,
+                    'tagline'  => $tagline,
                 ];
             })(),
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error'   => $request->session()->get('error'),
             ],
-            'locale' => $request->user()
-                ? ($request->user()->preferred_language ?? 'km')
+            'locale' => $webUser
+                ? ($webUser->preferred_language ?? 'km')
                 : ($patron ? ($patron->preferred_language ?? 'km') : 'km'),
             'platform' => [
                 'name' => PlatformSetting::get('platform_name', 'Alpha eLibrary'),

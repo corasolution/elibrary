@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /central
+Disallow: /*/admin
+Disallow: /*/api/
+Disallow: /storage/
+Disallow: /register
+
+Sitemap: https://bannalai.com/sitemap.xml

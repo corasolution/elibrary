@@ -1,6 +1,6 @@
 import LandingLayout from '@/Layouts/LandingLayout';
+import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
-import { Link } from '@inertiajs/react';
 import { CheckCircle, Loader2, BookOpen, ArrowRight } from 'lucide-react';
 
 const LIBRARY_TYPES = ['School Library', 'Public Library', 'University Library', 'Government Archive', 'Corporate Library', 'Other'];
@@ -23,6 +23,13 @@ export default function Demo() {
 
     return (
         <LandingLayout>
+            <Head>
+                <title>Free Demo — Library Software Cambodia | Alpha eLibrary</title>
+                <meta name="description" content="Schedule a free 30-minute demo of Alpha eLibrary. See live cataloging, circulation, and eLibrary features. No commitment required. Khmer and English support." head-key="description" />
+                <meta property="og:title" content="Request a Free Demo — Alpha eLibrary Cambodia" head-key="og:title" />
+                <meta property="og:description" content="30-minute live demo. See cataloging, circulation and eLibrary features. Free, no commitment." head-key="og:description" />
+            </Head>
+
             <section className="max-w-5xl mx-auto px-4 py-16 grid md:grid-cols-2 gap-16 items-start">
                 {/* Left: why */}
                 <div>

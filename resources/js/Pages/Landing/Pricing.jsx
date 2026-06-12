@@ -1,5 +1,5 @@
 import LandingLayout from '@/Layouts/LandingLayout';
-import { Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle, X } from 'lucide-react';
 
@@ -166,8 +166,35 @@ export default function Pricing({ plans = [] }) {
         ? plans.map(formatPlan)
         : PLANS;
 
+    const faqSchema = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            { "@type": "Question", "name": "Can I start for free?",
+              "acceptedAnswer": { "@type": "Answer", "text": "Yes. The Free plan includes 500 titles, 100 patrons, and 1GB storage — no credit card required." }},
+            { "@type": "Question", "name": "What payment methods are accepted in Cambodia?",
+              "acceptedAnswer": { "@type": "Answer", "text": "We accept ABA PayWay, Bakong KHQR, and international credit cards via Stripe." }},
+            { "@type": "Question", "name": "Can I import my existing catalog?",
+              "acceptedAnswer": { "@type": "Answer", "text": "Yes. Import via ISBN auto-lookup, CSV upload, or MARC21 format." }},
+            { "@type": "Question", "name": "Is there a free trial for paid plans?",
+              "acceptedAnswer": { "@type": "Answer", "text": "All paid plans include a 14-day free trial. No credit card required to start." }},
+            { "@type": "Question", "name": "Is my library data isolated from other libraries?",
+              "acceptedAnswer": { "@type": "Answer", "text": "Yes. Each library gets its own dedicated database. Your data is never shared with other tenants." }},
+            { "@type": "Question", "name": "Does it support the Khmer language?",
+              "acceptedAnswer": { "@type": "Answer", "text": "Yes. Alpha eLibrary fully supports Khmer (ខ្មែរ) and English. The interface, catalog entries, and patron communications all support Khmer." }}
+        ]
+    };
+
     return (
         <LandingLayout>
+            <Head>
+                <title>Pricing — Free Library Software Cambodia | Alpha eLibrary</title>
+                <meta name="description" content="Start free with 500 titles and 100 patrons. Upgrade to Starter $29/mo, Pro $79/mo, or Enterprise. Best library software pricing in Cambodia. No hidden fees." head-key="description" />
+                <meta property="og:title" content="Pricing — Free Library Software for Cambodia | Alpha eLibrary" head-key="og:title" />
+                <meta property="og:description" content="Free plan available. Starter $29/mo, Pro $79/mo. Best library software pricing in Cambodia." head-key="og:description" />
+                <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+            </Head>
+
             {/* Hero */}
             <section className="py-16 px-4 text-center">
                 <h1 className="text-4xl font-bold text-gray-900 mb-3">{t('pricing.hero_title')}</h1>

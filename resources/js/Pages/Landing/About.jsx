@@ -1,5 +1,5 @@
 import LandingLayout from '@/Layouts/LandingLayout';
-import { Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { BookOpen, Globe, Users, Award } from 'lucide-react';
 
 const VALUES = [
@@ -12,6 +12,13 @@ const VALUES = [
 export default function About() {
     return (
         <LandingLayout>
+            <Head>
+                <title>About — Built in Cambodia for Southeast Asia | Alpha eLibrary</title>
+                <meta name="description" content="Alpha eLibrary is built by Corasoft, Cambodia's AI-native software agency in Phnom Penh. We bring modern library technology to schools, universities and NGOs across Southeast Asia." head-key="description" />
+                <meta property="og:title" content="About Alpha eLibrary — Built in Cambodia for Southeast Asia" head-key="og:title" />
+                <meta property="og:description" content="Built by Corasoft in Phnom Penh, Cambodia. Modern library OS for Southeast Asia." head-key="og:description" />
+            </Head>
+
             {/* Hero */}
             <section className="bg-gradient-to-br from-brand-900 to-brand-700 text-white py-20 px-4 text-center">
                 <h1 className="text-4xl font-bold mb-4">About CoraLibrary</h1>

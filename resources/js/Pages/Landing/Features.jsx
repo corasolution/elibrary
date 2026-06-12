@@ -1,5 +1,5 @@
 import LandingLayout from '@/Layouts/LandingLayout';
-import { Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import {
     BookMarked, RefreshCw, BookOpen, Users, BarChart2, Globe,
@@ -106,6 +106,13 @@ export default function Features() {
     ];
     return (
         <LandingLayout>
+            <Head>
+                <title>Features — Library Management System Cambodia | Alpha eLibrary</title>
+                <meta name="description" content="AI-powered catalog search, ePub/PDF reader, barcode circulation, digital resources, patron management, and detailed reports. Built for Cambodian schools, universities and NGOs." head-key="description" />
+                <meta property="og:title" content="Features — Library Management System Cambodia | Alpha eLibrary" head-key="og:title" />
+                <meta property="og:description" content="Explore Alpha eLibrary features built for Cambodian libraries: cataloging, circulation, digital reader, patron management, reports." head-key="og:description" />
+            </Head>
+
             {/* Hero */}
             <section className="bg-gradient-to-br from-brand-900 to-brand-700 text-white py-20 px-4 text-center">
                 <h1 className="text-4xl md:text-5xl font-bold mb-4">{t('features.hero_title')}</h1>
