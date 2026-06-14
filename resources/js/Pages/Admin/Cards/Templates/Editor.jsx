@@ -1,4 +1,4 @@
-import AdminLayout from '@/Layouts/AdminLayout';
+import EditorLayout from '@/Layouts/EditorLayout';
 import { ElementBody, PX_PER_MM } from '@/Components/Cards/CardRenderer';
 import { router } from '@inertiajs/react';
 import { Rnd } from 'react-rnd';
@@ -29,6 +29,9 @@ export default function CardEditor({ template, fieldKeys = {}, branding = {}, sa
     const [widthMm, setWidthMm] = useState(template?.width_mm ?? 85.6);
     const [heightMm, setHeightMm] = useState(template?.height_mm ?? 54);
     const [bg, setBg] = useState(template?.background_color ?? '#ffffff');
+    const [bgImage, setBgImage] = useState(template?.background_image_url ?? null);
+    const [bgImageFile, setBgImageFile] = useState(null);
+    const [bgImageRemoved, setBgImageRemoved] = useState(false);
     const [isDefault, setIsDefault] = useState(template?.is_default ?? false);
     const [elements, setElements] = useState(
         () => template?.elements ?? defaultElements ?? []
@@ -63,6 +66,20 @@ export default function CardEditor({ template, fieldKeys = {}, branding = {}, sa
         });
     };
 
+    const handleBgImageChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setBgImageFile(file);
+        setBgImageRemoved(false);
+        setBgImage(URL.createObjectURL(file));
+    };
+
+    const removeBgImage = () => {
+        setBgImage(null);
+        setBgImageFile(null);
+        setBgImageRemoved(true);
+    };
+
     const save = () => {
         setSaving(true);
         const payload = {
@@ -71,9 +88,14 @@ export default function CardEditor({ template, fieldKeys = {}, branding = {}, sa
             height_mm: Number(heightMm),
             background_color: bg,
             is_default: isDefault,
-            elements,
+            // Send elements as JSON string — Inertia's FormData mode preserves it exactly
+            elements: JSON.stringify(elements),
         };
+        if (bgImageFile) payload.background_image = bgImageFile;
+        if (bgImageRemoved) payload.remove_background_image = '1';
+
         const opts = {
+            forceFormData: true,
             onFinish: () => setSaving(false),
             onError: () => setSaving(false),
         };
@@ -82,19 +104,18 @@ export default function CardEditor({ template, fieldKeys = {}, branding = {}, sa
     };
 
     return (
-        <AdminLayout title={isEdit ? 'Edit Card Template' : 'New Card Template'}>
-            <div className="flex items-center justify-between mb-4">
-                <button onClick={() => router.get(route('admin.cards.templates.index'))}
-                    className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700">
-                    <ChevronLeft className="w-4 h-4" /> Templates
-                </button>
+        <EditorLayout
+            title={isEdit ? 'Edit Card Template' : 'New Card Template'}
+            onBack={() => router.visit(route('admin.cards.templates.index'))}
+        >
+            <div className="flex items-center justify-end mb-4 px-4 pt-4">
                 <button onClick={save} disabled={saving}
                     className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg">
                     <Save className="w-4 h-4" /> {saving ? 'Saving…' : 'Save Template'}
                 </button>
             </div>
 
-            <div className="grid lg:grid-cols-[200px_1fr_280px] gap-4">
+            <div className="grid lg:grid-cols-[240px_1fr_320px] gap-4 px-4 pb-4">
                 {/* ── Palette ──────────────────────────────────────────── */}
                 <div className="bg-white rounded-xl border border-gray-200 p-3 h-fit">
                     <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-1 mb-2">Add element</h3>
@@ -124,8 +145,32 @@ export default function CardEditor({ template, fieldKeys = {}, branding = {}, sa
                                 <input type="number" value={heightMm} onChange={e => setHeightMm(e.target.value)} className="ui-input" />
                             </Labeled>
                         </div>
-                        <Labeled label="Background">
+                        <Labeled label="Background Color">
                             <ColorInput value={bg} onChange={setBg} />
+                        </Labeled>
+                        <Labeled label="Background Image">
+                            {bgImage ? (
+                                <div className="relative rounded-lg overflow-hidden border border-gray-200">
+                                    <img src={bgImage} alt="background" className="w-full h-20 object-cover" />
+                                    <button
+                                        type="button"
+                                        onClick={removeBgImage}
+                                        className="absolute top-1 right-1 p-0.5 bg-red-500 hover:bg-red-600 rounded text-white"
+                                        title="Remove background image"
+                                    >
+                                        <Trash2 className="w-3 h-3" />
+                                    </button>
+                                    <div className="absolute bottom-1 left-1 text-[10px] text-white bg-black/40 px-1 rounded">
+                                        cover fit
+                                    </div>
+                                </div>
+                            ) : (
+                                <label className="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
+                                    <ImageIcon className="w-4 h-4 text-gray-400 mb-1" />
+                                    <span className="text-xs text-gray-500">Upload photo</span>
+                                    <input type="file" accept="image/*" onChange={handleBgImageChange} className="hidden" />
+                                </label>
+                            )}
                         </Labeled>
                         <label className="flex items-center gap-2 text-sm text-gray-700 pt-1 cursor-pointer">
                             <input type="checkbox" checked={isDefault} onChange={e => setIsDefault(e.target.checked)}
@@ -143,7 +188,11 @@ export default function CardEditor({ template, fieldKeys = {}, branding = {}, sa
                             position: 'relative',
                             width: widthMm * K,
                             height: heightMm * K,
-                            background: bg,
+                            backgroundColor: bg,
+                            backgroundImage: bgImage ? `url(${bgImage})` : undefined,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            backgroundRepeat: 'no-repeat',
                             borderRadius: 2 * K,
                             boxShadow: '0 2px 10px rgba(0,0,0,0.12)',
                             outline: '1px dashed #cbd5e1',
@@ -254,7 +303,7 @@ export default function CardEditor({ template, fieldKeys = {}, branding = {}, sa
                 .ui-input { width:100%; padding:6px 8px; font-size:13px; border:1px solid #d1d5db; border-radius:8px; outline:none; }
                 .ui-input:focus { border-color:#3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,.2); }
             `}</style>
-        </AdminLayout>
+        </EditorLayout>
     );
 }
 

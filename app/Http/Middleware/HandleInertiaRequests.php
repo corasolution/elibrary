@@ -34,6 +34,10 @@ class HandleInertiaRequests extends Middleware
                         'can_create_tenants' => $centralUser->canCreateTenants(),
                     ] : null,
                 ],
+                // Pending registration-request count for the sidebar badge (super admin only).
+                'pendingRequests' => ($centralUser && $centralUser->isSuperAdmin())
+                    ? rescue(fn () => \App\Models\Central\RegistrationRequest::where('status', 'pending')->count(), 0, false)
+                    : 0,
             ]);
         }
 
@@ -78,20 +82,31 @@ class HandleInertiaRequests extends Middleware
                 }
 
                 if (! $t) return null;
-                $logoUrl  = null;
-                $tagline  = null;
-                $libName  = null;
+                $logoUrl   = null;
+                $tagline   = null;
+                $libName   = null;
+                $siteTitle = null;
                 try {
-                    $logoUrl = \App\Models\Tenant\LibrarySetting::get('logo_url');
-                    $tagline = \App\Models\Tenant\LibrarySetting::get('library_tagline');
-                    $libName = \App\Models\Tenant\LibrarySetting::get('library_name');
+                    $logoUrl   = \App\Models\Tenant\LibrarySetting::get('logo_url');
+                    $tagline   = \App\Models\Tenant\LibrarySetting::get('library_tagline');
+                    $libName   = \App\Models\Tenant\LibrarySetting::get('library_name');
+                    $siteTitle = \App\Models\Tenant\LibrarySetting::get('site_title');
+                } catch (\Throwable) {}
+                $selfReg = true;
+                try {
+                    $selfReg = filter_var(
+                        \App\Models\Tenant\LibrarySetting::get('enable_self_registration', true),
+                        FILTER_VALIDATE_BOOLEAN
+                    );
                 } catch (\Throwable) {}
                 return [
-                    'name'     => $libName ?: $t->name,
-                    'slug'     => $t->slug,
-                    'base_url' => '/' . $t->slug,
-                    'logo_url' => $logoUrl,
-                    'tagline'  => $tagline,
+                    'name'       => $libName ?: $t->name,
+                    'slug'       => $t->slug,
+                    'base_url'   => '/' . $t->slug,
+                    'logo_url'   => $logoUrl,
+                    'tagline'    => $tagline,
+                    'site_title' => $siteTitle ?: ($libName ?: $t->name),
+                    'self_registration' => $selfReg,
                 ];
             })(),
             'flash' => [

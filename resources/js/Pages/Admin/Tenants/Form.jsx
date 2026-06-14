@@ -89,6 +89,7 @@ export default function TenantForm({ tenant, plans }) {
                                 Slug (Subdomain) <span className="text-red-500">*</span>
                             </label>
                             <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-600">{window.location.host}/</span>
                                 <input
                                     type="text"
                                     value={data.slug}
@@ -99,7 +100,6 @@ export default function TenantForm({ tenant, plans }) {
                                     required
                                     disabled={!!tenant}
                                 />
-                                <span className="text-sm text-gray-600">.bannalai.com</span>
                             </div>
                             <p className="mt-1 text-xs text-gray-500">
                                 Lowercase letters, numbers, and hyphens only. {tenant ? 'Cannot be changed after creation.' : 'Auto-generated from name.'}

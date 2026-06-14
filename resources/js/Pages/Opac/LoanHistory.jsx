@@ -1,6 +1,7 @@
 import OpacLayout from '@/Layouts/OpacLayout';
 import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, CheckCircle, ArrowLeft } from 'lucide-react';
+import { fmtDate } from '@/utils/date';
 
 export default function LoanHistory({ history }) {
     const { tenant } = usePage().props;
@@ -41,8 +42,8 @@ export default function LoanHistory({ history }) {
                                         </Link>
                                         <p className="text-xs text-gray-500">{record?.authors?.[0]?.name ?? '—'}</p>
                                         <div className="flex gap-3 mt-1 text-xs text-gray-400">
-                                            <span>Out: {new Date(loan.checked_out_at).toLocaleDateString()}</span>
-                                            <span>Returned: {new Date(loan.returned_at).toLocaleDateString()}</span>
+                                            <span>Out: {fmtDate(loan.checked_out_at)}</span>
+                                            <span>Returned: {fmtDate(loan.returned_at)}</span>
                                         </div>
                                     </div>
                                     <div className="shrink-0 text-right">

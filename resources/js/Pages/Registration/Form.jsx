@@ -10,9 +10,11 @@ export default function RegistrationForm({ plans }) {
         slug: '',
         contact_name: '',
         contact_email: '',
+        telegram: '',
         contact_phone: '',
         plan_id: plans.find(p => p.name === 'Free')?.id || '',
         library_type: '',
+        collection_size: '',
         address: '',
         country: 'KHM',
     });
@@ -124,6 +126,25 @@ export default function RegistrationForm({ plans }) {
                                             <option value="other">Other</option>
                                         </select>
                                     </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            {t('registration.collection_size', 'Approximately how many titles do you have?')} *
+                                        </label>
+                                        <select
+                                            value={data.collection_size}
+                                            onChange={(e) => setData('collection_size', e.target.value)}
+                                            className={`input w-full ${errors.collection_size ? 'border-red-500' : ''}`}
+                                            required
+                                        >
+                                            <option value="">Select range...</option>
+                                            <option value="under-500">Under 500</option>
+                                            <option value="500-5000">500 – 5,000</option>
+                                            <option value="5000-50000">5,000 – 50,000</option>
+                                            <option value="50000-plus">50,000+</option>
+                                        </select>
+                                        {errors.collection_size && <p className="text-red-500 text-xs mt-1">{errors.collection_size}</p>}
+                                    </div>
                                 </div>
                             </div>
 
@@ -161,6 +182,24 @@ export default function RegistrationForm({ plans }) {
                                             required
                                         />
                                         {errors.contact_email && <p className="text-red-500 text-xs mt-1">{errors.contact_email}</p>}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            {t('registration.telegram', 'Telegram')} *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={data.telegram}
+                                            onChange={(e) => setData('telegram', e.target.value)}
+                                            className={`input w-full ${errors.telegram ? 'border-red-500' : ''}`}
+                                            placeholder="@username or phone"
+                                            required
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            {t('registration.telegram_hint', "We'll contact you on Telegram to verify your library.")}
+                                        </p>
+                                        {errors.telegram && <p className="text-red-500 text-xs mt-1">{errors.telegram}</p>}
                                     </div>
 
                                     <div>

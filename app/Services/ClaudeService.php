@@ -34,7 +34,7 @@ class ClaudeService implements AiTextService
     public function __construct()
     {
         $this->apiKey     = $this->setting('anthropic_api_key') ?? config('services.anthropic.api_key');
-        $this->baseUrl    = $this->setting('anthropic_api_url') ?? config('services.anthropic.base_url');
+        $this->baseUrl    = $this->setting('anthropic_api_url') ?? config('services.anthropic.base_url') ?? 'https://api.anthropic.com/v1';
         $this->version    = config('services.anthropic.version', '2023-06-01');
         $this->model      = $this->setting('anthropic_model') ?? config('services.anthropic.model', 'claude-haiku-4-5');
         $this->timeout    = config('services.anthropic.timeout', 30);
@@ -140,6 +140,108 @@ class ClaudeService implements AiTextService
             } catch (\Throwable $e) {
                 $attempt++;
                 Log::warning("Claude API attempt {$attempt} failed: {$e->getMessage()}");
+
+                if ($attempt >= $this->maxRetries) {
+                    $this->recordUsage('claude', $feature, [
+                        'input_tokens' => 0, 'output_tokens' => 0,
+                        'response_time_ms' => (int) ((microtime(true) - $startTime) * 1000),
+                        'error' => $e->getMessage(),
+                    ], 'error', false, 0.0);
+                    return null;
+                }
+                sleep(2 ** $attempt);
+            }
+        }
+
+        return null;
+    }
+
+    public function generateFromImage(string $prompt, string $base64Image, string $mime, array $options = []): ?array
+    {
+        $cacheKey = $options['cache_key'] ?? null;
+        $cacheTTL = $options['cache_ttl'] ?? (90 * 24 * 60);
+        $feature  = $options['feature'] ?? 'generate_from_image';
+
+        if ($cacheKey && Cache::has($cacheKey)) {
+            $this->recordUsage('claude', $feature, ['input_tokens' => 0, 'output_tokens' => 0, 'response_time_ms' => 0], 'success', true, 0.0);
+            return Cache::get($cacheKey);
+        }
+
+        $maxTokens = $options['max_output_tokens'] ?? 1024;
+
+        $payload = [
+            'model'      => $this->model,
+            'max_tokens' => $maxTokens,
+            'messages'   => [[
+                'role'    => 'user',
+                'content' => [
+                    ['type' => 'image', 'source' => ['type' => 'base64', 'media_type' => $mime, 'data' => $base64Image]],
+                    ['type' => 'text', 'text' => $prompt],
+                ],
+            ]],
+        ];
+        if (! empty($options['system'])) {
+            $payload['system'] = $options['system'];
+        }
+
+        $startTime = microtime(true);
+        $attempt = 0;
+
+        while ($attempt < $this->maxRetries) {
+            try {
+                $response = Http::timeout($this->timeout)
+                    ->withHeaders([
+                        'x-api-key'         => (string) $this->apiKey,
+                        'anthropic-version' => $this->version,
+                        'content-type'      => 'application/json',
+                    ])
+                    ->post("{$this->baseUrl}/messages", $payload);
+
+                if ($response->successful()) {
+                    $data = $response->json();
+                    $responseTime = (int) ((microtime(true) - $startTime) * 1000);
+
+                    $text = collect($data['content'] ?? [])
+                        ->where('type', 'text')
+                        ->pluck('text')
+                        ->implode('');
+
+                    $in  = (int) ($data['usage']['input_tokens'] ?? 0);
+                    $out = (int) ($data['usage']['output_tokens'] ?? 0);
+
+                    $result = [
+                        'text' => $text ?: null,
+                        'metadata' => [
+                            'provider'         => 'claude',
+                            'model'            => $this->model,
+                            'input_tokens'     => $in,
+                            'output_tokens'    => $out,
+                            'total_tokens'     => $in + $out,
+                            'response_time_ms' => $responseTime,
+                        ],
+                    ];
+
+                    if ($cacheKey) {
+                        Cache::put($cacheKey, $result, $cacheTTL);
+                    }
+
+                    $this->recordUsage('claude', $feature, $result['metadata'], 'success', false, $this->apiCost($in, $out));
+
+                    return $result;
+                }
+
+                if ($response->status() === 429) {
+                    $attempt++;
+                    if ($attempt < $this->maxRetries) {
+                        sleep(2 ** $attempt);
+                        continue;
+                    }
+                }
+
+                throw new \Exception("Anthropic API error: {$response->status()} - {$response->body()}");
+            } catch (\Throwable $e) {
+                $attempt++;
+                Log::warning("Claude vision attempt {$attempt} failed: {$e->getMessage()}");
 
                 if ($attempt >= $this->maxRetries) {
                     $this->recordUsage('claude', $feature, [

@@ -59,6 +59,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::get('/trash', [CatalogController::class, 'trash'])->name('trash');
                 Route::get('/lookup-isbn/{isbn}', [CatalogController::class, 'lookupIsbn'])->name('isbn-lookup');
                 Route::post('/ai-classify', [CatalogController::class, 'aiClassify'])->name('ai-classify');
+                Route::post('/scan-cover', [CatalogController::class, 'scanCover'])->name('scan-cover');
                 Route::get('/import-search', [CatalogController::class, 'importSearch'])->name('import-search');
 
                 // Excel import/export (must be before /{id} wildcard)

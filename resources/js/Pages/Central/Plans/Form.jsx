@@ -15,6 +15,7 @@ export default function PlanForm({ plan }) {
         max_storage_gb: plan?.max_storage_gb || '',
         features: plan?.features ? (typeof plan.features === 'string' ? JSON.parse(plan.features) : plan.features) : [],
         is_active: plan?.is_active ?? true,
+        is_popular: plan?.is_popular ?? false,
     });
 
     const [newFeature, setNewFeature] = useState('');
@@ -151,6 +152,22 @@ export default function PlanForm({ plan }) {
                                     <div>
                                         <span className="text-sm font-medium text-gray-700">Active Plan</span>
                                         <p className="text-xs text-gray-500">Visible to customers</p>
+                                    </div>
+                                </label>
+                            </div>
+
+                            {/* Most Popular */}
+                            <div className="flex items-center">
+                                <label className="flex items-center gap-3 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={data.is_popular}
+                                        onChange={(e) => setData('is_popular', e.target.checked)}
+                                        className="w-4 h-4 text-amber-500 focus:ring-amber-400 border-gray-300 rounded"
+                                    />
+                                    <div>
+                                        <span className="text-sm font-medium text-gray-700">Most Popular</span>
+                                        <p className="text-xs text-gray-500">Highlights this plan on the landing page (only one at a time)</p>
                                     </div>
                                 </label>
                             </div>

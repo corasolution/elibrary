@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Central;
 use App\Http\Controllers\Controller;
 use App\Models\Central\PlatformSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -62,41 +64,74 @@ class StorageController extends Controller
             PlatformSetting::set('r2_secret_key', $validated['r2_secret_key'], true); // Encrypted
         }
 
+        // The default_r2 disk is configured from these settings at boot —
+        // drop the cached copy so the next request picks up the new values.
+        Cache::forget('platform.r2_config');
+
         return back()->with('success', 'Cloudflare R2 settings updated successfully!');
     }
 
     /**
-     * Test storage connection
+     * Test storage connection with the submitted R2 credentials.
+     * Writes, reads back and deletes a small test file in the bucket.
      */
     public function testConnection(Request $request)
     {
-        $provider = $request->input('provider');
+        $validated = $request->validate([
+            'r2_access_key' => 'required|string',
+            'r2_secret_key' => 'nullable|string',
+            'r2_account_id' => 'required|string',
+            'r2_bucket' => 'required|string',
+        ]);
+
+        // Blank secret means "keep current" — test with the saved one
+        $secret = $validated['r2_secret_key'] ?? null;
+        if (empty($secret)) {
+            $secret = PlatformSetting::get('r2_secret_key');
+        }
+
+        if (empty($secret)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No Secret Access Key provided and none saved yet.',
+            ], 400);
+        }
 
         try {
-            // Test by attempting to list files
-            $disk = $this->configureDisk($provider, $request->all());
-            $disk->files();
+            Config::set('filesystems.disks.r2_connection_test', [
+                'driver' => 's3',
+                'key' => $validated['r2_access_key'],
+                'secret' => $secret,
+                'region' => 'auto',
+                'bucket' => $validated['r2_bucket'],
+                'endpoint' => "https://{$validated['r2_account_id']}.r2.cloudflarestorage.com",
+                'use_path_style_endpoint' => false,
+                'throw' => true,
+            ]);
+            Storage::forgetDisk('r2_connection_test');
+
+            $disk = Storage::disk('r2_connection_test');
+            $testPath = 'connection-test-' . now()->timestamp . '.txt';
+            $testContent = 'Alpha eLibrary R2 connection test - ' . now()->toIso8601String();
+
+            $disk->put($testPath, $testContent);
+            $ok = $disk->get($testPath) === $testContent;
+            $disk->delete($testPath);
 
             return response()->json([
-                'success' => true,
-                'message' => 'Connection successful! Storage is accessible.',
-            ]);
+                'success' => $ok,
+                'message' => $ok
+                    ? 'Connection successful! R2 bucket is writable and readable.'
+                    : 'Wrote test file but could not read it back — check bucket permissions.',
+            ], $ok ? 200 : 400);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Connection failed: ' . $e->getMessage(),
             ], 400);
+        } finally {
+            Config::set('filesystems.disks.r2_connection_test', null);
+            Storage::forgetDisk('r2_connection_test');
         }
     }
-
-    /**
-     * Configure a disk dynamically for testing
-     */
-    private function configureDisk(string $provider, array $config)
-    {
-        // This is a simplified version - in production, you'd configure the actual filesystem disk
-        // For now, return the default disk
-        return Storage::disk('s3');
-    }
-
 }

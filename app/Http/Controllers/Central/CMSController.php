@@ -64,9 +64,16 @@ class CMSController extends Controller
             ->orderBy('section')
             ->pluck('section');
 
+        // Per-section counts for the group-navigation chips.
+        $sectionCounts = CMSTranslation::selectRaw('section, count(*) as count')
+            ->groupBy('section')
+            ->orderBy('section')
+            ->pluck('count', 'section');
+
         return Inertia::render('Central/CMS/Index', [
             'translations' => $translations,
             'sections' => $sections,
+            'sectionCounts' => $sectionCounts,
             'filters' => $request->only(['section', 'status', 'q']),
             'stats' => [
                 'total' => CMSTranslation::count(),

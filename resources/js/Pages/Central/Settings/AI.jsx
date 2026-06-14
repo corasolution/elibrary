@@ -7,7 +7,7 @@ export default function AISettings({ settings, apiKeyConfigured, claudeKeyConfig
     const { data, setData, post, processing, errors } = useForm({
         gemini_api_key: settings.gemini_api_key || '',
         gemini_api_url: settings.gemini_api_url || 'https://generativelanguage.googleapis.com/v1beta',
-        gemini_model: settings.gemini_model || 'gemini-1.5-flash',
+        gemini_model: settings.gemini_model || 'gemini-2.0-flash',
         anthropic_api_key: settings.anthropic_api_key || '',
         anthropic_model: settings.anthropic_model || 'claude-haiku-4-5',
         ai_provider_chatbot: settings.ai_provider_chatbot || 'claude',
@@ -175,12 +175,14 @@ export default function AISettings({ settings, apiKeyConfigured, claudeKeyConfig
                                     onChange={(e) => setData('gemini_model', e.target.value)}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                                 >
-                                    <option value="gemini-1.5-flash">gemini-1.5-flash (Recommended - Fast & Cheap)</option>
-                                    <option value="gemini-1.5-pro">gemini-1.5-pro (More Accurate)</option>
-                                    <option value="gemini-2.0-flash-exp">gemini-2.0-flash-exp (Latest Experimental)</option>
+                                    <option value="gemini-2.0-flash">gemini-2.0-flash (Recommended - Fast & Cheap)</option>
+                                    <option value="gemini-2.5-flash">gemini-2.5-flash (Newer)</option>
+                                    <option value="gemini-2.5-pro">gemini-2.5-pro (Most Accurate)</option>
+                                    <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite (Cheapest)</option>
                                 </select>
                                 <p className="mt-1 text-xs text-gray-500">
-                                    gemini-1.5-flash is recommended for cost-effectiveness
+                                    gemini-2.0-flash is recommended. The older gemini-1.5-* models have been
+                                    retired by Google and will fail with a 404.
                                 </p>
                             </div>
                         </div>

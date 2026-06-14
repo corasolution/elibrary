@@ -104,7 +104,7 @@ class DigitalResourceController extends Controller
 
         try {
             $resource = DigitalResource::findOrFail($id);
-            $resource->update($request->only(['format', 'access_type', 'embargo_until', 'version', 'url', 'is_external']));
+            $resource->update($request->only(['biblio_id', 'format', 'access_type', 'embargo_until', 'version', 'url', 'is_external']));
         } catch (\Throwable $e) {
             return back()->withErrors(['general' => $e->getMessage()]);
         }

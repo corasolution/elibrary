@@ -75,6 +75,7 @@ class SettingsController extends Controller
             'default_language'    => 'nullable|string|max:5',
             'timezone'            => 'nullable|string|max:50',
             'opac_welcome_text'   => 'nullable|string|max:500',
+            'site_title'          => 'nullable|string|max:120',
             'primary_color'       => 'nullable|string|max:20',
             'logo'                => 'nullable|image|max:2048',
             'favicon'             => 'nullable|image|max:512',
@@ -105,7 +106,7 @@ class SettingsController extends Controller
         $scalar = [
             'library_name', 'library_tagline', 'library_email', 'library_phone',
             'library_address', 'default_language', 'timezone', 'opac_welcome_text',
-            'primary_color',
+            'site_title', 'primary_color',
             'default_loan_days', 'max_loans_per_patron', 'fine_rate_per_day', 'max_fine',
             'grace_period_days', 'reservation_expiry',
             'enable_self_registration', 'require_email_verification',

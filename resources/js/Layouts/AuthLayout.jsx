@@ -11,7 +11,7 @@ export default function AuthLayout({ children, title, subtitle }) {
     return (
         <div className="min-h-screen flex">
             {/* ── Left panel: Brand ── */}
-            <div className="hidden lg:flex lg:w-[45%] xl:w-[42%] relative flex-col"
+            <div className="hidden lg:flex lg:w-[45%] xl:w-[42%] relative flex-col overflow-hidden"
                 style={{ background: 'linear-gradient(145deg, #1B3D8F 0%, #2952BE 55%, #1e6fbf 100%)' }}>
 
                 {/* Decorative circles */}

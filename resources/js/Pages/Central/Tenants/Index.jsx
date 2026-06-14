@@ -13,7 +13,8 @@ import {
     AlertCircle,
     User,
     Undo2,
-    Trash
+    Trash,
+    Star
 } from 'lucide-react';
 
 export default function TenantsIndex({ tenants, filters, partner, canCreateTenant, isSuperAdmin }) {
@@ -27,6 +28,10 @@ export default function TenantsIndex({ tenants, filters, partner, canCreateTenan
             { q: search, status: statusFilter },
             { preserveState: true, replace: true }
         );
+    };
+
+    const handleToggleFeatured = (tenant) => {
+        router.post(route('central.tenants.toggle-featured', tenant.id), {}, { preserveScroll: true });
     };
 
     const handleDelete = (tenant) => {
@@ -285,12 +290,16 @@ export default function TenantsIndex({ tenants, filters, partner, canCreateTenan
                                                         </div>
                                                     </div>
                                                     <div className="ml-4">
-                                                        <div className="text-sm font-medium text-gray-900">
+                                                        <Link
+                                                            href={route('central.tenants.show', tenant.id)}
+                                                            className="text-sm font-medium text-gray-900 hover:text-blue-600"
+                                                        >
                                                             {tenant.name}
-                                                        </div>
-                                                        <div className="text-sm text-gray-500">
-                                                            {tenant.slug}.bannalai.com
-                                                        </div>
+                                                        </Link>
+                                                        <a href={`/${tenant.slug}`} target="_blank" rel="noreferrer"
+                                                            className="block text-sm text-gray-500 hover:text-blue-600">
+                                                            {window.location.host}/{tenant.slug}
+                                                        </a>
                                                     </div>
                                                 </div>
                                             </td>
@@ -344,8 +353,21 @@ export default function TenantsIndex({ tenants, filters, partner, canCreateTenan
                                                             )}
                                                         </>
                                                     ) : (
-                                                        // Active tenant - show edit and delete
+                                                        // Active tenant - show featured toggle, edit and delete
                                                         <>
+                                                            {isSuperAdmin && (
+                                                                <button
+                                                                    onClick={() => handleToggleFeatured(tenant)}
+                                                                    title={tenant.is_featured ? 'Remove from landing page' : 'Feature on landing page'}
+                                                                    className={`inline-flex items-center p-1.5 rounded-lg transition-colors ${
+                                                                        tenant.is_featured
+                                                                            ? 'text-amber-500 bg-amber-50 hover:bg-amber-100'
+                                                                            : 'text-gray-300 hover:text-amber-400 hover:bg-amber-50'
+                                                                    }`}
+                                                                >
+                                                                    <Star className="w-4 h-4" fill={tenant.is_featured ? 'currentColor' : 'none'} />
+                                                                </button>
+                                                            )}
                                                             <Link
                                                                 href={route('central.tenants.edit', tenant.id)}
                                                                 className="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg transition-colors"

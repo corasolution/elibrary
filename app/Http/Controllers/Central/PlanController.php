@@ -48,12 +48,22 @@ class PlanController extends Controller
             'max_storage_gb' => ['nullable', 'integer', 'min:1'],
             'features' => ['nullable', 'array'],
             'is_active' => ['boolean'],
+            'is_popular' => ['boolean'],
         ]);
 
         $validated['is_active'] = $validated['is_active'] ?? true;
-        $validated['features'] = json_encode($validated['features'] ?? []);
+        $validated['is_popular'] = $validated['is_popular'] ?? false;
+        // The model casts `features` to array — assign the array directly.
+        // (json_encode here would double-encode, since the cast encodes on save.)
+        $validated['features'] = $validated['features'] ?? [];
+
+        // "Most Popular" is exclusive — only one plan wears the badge.
+        if ($validated['is_popular']) {
+            Plan::where('is_popular', true)->update(['is_popular' => false]);
+        }
 
         Plan::create($validated);
+        $this->clearPricingCache();
 
         return redirect()->route('central.plans.index')
             ->with('success', "Plan '{$validated['name']}' created successfully.");
@@ -87,11 +97,21 @@ class PlanController extends Controller
             'max_storage_gb' => ['nullable', 'integer', 'min:1'],
             'features' => ['nullable', 'array'],
             'is_active' => ['boolean'],
+            'is_popular' => ['boolean'],
         ]);
 
-        $validated['features'] = json_encode($validated['features'] ?? []);
+        $validated['is_popular'] = $validated['is_popular'] ?? false;
+        // The model casts `features` to array — assign the array directly.
+        // (json_encode here would double-encode, since the cast encodes on save.)
+        $validated['features'] = $validated['features'] ?? [];
+
+        // "Most Popular" is exclusive — clear it from other plans first.
+        if ($validated['is_popular']) {
+            Plan::where('id', '!=', $id)->where('is_popular', true)->update(['is_popular' => false]);
+        }
 
         $plan->update($validated);
+        $this->clearPricingCache();
 
         return redirect()->route('central.plans.index')
             ->with('success', "Plan '{$plan->name}' updated successfully.");
@@ -111,8 +131,17 @@ class PlanController extends Controller
 
         $name = $plan->name;
         $plan->delete();
+        $this->clearPricingCache();
 
         return redirect()->route('central.plans.index')
             ->with('success', "Plan '{$name}' deleted successfully.");
+    }
+
+    /**
+     * Drop the cached landing-page plan list so price/badge edits show immediately.
+     */
+    private function clearPricingCache(): void
+    {
+        \Illuminate\Support\Facades\Cache::forget('landing.plans');
     }
 }

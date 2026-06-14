@@ -157,7 +157,7 @@ export default function PaymentsIndex({ payments, statistics, filters }) {
                                                     <h3 className="text-lg font-semibold text-gray-900">
                                                         {payment.tenant.name}
                                                     </h3>
-                                                    <p className="text-sm text-gray-500">{payment.tenant.slug}.bannalai.com</p>
+                                                    <p className="text-sm text-gray-500">{window.location.host}/{payment.tenant.slug}</p>
                                                 </div>
                                                 {getStatusBadge(payment.status)}
                                             </div>

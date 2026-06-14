@@ -5,7 +5,7 @@ const FREQUENCIES = ['daily','weekly','biweekly','monthly','bimonthly','quarterl
 
 export default function SerialForm({ serial, biblios = [], locations = [], collections = [], frequencies = [] }) {
     const isEdit = !!serial;
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, put, processing, errors } = useForm({
         biblio_id:           serial?.biblio_id ?? '',
         issn:                serial?.bibliographic_record?.issn ?? '',
         frequency:           serial?.frequency ?? 'monthly',
@@ -25,7 +25,7 @@ export default function SerialForm({ serial, biblios = [], locations = [], colle
     const submit = (e) => {
         e.preventDefault();
         if (isEdit) {
-            post(route('admin.serials.update', serial.id), { _method: 'PUT' });
+            put(route('admin.serials.update', serial.id));
         } else {
             post(route('admin.serials.store'));
         }

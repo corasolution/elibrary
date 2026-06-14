@@ -2,6 +2,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Link, router } from '@inertiajs/react';
 import { Plus, Search, Edit2, Trash2, Eye, Users, X } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const STATUS_COLORS = {
     active:    'bg-green-100 text-green-700',
@@ -12,6 +13,7 @@ const STATUS_COLORS = {
 
 export default function PatronsIndex({ patrons, filters }) {
     const [search, setSearch] = useState(filters?.q ?? '');
+    const { t } = useTranslation();
 
     const doSearch = (e) => {
         e.preventDefault();
@@ -24,7 +26,7 @@ export default function PatronsIndex({ patrons, filters }) {
     };
 
     const deletePatron = (id, name) => {
-        if (!confirm(`Delete patron "${name}"?`)) return;
+        if (!confirm(t('admin.patrons_ui.delete_confirm', { name }))) return;
         router.delete(route('admin.patrons.destroy', id));
     };
 
@@ -32,7 +34,7 @@ export default function PatronsIndex({ patrons, filters }) {
     const total = patrons?.total ?? 0;
 
     return (
-        <AdminLayout title="Patrons">
+        <AdminLayout title={t('admin.nav.patrons')}>
             <div className="space-y-4">
                 {/* Toolbar */}
                 <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
@@ -43,7 +45,7 @@ export default function PatronsIndex({ patrons, filters }) {
                                 type="text"
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
-                                placeholder="Search name, email, card number…"
+                                placeholder={t('admin.patrons_ui.search_placeholder')}
                                 className="w-full pl-9 pr-8 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                             {search && (
@@ -55,32 +57,32 @@ export default function PatronsIndex({ patrons, filters }) {
                         </div>
                         <button type="submit"
                             className="px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-300">
-                            Search
+                            {t('common.search')}
                         </button>
                     </form>
 
                     <Link href={route('admin.patrons.create')}
                         className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg flex-shrink-0">
-                        <Plus className="w-4 h-4" /> New Patron
+                        <Plus className="w-4 h-4" /> {t('admin.patrons_ui.new_patron')}
                     </Link>
                 </div>
 
                 {/* Table */}
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                     <div className="px-4 py-3 border-b border-gray-100 text-sm text-gray-500">
-                        {total.toLocaleString()} {total === 1 ? 'patron' : 'patrons'}
+                        {total.toLocaleString()} {total === 1 ? t('admin.patrons_ui.patron_singular') : t('admin.patrons_ui.patron_plural')}
                     </div>
 
                     {data.length === 0 ? (
                         <div className="py-16 text-center">
                             <Users className="w-10 h-10 text-gray-300 mx-auto mb-3" />
                             <p className="text-sm text-gray-500">
-                                {filters?.q ? 'No patrons match your search.' : 'No patrons yet.'}
+                                {filters?.q ? t('admin.patrons_ui.no_search_results') : t('admin.patrons_ui.no_patrons')}
                             </p>
                             {!filters?.q && (
                                 <Link href={route('admin.patrons.create')}
                                     className="inline-flex items-center gap-1.5 mt-4 text-sm text-blue-600 hover:underline">
-                                    <Plus className="w-4 h-4" /> Add the first patron
+                                    <Plus className="w-4 h-4" /> {t('admin.patrons_ui.add_first')}
                                 </Link>
                             )}
                         </div>
@@ -89,12 +91,12 @@ export default function PatronsIndex({ patrons, filters }) {
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="bg-gray-50 border-b border-gray-100">
-                                        <th className="text-left px-4 py-3 font-medium text-gray-600">Name</th>
-                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden md:table-cell">Card No.</th>
-                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden lg:table-cell">Email</th>
-                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden lg:table-cell">Category</th>
-                                        <th className="text-center px-4 py-3 font-medium text-gray-600">Loans</th>
-                                        <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
+                                        <th className="text-left px-4 py-3 font-medium text-gray-600">{t('admin.patrons_ui.col_name')}</th>
+                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden md:table-cell">{t('admin.patrons_ui.col_card')}</th>
+                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden lg:table-cell">{t('admin.patrons_ui.col_email')}</th>
+                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden lg:table-cell">{t('admin.patrons_ui.col_category')}</th>
+                                        <th className="text-center px-4 py-3 font-medium text-gray-600">{t('admin.patrons_ui.col_loans')}</th>
+                                        <th className="text-left px-4 py-3 font-medium text-gray-600">{t('admin.patrons_ui.col_status')}</th>
                                         <th className="px-4 py-3"></th>
                                     </tr>
                                 </thead>
@@ -130,8 +132,8 @@ export default function PatronsIndex({ patrons, filters }) {
                                                 {patron.active_loans ?? 0}
                                             </td>
                                             <td className="px-4 py-3">
-                                                <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_COLORS[patron.status] ?? 'bg-gray-100 text-gray-600'}`}>
-                                                    {patron.status}
+                                                <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[patron.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                                                    {t(`admin.patrons_ui.status_${patron.status}`, { defaultValue: patron.status })}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3">
@@ -160,18 +162,18 @@ export default function PatronsIndex({ patrons, filters }) {
 
                     {patrons?.last_page > 1 && (
                         <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-                            <span>Page {patrons.current_page} of {patrons.last_page}</span>
+                            <span>{t('common.page_of', { current: patrons.current_page, last: patrons.last_page })}</span>
                             <div className="flex gap-2">
                                 {patrons.prev_page_url && (
                                     <Link href={patrons.prev_page_url}
                                         className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">
-                                        Previous
+                                        {t('common.previous')}
                                     </Link>
                                 )}
                                 {patrons.next_page_url && (
                                     <Link href={patrons.next_page_url}
                                         className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">
-                                        Next
+                                        {t('common.next')}
                                     </Link>
                                 )}
                             </div>

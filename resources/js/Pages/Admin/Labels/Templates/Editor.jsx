@@ -1,4 +1,4 @@
-import AdminLayout from '@/Layouts/AdminLayout';
+import EditorLayout from '@/Layouts/EditorLayout';
 import { ElementBody, PX_PER_MM } from '@/Components/Cards/CardRenderer';
 import { router } from '@inertiajs/react';
 import { Rnd } from 'react-rnd';
@@ -80,17 +80,17 @@ export default function LabelEditor({ template, fieldKeys = {}, presets = {}, br
     const labelTemplate = useMemo(() => ({ width_mm: geo.label_width_mm, height_mm: geo.label_height_mm, background_color: bg, elements }), [geo.label_width_mm, geo.label_height_mm, bg, elements]);
 
     return (
-        <AdminLayout title={isEdit ? 'Edit Label Template' : 'New Label Template'}>
-            <div className="flex items-center justify-between mb-4">
-                <button onClick={() => router.get(route('admin.labels.templates.index'))} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700">
-                    <ChevronLeft className="w-4 h-4" /> Templates
-                </button>
+        <EditorLayout
+            title={isEdit ? 'Edit Label Template' : 'New Label Template'}
+            onBack={() => router.visit(route('admin.labels.templates.index'))}
+        >
+            <div className="flex items-center justify-end mb-4 px-4 pt-4">
                 <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg">
                     <Save className="w-4 h-4" /> {saving ? 'Saving…' : 'Save Template'}
                 </button>
             </div>
 
-            <div className="grid lg:grid-cols-[260px_1fr_280px] gap-4">
+            <div className="grid lg:grid-cols-[280px_1fr_300px] gap-4 px-4 pb-4">
                 {/* ── Sheet geometry ───────────────────────────────────── */}
                 <div className="bg-white rounded-xl border border-gray-200 p-4 h-fit space-y-3">
                     <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Sheet</h3>
@@ -227,7 +227,7 @@ export default function LabelEditor({ template, fieldKeys = {}, presets = {}, br
                 .ui-input { width:100%; padding:6px 8px; font-size:13px; border:1px solid #d1d5db; border-radius:8px; outline:none; }
                 .ui-input:focus { border-color:#3b82f6; box-shadow:0 0 0 2px rgba(59,130,246,.2); }
             `}</style>
-        </AdminLayout>
+        </EditorLayout>
     );
 }
 

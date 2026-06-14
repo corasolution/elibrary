@@ -11,7 +11,7 @@ export default function NavbarMinimal() {
     const base = tenant?.base_url ?? '';
 
     return (
-        <header className="opac-navbar bg-transparent sticky top-0 z-40 backdrop-blur-sm">
+        <header className="opac-navbar opac-navbar-themed sticky top-0 z-40">
             <div className="page-container px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-14 border-b border-gray-100">
                     {/* Brand */}
@@ -43,9 +43,11 @@ export default function NavbarMinimal() {
                                 <Link href={`${base}/login`} className="text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors">
                                     {t('auth.login')}
                                 </Link>
-                                <Link href={`${base}/register`} className="text-sm text-primary hover:text-primary/80 font-semibold transition-colors">
-                                    {t('nav.register')}
-                                </Link>
+                                {tenant?.self_registration && (
+                                    <Link href={`${base}/register`} className="text-sm text-primary hover:text-primary/80 font-semibold transition-colors">
+                                        {t('nav.register')}
+                                    </Link>
+                                )}
                             </>
                         )}
                     </div>

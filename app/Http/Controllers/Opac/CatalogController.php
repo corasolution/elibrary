@@ -71,23 +71,81 @@ class CatalogController extends Controller
             'total_patrons' => \App\Models\Tenant\Patron::where('status', 'active')->count(),
         ];
 
-        return Inertia::render('Opac/Home', compact('ebooks', 'epublications', 'audio', 'video', 'theses', 'stats'));
+        // "Browse by Format" collections — real material types that have items,
+        // with live counts. Empty formats are skipped so the grid reflects the data.
+        $collections = \App\Models\Tenant\MaterialType::query()
+            ->where('is_active', true)
+            ->withCount(['bibliographicRecords as count' => fn ($q) => $q->where('record_status', 'active')])
+            ->orderBy('sort_order')
+            ->get()
+            ->filter(fn ($mt) => $mt->count > 0)
+            ->map(fn ($mt) => [
+                'code'             => $mt->code,
+                'name'             => $mt->name,
+                'count'            => $mt->count,
+                'material_type_id' => $mt->id,
+            ])
+            ->values();
+
+        return Inertia::render('Opac/Home', compact('ebooks', 'epublications', 'audio', 'video', 'theses', 'stats', 'collections'));
     }
 
     public function search(Request $request): Response
     {
-        $query   = $request->get('q', '');
-        $filters = $request->only(['material_type_id', 'language', 'year_from', 'year_to', 'availability', 'sort']);
+        $query   = (string) ($request->get('q') ?? '');
+        $filters = $request->only(['material_type_id', 'language', 'year_from', 'year_to', 'availability', 'sort', 'subject']);
 
         $results = $this->catalogService->searchCatalog($query, $filters, perPage: 20);
 
         $materialTypes = \App\Models\Tenant\MaterialType::where('is_active', true)->orderBy('sort_order')->get();
+
+        // Facet counts (based on full result set without pagination)
+        $base = \App\Models\Tenant\BibliographicRecord::where('record_status', 'active');
+
+        $typeCounts = (clone $base)
+            ->selectRaw('material_type_id, COUNT(*) as count')
+            ->groupBy('material_type_id')
+            ->pluck('count', 'material_type_id');
+
+        $langCounts = (clone $base)
+            ->selectRaw('language, COUNT(*) as count')
+            ->whereNotNull('language')
+            ->groupBy('language')
+            ->pluck('count', 'language');
+
+        $yearRange = (clone $base)
+            ->selectRaw('MIN(publication_year) as min_year, MAX(publication_year) as max_year')
+            ->whereNotNull('publication_year')
+            ->first();
+
+        // Top subjects — cast json→jsonb so jsonb_array_elements works regardless of column type
+        $subjectCounts = collect(\Illuminate\Support\Facades\DB::select("
+            SELECT subj->>'term' as term, COUNT(*) as count
+            FROM bibliographic_records,
+                 jsonb_array_elements(subjects::jsonb) AS subj
+            WHERE record_status = 'active'
+              AND subjects IS NOT NULL
+              AND subjects::text != 'null'
+              AND subjects::text != '[]'
+              AND subj->>'term' IS NOT NULL
+              AND subj->>'term' != ''
+            GROUP BY term
+            ORDER BY count DESC
+            LIMIT 20
+        "))->mapWithKeys(fn($r) => [$r->term => (int) $r->count]);
 
         return Inertia::render('Opac/Search', [
             'results'       => $results,
             'query'         => $query,
             'filters'       => $filters,
             'materialTypes' => $materialTypes,
+            'facets'        => [
+                'typeCounts'    => $typeCounts,
+                'langCounts'    => $langCounts,
+                'subjectCounts' => $subjectCounts,
+                'yearMin'       => $yearRange?->min_year,
+                'yearMax'       => $yearRange?->max_year,
+            ],
         ]);
     }
 

@@ -632,6 +632,8 @@
         "email": "Email",
         "password": "Password",
         "login": "Log In",
+        "login_identifier": "Email or card number",
+        "login_identifier_placeholder": "you@example.com or P00012",
         "register": "Create Account",
         "remember_me": "Remember me",
         "forgot_password": "Forgot password?",

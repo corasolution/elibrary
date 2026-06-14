@@ -5,6 +5,15 @@
 /public/storage
 /storage/*.key
 /vendor
+
+# Generated caches & compiled views — must NOT be committed (stale copies
+# deployed over fresh source cause runtime 500s).
+/bootstrap/cache/*.php
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*.php
+/storage/framework/testing/*
+
 .env
 .env.backup
 .env.production

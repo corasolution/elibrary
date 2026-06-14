@@ -43,6 +43,7 @@ class Work extends Model
     protected $casts = [
         'languages'    => 'array',
         'subjects'     => 'array',
+        'keywords'     => 'array',
         'genre_form'   => 'array',
         'bibframe_data' => 'array',
         'cataloged_at' => 'datetime',

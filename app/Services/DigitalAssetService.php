@@ -19,11 +19,10 @@ class DigitalAssetService
 
     public function signedUrl(DigitalResource $resource, int $expiryMinutes = 60): string
     {
-        if ($resource->is_external) {
-            return $resource->url;
+        if ($resource->is_external || empty($resource->file_path)) {
+            return $resource->url ?? '';
         }
 
-        // Use storage provider service to get signed URL
         return $this->storageProvider->getSignedUrl($resource->file_path, $expiryMinutes);
     }
 

@@ -37,6 +37,7 @@ function toCardData(p, libraryName) {
         status: p.status ? p.status[0].toUpperCase() + p.status.slice(1) : null,
         initials: `${p.first_name?.[0] ?? ''}${p.last_name?.[0] ?? ''}`.toUpperCase() || '?',
         avatar_color: hashColor(p.patron_number ?? p.id ?? ''),
+        photo_url: p.photo_url ? `/storage/${p.photo_url}` : null,
     };
 }
 

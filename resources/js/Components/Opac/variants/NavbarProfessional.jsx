@@ -11,7 +11,7 @@ export default function NavbarProfessional() {
     const base = tenant?.base_url ?? '';
 
     return (
-        <header className="opac-navbar sticky top-0 z-40">
+        <header className="opac-navbar opac-navbar-themed sticky top-0 z-40">
             <div className="page-container px-4 sm:px-6 lg:px-8">
                 {/* Top row: Brand + utility links */}
                 <div className="flex items-center justify-between border-b border-white/10 py-3">
@@ -39,9 +39,11 @@ export default function NavbarProfessional() {
                                 <Link href={`${base}/login`} className="text-sm hover:text-white/80 font-medium">
                                     {t('auth.login')}
                                 </Link>
-                                <Link href={`${base}/register`} className="bg-white text-blue-700 px-4 py-1.5 rounded-md text-sm font-semibold hover:bg-white/90">
-                                    {t('nav.register')}
-                                </Link>
+                                {tenant?.self_registration && (
+                                    <Link href={`${base}/register`} className="bg-white text-blue-700 px-4 py-1.5 rounded-md text-sm font-semibold hover:bg-white/90">
+                                        {t('nav.register')}
+                                    </Link>
+                                )}
                             </div>
                         )}
 

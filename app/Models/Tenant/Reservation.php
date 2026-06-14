@@ -43,4 +43,27 @@ class Reservation extends Model
     {
         return $this->belongsTo(PhysicalItem::class);
     }
+
+    /**
+     * 1-based position in this title's hold queue. Null once the hold is
+     * ready/fulfilled/cancelled. Not in $appends — append per use to avoid
+     * N+1 on unrelated queries.
+     */
+    public function getQueuePositionAttribute(): ?int
+    {
+        if (! in_array($this->status, ['pending', 'waiting'])) {
+            return null;
+        }
+
+        return Reservation::where('biblio_id', $this->biblio_id)
+            ->whereIn('status', ['pending', 'waiting'])
+            ->where(function ($q) {
+                $q->where('reserved_at', '<', $this->reserved_at)
+                  ->orWhere(function ($q2) {
+                      $q2->where('reserved_at', $this->reserved_at)
+                         ->where('id', '<', $this->id);
+                  });
+            })
+            ->count() + 1;
+    }
 }

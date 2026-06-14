@@ -35,6 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant.slug'   => \App\Http\Middleware\InitializeTenancyBySlug::class,
             'role'          => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission'    => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'super_admin'   => \App\Http\Middleware\EnsureSuperAdmin::class,
         ]);
 
         // Ensure tenancy is initialized BEFORE the auth middleware runs, so the

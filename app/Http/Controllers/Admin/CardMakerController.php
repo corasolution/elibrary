@@ -10,6 +10,7 @@ use App\Models\Tenant\PatronCategory;
 use App\Services\CardRenderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class CardMakerController extends Controller
@@ -101,6 +102,11 @@ class CardMakerController extends Controller
         $data = $this->validateTemplate($request);
 
         try {
+            if ($request->hasFile('background_image')) {
+                $data['background_image_path'] = $request->file('background_image')
+                    ->store('card-backgrounds', 'public');
+            }
+
             $template = CardTemplate::create($data);
             if ($request->boolean('is_default')) {
                 $this->makeDefault($template);
@@ -118,6 +124,19 @@ class CardMakerController extends Controller
         $data = $this->validateTemplate($request);
 
         try {
+            if ($request->hasFile('background_image')) {
+                if ($template->background_image_path) {
+                    Storage::disk('public')->delete($template->background_image_path);
+                }
+                $data['background_image_path'] = $request->file('background_image')
+                    ->store('card-backgrounds', 'public');
+            } elseif ($request->input('remove_background_image')) {
+                if ($template->background_image_path) {
+                    Storage::disk('public')->delete($template->background_image_path);
+                }
+                $data['background_image_path'] = null;
+            }
+
             $template->update($data);
             if ($request->boolean('is_default')) {
                 $this->makeDefault($template);
@@ -215,12 +234,19 @@ class CardMakerController extends Controller
     // ─── Helpers ─────────────────────────────────────────────────────────────
     private function validateTemplate(Request $request): array
     {
+        // When a file is included, Inertia sends FormData; elements may arrive
+        // as a JSON string instead of a native array.
+        if (is_string($request->input('elements'))) {
+            $request->merge(['elements' => json_decode($request->input('elements'), true) ?? []]);
+        }
+
         $validated = $request->validate([
             'name'             => 'required|string|max:150',
             'width_mm'         => 'required|numeric|min:20|max:200',
             'height_mm'        => 'required|numeric|min:20|max:200',
             'background_color' => 'nullable|string|max:20',
             'elements'         => 'required|array',
+            'background_image' => 'nullable|image|max:4096',
         ]);
         $validated['background_color'] ??= '#ffffff';
 

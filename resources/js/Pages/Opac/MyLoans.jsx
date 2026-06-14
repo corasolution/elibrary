@@ -1,6 +1,7 @@
 import OpacLayout from '@/Layouts/OpacLayout';
 import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, AlertCircle, Clock, ArrowLeft } from 'lucide-react';
+import { fmtDate } from '@/utils/date';
 
 export default function MyLoans({ loans }) {
     const { tenant } = usePage().props;
@@ -78,7 +79,7 @@ function LoanCard({ loan, base }) {
                         Barcode: <span className="font-mono">{loan.item?.barcode}</span>
                     </span>
                     <span className="text-gray-400">
-                        Checked out: {new Date(loan.checked_out_at).toLocaleDateString()}
+                        Checked out: {fmtDate(loan.checked_out_at)}
                     </span>
                     {loan.renewals_count > 0 && (
                         <span className="badge badge-blue">Renewed ×{loan.renewals_count}</span>
@@ -89,7 +90,7 @@ function LoanCard({ loan, base }) {
                 <div className={`flex items-center gap-1 text-sm font-semibold ${isOverdue ? 'text-red-600' : isDueSoon ? 'text-amber-600' : 'text-gray-700'}`}>
                     {(isOverdue || isDueSoon) && <AlertCircle className="w-4 h-4" />}
                     <Clock className="w-4 h-4" />
-                    {dueDate.toLocaleDateString()}
+                    {fmtDate(loan.due_date)}
                 </div>
                 <p className={`text-xs mt-1 ${isOverdue ? 'text-red-500' : isDueSoon ? 'text-amber-500' : 'text-gray-400'}`}>
                     {isOverdue

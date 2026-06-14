@@ -16,12 +16,13 @@ import {
     Crown,
     DollarSign,
     FileText,
-    Sparkles
+    Sparkles,
+    Inbox
 } from 'lucide-react';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 
 export default function CentralLayout({ children }) {
-    const { auth, flash } = usePage().props;
+    const { auth, flash, pendingRequests } = usePage().props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -48,10 +49,23 @@ export default function CentralLayout({ children }) {
     // Super Admins see full admin navigation
     if (auth?.user?.is_super_admin) {
         navigation.push({
+            name: 'Dashboard',
+            href: route('central.overview'),
+            icon: LayoutDashboard,
+            current: route().current('central.overview')
+        });
+        navigation.push({
             name: 'Libraries',
             href: route('central.tenants.index'),
             icon: Building2,
             current: route().current('central.tenants.*')
+        });
+        navigation.push({
+            name: 'Registration Requests',
+            href: route('central.registration-requests.index'),
+            icon: Inbox,
+            current: route().current('central.registration-requests.*'),
+            badge: pendingRequests || null,
         });
         navigation.push({
             name: 'Partners',
@@ -186,7 +200,12 @@ export default function CentralLayout({ children }) {
                                 `}
                             >
                                 <Icon className="w-5 h-5" />
-                                <span>{item.name}</span>
+                                <span className="flex-1">{item.name}</span>
+                                {item.badge ? (
+                                    <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-xs font-bold bg-blue-600 text-white">
+                                        {item.badge}
+                                    </span>
+                                ) : null}
                             </Link>
                         );
                     })}

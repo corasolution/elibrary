@@ -2,6 +2,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Link, router } from '@inertiajs/react';
 import { Plus, Search, Edit2, Trash2, BookOpen, X } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const STATUS_COLORS = {
     available:   'bg-green-100 text-green-700',
@@ -16,6 +17,7 @@ const STATUS_OPTIONS = ['available', 'checked_out', 'on_hold', 'in_repair', 'los
 
 export default function ItemsIndex({ items, filters, collections = [] }) {
     const [search, setSearch] = useState(filters?.q ?? '');
+    const { t } = useTranslation();
 
     const applyFilters = (patch) => {
         router.get(route('admin.items.index'), { ...filters, ...patch, q: search }, {
@@ -34,7 +36,7 @@ export default function ItemsIndex({ items, filters, collections = [] }) {
     };
 
     const deleteItem = (id) => {
-        if (!confirm('Remove this item? It will be soft-deleted.')) return;
+        if (!confirm(t('admin.items_ui.delete_confirm'))) return;
         router.delete(route('admin.items.destroy', id));
     };
 
@@ -42,7 +44,7 @@ export default function ItemsIndex({ items, filters, collections = [] }) {
     const total = items?.total ?? 0;
 
     return (
-        <AdminLayout title="Physical Items">
+        <AdminLayout title={t('admin.items_ui.page_title')}>
             <div className="space-y-4">
                 {/* Toolbar */}
                 <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
@@ -53,7 +55,7 @@ export default function ItemsIndex({ items, filters, collections = [] }) {
                                 type="text"
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
-                                placeholder="Search barcode, call number…"
+                                placeholder={t('admin.items_ui.search_placeholder')}
                                 className="w-full pl-9 pr-8 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                             {search && (
@@ -65,7 +67,7 @@ export default function ItemsIndex({ items, filters, collections = [] }) {
                         </div>
                         <button type="submit"
                             className="px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-300">
-                            Search
+                            {t('common.search')}
                         </button>
                     </form>
 
@@ -74,9 +76,9 @@ export default function ItemsIndex({ items, filters, collections = [] }) {
                             value={filters?.item_status ?? ''}
                             onChange={e => applyFilters({ item_status: e.target.value || undefined })}
                             className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">All statuses</option>
+                            <option value="">{t('common.all_statuses')}</option>
                             {STATUS_OPTIONS.map(s => (
-                                <option key={s} value={s}>{s.replace('_', ' ')}</option>
+                                <option key={s} value={s}>{t(`admin.items_ui.status_${s}`, { defaultValue: s.replace('_', ' ') })}</option>
                             ))}
                         </select>
 
@@ -85,7 +87,7 @@ export default function ItemsIndex({ items, filters, collections = [] }) {
                                 value={filters?.collection_id ?? ''}
                                 onChange={e => applyFilters({ collection_id: e.target.value || undefined })}
                                 className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="">All collections</option>
+                                <option value="">{t('common.all_collections')}</option>
                                 {collections.map(c => (
                                     <option key={c.id} value={c.id}>{c.name}</option>
                                 ))}
@@ -94,7 +96,7 @@ export default function ItemsIndex({ items, filters, collections = [] }) {
 
                         <Link href={route('admin.items.create')}
                             className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
-                            <Plus className="w-4 h-4" /> Add Item
+                            <Plus className="w-4 h-4" /> {t('admin.items_ui.new_item')}
                         </Link>
                     </div>
                 </div>
@@ -102,16 +104,16 @@ export default function ItemsIndex({ items, filters, collections = [] }) {
                 {/* Table */}
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                     <div className="px-4 py-3 border-b border-gray-100 text-sm text-gray-500">
-                        {total.toLocaleString()} {total === 1 ? 'item' : 'items'}
+                        {total.toLocaleString()} {total === 1 ? t('admin.items_ui.item_singular') : t('admin.items_ui.item_plural')}
                     </div>
 
                     {data.length === 0 ? (
                         <div className="py-16 text-center">
                             <BookOpen className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                            <p className="text-sm text-gray-500">No physical items yet.</p>
+                            <p className="text-sm text-gray-500">{t('admin.items_ui.no_items')}</p>
                             <Link href={route('admin.items.create')}
                                 className="inline-flex items-center gap-1.5 mt-4 text-sm text-blue-600 hover:underline">
-                                <Plus className="w-4 h-4" /> Add the first item
+                                <Plus className="w-4 h-4" /> {t('admin.items_ui.add_first')}
                             </Link>
                         </div>
                     ) : (
@@ -119,12 +121,12 @@ export default function ItemsIndex({ items, filters, collections = [] }) {
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="bg-gray-50 border-b border-gray-100">
-                                        <th className="text-left px-4 py-3 font-medium text-gray-600">Barcode</th>
-                                        <th className="text-left px-4 py-3 font-medium text-gray-600">Title</th>
-                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden md:table-cell">Call No.</th>
-                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden lg:table-cell">Collection</th>
-                                        <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden xl:table-cell">Condition</th>
+                                        <th className="text-left px-4 py-3 font-medium text-gray-600">{t('admin.items_ui.col_barcode')}</th>
+                                        <th className="text-left px-4 py-3 font-medium text-gray-600">{t('admin.items_ui.col_title')}</th>
+                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden md:table-cell">{t('admin.items_ui.col_call_no')}</th>
+                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden lg:table-cell">{t('admin.items_ui.col_collection')}</th>
+                                        <th className="text-left px-4 py-3 font-medium text-gray-600">{t('admin.items_ui.col_status')}</th>
+                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden xl:table-cell">{t('admin.items_ui.col_condition')}</th>
                                         <th className="px-4 py-3"></th>
                                     </tr>
                                 </thead>
@@ -141,7 +143,7 @@ export default function ItemsIndex({ items, filters, collections = [] }) {
                                                         {item.bibliographic_record.title}
                                                     </Link>
                                                 ) : (
-                                                    <span className="text-gray-400 text-xs">No record</span>
+                                                    <span className="text-gray-400 text-xs">{t('common.no_record')}</span>
                                                 )}
                                             </td>
                                             <td className="px-4 py-3 text-gray-600 hidden md:table-cell">
@@ -151,8 +153,8 @@ export default function ItemsIndex({ items, filters, collections = [] }) {
                                                 {item.collection?.name ?? '—'}
                                             </td>
                                             <td className="px-4 py-3">
-                                                <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_COLORS[item.item_status] ?? 'bg-gray-100 text-gray-600'}`}>
-                                                    {item.item_status?.replace('_', ' ') ?? '—'}
+                                                <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_COLORS[item.item_status] ?? 'bg-gray-100 text-gray-600'}`}>
+                                                    {t(`admin.items_ui.status_${item.item_status}`, { defaultValue: item.item_status?.replace('_', ' ') ?? '—' })}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3 text-gray-500 capitalize hidden xl:table-cell">
@@ -181,18 +183,18 @@ export default function ItemsIndex({ items, filters, collections = [] }) {
                     {/* Pagination */}
                     {items?.last_page > 1 && (
                         <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-                            <span>Page {items.current_page} of {items.last_page}</span>
+                            <span>{t('common.page_of', { current: items.current_page, last: items.last_page })}</span>
                             <div className="flex gap-2">
                                 {items.prev_page_url && (
                                     <Link href={items.prev_page_url}
                                         className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">
-                                        Previous
+                                        {t('common.previous')}
                                     </Link>
                                 )}
                                 {items.next_page_url && (
                                     <Link href={items.next_page_url}
                                         className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">
-                                        Next
+                                        {t('common.next')}
                                     </Link>
                                 )}
                             </div>

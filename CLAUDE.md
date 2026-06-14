@@ -1901,6 +1901,75 @@ Previously `'audio'` and `'video'` fell through to `UnsupportedViewer`.
 
 ---
 
+### 25.8 Patron Auth, Cataloging AI & UI fixes (June 2026)
+
+This cycle added patron QR login, librarian-controlled registration/credentials, an AI
+book-cover scanner for cataloging, backend↔frontend pricing sync, and Khmer/UI fixes.
+
+#### Patron QR-code login
+
+- Patrons have a stable `qr_token` (`patrons.qr_token`, 64-char) auto-generated on create:
+  `hash('sha256', $patron->id . config('app.key'))`. Migration
+  `database/migrations/tenant/2026_06_13_000001_add_qr_token_to_patrons_table.php` backfills
+  existing rows. Auto-set in `Patron::booted()` (`app/Models/Tenant/Patron.php`).
+- Login flow: `POST /{slug}/login/qr` → `PatronAuthController@loginByQr` (verifies token, active
+  patron, `Auth::guard('patron')->login()`). Browser camera scanner via **`html5-qrcode`** in
+  `resources/js/Pages/Auth/PatronLogin.jsx` (QR tab).
+- Patron's own QR: `GET /{slug}/account/qr-token` → `getQrToken()`. Displayed (download/print)
+  in `resources/js/Pages/Opac/MyAccount.jsx` and admin `Pages/Admin/Patrons/Form.jsx` using
+  **`qrcode.react`** (`QRCodeCanvas`). Admin regenerate: `POST /admin/patrons/{id}/regenerate-qr`
+  → `PatronController@regenerateQr`.
+- npm added: `html5-qrcode`, `qrcode.react`.
+
+#### Patron registration control + librarian-set credentials
+
+- The existing `enable_self_registration` library setting is now **enforced**:
+  `PatronAuthController` blocks `showRegister`/`register` when off; the flag is shared to the
+  frontend as `tenant.self_registration` (in `HandleInertiaRequests`) to hide all register
+  links (`PatronLogin.jsx` + 5 OPAC `Navbar*` variants).
+- Patrons now log in by **card number OR email** + password: `PatronAuthController@login` looks
+  up by `email` (if it looks like an email) else `patron_number`. Login form field is `login`
+  (not `email`).
+- Admin-created patrons **always** get credentials: default password = the patron's
+  `patron_number`, overridable via an editable password field in `Admin/Patrons/Form.jsx`
+  (`PatronController@store`/`update`).
+
+#### AI book-cover scanner (cataloging)
+
+- **AI vision** added to the provider-agnostic layer: `AiTextService::generateFromImage()` now
+  implemented by both `ClaudeService` (image content block) and `GeminiService` (`inline_data`
+  part). Same retry/cache/usage-logging as text; usage logged under feature `cover_scan`.
+- `CatalogAIService::extractFromCover($base64, $mime)` prompts the vision model for JSON
+  (title, authors, publisher, year, edition, language, isbn, subjects), normalized to the
+  catalog form's import shape. Provider chosen by `AiManager::for('cataloging')`.
+- Endpoint: `POST /admin/catalog/scan-cover` → `CatalogController@scanCover`, gated by
+  `ai_features_enabled` && `ai_cataloging_enabled` (same as `aiClassify`).
+- UI: `resources/js/Components/Catalog/CoverScanModal.jsx` — live camera (`getUserMedia`, rear
+  camera) + upload fallback → review detected fields → **Apply** reuses the form's existing
+  `handleImport()`. Triggered by a "Scan Cover (AI)" button in `CatalogForm.jsx` (shown only
+  when `props.ai.features_enabled`). Note: live camera needs HTTPS/localhost.
+
+#### Pricing: backend ↔ frontend sync
+
+- Landing pages now mirror the live `plans` table instead of hardcoded values. `LandingController`
+  passes `is_popular`, `billing_cycle`, and `max_*` limits. `Landing/Pricing.jsx` + `Home.jsx`
+  render correct billing period (`/year` vs `/month`), data-driven "Most Popular" badge, real
+  limits, and feature labels (`digital_library` → "Digital Library & Reader", custom strings
+  pass through). Clear cache after plan edits: `php artisan cache:forget landing.plans`.
+
+#### Khmer font + language switcher fixes
+
+- Khmer looked cramped because `<html lang>` (from Blade/server locale) disagreed with the
+  i18next language; `:lang(km)` CSS never applied. Fix: `resources/js/i18n.js` now sets
+  `document.documentElement.lang` on init (not just on change). `resources/css/app.css` Khmer
+  rules tuned (Noto Sans Khmer first, `letter-spacing:0`, sane line-heights).
+- Language dropdown showed an empty white box because the themed OPAC navbar
+  (`ThemeProvider` injects `.opac-navbar-themed button { color:white !important }`) made menu
+  items white-on-white. Fix: `LanguageSwitcher.jsx` panel marked `.lang-dropdown` and
+  `app.css` adds more-specific overrides restoring readable colors inside the panel.
+
+---
+
 *Alpha eLibrary — Built by Corasoft, Phnom Penh, Cambodia*  
 *Cambodia's AI-native software agency — Laravel · React · Claude Code*
 

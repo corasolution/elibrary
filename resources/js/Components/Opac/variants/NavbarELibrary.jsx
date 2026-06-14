@@ -16,7 +16,7 @@ export default function NavbarELibrary() {
     };
 
     return (
-        <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
+        <header className="opac-navbar-themed sticky top-0 z-40 border-b">
             {/* Utility row - Hidden for cleaner look */}
             <div className="hidden bg-[#0B1F52] text-white/90 text-xs">
                 <div className="max-w-7xl mx-auto px-6 h-8 flex items-center justify-between">
@@ -75,12 +75,12 @@ export default function NavbarELibrary() {
                 {/* Right: lang + account */}
                 <div className="ml-auto flex items-center gap-3">
                     {/* Language switch */}
-                    <div className="flex items-center p-1 bg-slate-100 rounded-full text-xs font-semibold">
+                    <div className="lang-pill flex items-center p-1 bg-slate-100 rounded-full text-xs font-semibold">
                         <button
                             onClick={() => switchLanguage('en')}
                             className={`px-3 py-1.5 rounded-full transition-all ${
                                 lang === 'en'
-                                    ? 'bg-white text-blue-700 shadow-sm'
+                                    ? 'lang-pill-active bg-white text-blue-700 shadow-sm'
                                     : 'text-gray-500 hover:text-gray-700'
                             }`}
                         >
@@ -90,7 +90,7 @@ export default function NavbarELibrary() {
                             onClick={() => switchLanguage('km')}
                             className={`px-3 py-1.5 rounded-full transition-all ${
                                 lang === 'km'
-                                    ? 'bg-white text-blue-700 shadow-sm'
+                                    ? 'lang-pill-active bg-white text-blue-700 shadow-sm'
                                     : 'text-gray-500 hover:text-gray-700'
                             }`}
                         >

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace App\Http\Controllers\Admin;
 
@@ -71,15 +71,18 @@ class PatronController extends Controller
             'membership_expiry'  => 'nullable|date',
             'notes'              => 'nullable|string',
             'photo'              => 'nullable|string', // base64 string
+            'password'           => 'nullable|string|min:4',
         ]);
 
         try {
             $validated['patron_number'] = $this->generatePatronNumber();
             $validated['status']        = $validated['status'] ?? 'active';
 
-            if (! empty($validated['email'])) {
-                $validated['password'] = Hash::make(Str::random(12));
-            }
+            // Always set login credentials. Default password = library card number
+            // (patron_number); librarian may override with a manual password.
+            $validated['password'] = Hash::make(
+                ! empty($validated['password']) ? $validated['password'] : $validated['patron_number']
+            );
 
             // Handle photo upload
             if (!empty($validated['photo'])) {
@@ -143,10 +146,19 @@ class PatronController extends Controller
             'membership_expiry'  => 'nullable|date',
             'notes'              => 'nullable|string',
             'photo'              => 'nullable|string', // base64 string
+            'password'           => 'nullable|string|min:4',
         ]);
 
         try {
             $patron = Patron::findOrFail($id);
+
+            // Only change the password when the librarian provides a new one;
+            // a blank field leaves the existing password untouched.
+            if ($request->filled('password')) {
+                $validated['password'] = Hash::make($request->input('password'));
+            } else {
+                unset($validated['password']);
+            }
 
             // Handle photo upload
             if (!empty($validated['photo'])) {

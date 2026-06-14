@@ -197,7 +197,7 @@ export default function PartnerDashboard({ partner, libraries, statistics, canCr
                                                 <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                                                     <span className="flex items-center gap-1">
                                                         <Building2 className="w-4 h-4" />
-                                                        {library.slug}.bannalai.com
+                                                        {window.location.host}/{library.slug}
                                                     </span>
                                                     {library.plan && (
                                                         <span className="flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded">

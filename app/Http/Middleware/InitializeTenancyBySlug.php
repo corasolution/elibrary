@@ -44,6 +44,11 @@ class InitializeTenancyBySlug
         // redirects don't fail with "Missing parameter: slug".
         URL::defaults(['slug' => $slug]);
 
+        // Drop {slug} from the matched route so controllers receive only their
+        // own parameters. Without this, methods like show(string $id) get the
+        // slug as their first positional argument and 404 on findOrFail.
+        $request->route()->forgetParameter('slug');
+
         return $next($request);
     }
 }

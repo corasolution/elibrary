@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import {
     BookOpen, RefreshCw, AlertCircle, Users,
     TrendingUp, Monitor, BarChart2, Plus, ArrowRight,
-    Library, Clock, CalendarDays,
+    Library, Clock, CalendarDays, Bookmark,
 } from 'lucide-react';
 
 export default function Dashboard({ stats, recentLoans = [], overdueLoans = [] }) {
@@ -18,17 +18,18 @@ export default function Dashboard({ stats, recentLoans = [], overdueLoans = [] }
 
     // Primary operational metrics (highlighted row)
     const primary = [
-        { label: t('admin.ui.loans_today'),   value: stats.loansToday,   icon: BookOpen,    from: 'from-blue-500',    to: 'to-blue-600',    soft: 'bg-blue-50',    text: 'text-blue-600' },
-        { label: t('admin.ui.returns_today'), value: stats.returnsToday, icon: RefreshCw,   from: 'from-emerald-500', to: 'to-emerald-600', soft: 'bg-emerald-50', text: 'text-emerald-600' },
-        { label: t('admin.ui.overdue_count'), value: stats.overdue,      icon: AlertCircle, from: 'from-rose-500',    to: 'to-rose-600',    soft: 'bg-rose-50',    text: 'text-rose-600' },
-        { label: t('admin.ui.new_patrons'),   value: stats.newPatrons,   icon: Users,       from: 'from-violet-500',  to: 'to-violet-600',  soft: 'bg-violet-50',  text: 'text-violet-600' },
+        { label: t('admin.ui.loans_today'),   value: stats.loansToday,   icon: BookOpen,    href: route('admin.loans.index'),    from: 'from-blue-500',    to: 'to-blue-600',    soft: 'bg-blue-50',    text: 'text-blue-600' },
+        { label: t('admin.ui.returns_today'), value: stats.returnsToday, icon: RefreshCw,   href: route('admin.loans.index'),    from: 'from-emerald-500', to: 'to-emerald-600', soft: 'bg-emerald-50', text: 'text-emerald-600' },
+        { label: t('admin.ui.overdue_count'), value: stats.overdue,      icon: AlertCircle, href: route('admin.loans.overdue'),  from: 'from-rose-500',    to: 'to-rose-600',    soft: 'bg-rose-50',    text: 'text-rose-600' },
+        { label: t('admin.ui.new_patrons'),   value: stats.newPatrons,   icon: Users,       href: route('admin.patrons.index'),  from: 'from-violet-500',  to: 'to-violet-600',  soft: 'bg-violet-50',  text: 'text-violet-600' },
     ];
 
     // Collection-wide totals (secondary row)
     const secondary = [
-        { label: t('admin.ui.total_titles'),  value: stats.totalTitles,  icon: Library,     text: 'text-indigo-600', soft: 'bg-indigo-50' },
-        { label: t('admin.ui.total_patrons'), value: stats.totalPatrons, icon: TrendingUp,  text: 'text-teal-600',   soft: 'bg-teal-50' },
-        { label: t('admin.ui.digital_views'), value: stats.digitalViews, icon: Monitor,     text: 'text-amber-600',  soft: 'bg-amber-50' },
+        { label: t('admin.ui.total_titles'),  value: stats.totalTitles,  icon: Library,   href: route('admin.catalog.index'),                              text: 'text-indigo-600',  soft: 'bg-indigo-50' },
+        { label: t('admin.ui.total_patrons'), value: stats.totalPatrons, icon: TrendingUp, href: route('admin.patrons.index'),                             text: 'text-teal-600',    soft: 'bg-teal-50' },
+        { label: t('admin.ui.digital_views'), value: stats.digitalViews, icon: Monitor,   href: route('admin.reports.digital'),                           text: 'text-amber-600',   soft: 'bg-amber-50' },
+        { label: t('admin.ui.holds_ready'),   value: stats.holdsReady,   icon: Bookmark,  href: route('admin.reservations.index', { status: 'ready' }), text: 'text-fuchsia-600', soft: 'bg-fuchsia-50' },
     ];
 
     const fmtDate = (d) => {
@@ -81,9 +82,10 @@ export default function Dashboard({ stats, recentLoans = [], overdueLoans = [] }
                     {primary.map((card) => {
                         const Icon = card.icon;
                         return (
-                            <div
+                            <Link
                                 key={card.label}
-                                className="group relative overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                                href={card.href}
+                                className="group relative block overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                             >
                                 <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${card.from} ${card.to}`} />
                                 <div className="flex items-start justify-between">
@@ -95,19 +97,20 @@ export default function Dashboard({ stats, recentLoans = [], overdueLoans = [] }
                                         <Icon className="h-5 w-5" />
                                     </div>
                                 </div>
-                            </div>
+                            </Link>
                         );
                     })}
                 </div>
 
                 {/* ── Secondary totals ───────────────────────────── */}
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {secondary.map((card) => {
                         const Icon = card.icon;
                         return (
-                            <div
+                            <Link
                                 key={card.label}
-                                className="flex items-center gap-4 rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm transition hover:shadow-md"
+                                href={card.href}
+                                className="flex items-center gap-4 rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                             >
                                 <div className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl ${card.soft} ${card.text}`}>
                                     <Icon className="h-5 w-5" />
@@ -116,7 +119,7 @@ export default function Dashboard({ stats, recentLoans = [], overdueLoans = [] }
                                     <div className="text-2xl font-bold tracking-tight text-gray-900">{nf(card.value)}</div>
                                     <div className="text-sm text-gray-500">{card.label}</div>
                                 </div>
-                            </div>
+                            </Link>
                         );
                     })}
                 </div>

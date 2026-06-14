@@ -7,6 +7,37 @@ import {
     Zap, Shield, Smartphone, Eye, Download
 } from 'lucide-react';
 
+// Friendly labels for known plan-feature keys; custom strings pass through.
+const FEATURE_LABELS = {
+    digital_library:     'Digital Library & Reader',
+    email_notifications: 'Email Notifications',
+    reports:             'Reports & Analytics',
+    multi_branch:        'Multiple Locations',
+    custom_domain:       'Custom Domain',
+    api_access:          'API Access',
+    dedicated_support:   'Dedicated Support',
+    sla:                 'SLA Guarantee',
+    khmer_language:      'Khmer Language',
+};
+const featureLabel = (key) =>
+    FEATURE_LABELS[key] ?? String(key).replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+const planPeriod = (plan) =>
+    plan.billing_cycle === 'yearly' ? '/year' : '/month';
+
+const planLimitLines = (plan) => {
+    const fmt = (v) => (v === -1 || v === null || v === undefined ? 'Unlimited' : Number(v).toLocaleString());
+    const lines = [];
+    if (plan.max_titles !== undefined)  lines.push(`${fmt(plan.max_titles)} Titles`);
+    if (plan.max_patrons !== undefined) lines.push(`${fmt(plan.max_patrons)} Patrons`);
+    if (plan.max_storage_gb !== undefined) {
+        lines.push(plan.max_storage_gb === -1 ? 'Unlimited Storage'
+            : plan.max_storage_gb == null ? 'Custom Storage'
+            : `${plan.max_storage_gb} GB Storage`);
+    }
+    return lines;
+};
+
 export default function Home({ featuredLibraries = [], plans = [] }) {
     const { t } = useTranslation();
 
@@ -278,15 +309,21 @@ export default function Home({ featuredLibraries = [], plans = [] }) {
                                         {plan.price === null ? 'Custom' : plan.price === 0 ? 'Free' : `$${plan.price}`}
                                     </span>
                                     {plan.price !== null && plan.price !== 0 && (
-                                        <span className={plan.popular ? 'text-blue-100' : 'text-gray-600'}>/month</span>
+                                        <span className={plan.popular ? 'text-blue-100' : 'text-gray-600'}>{planPeriod(plan)}</span>
                                     )}
                                 </div>
 
                                 <ul className={`space-y-3 mb-8 ${plan.popular ? 'text-blue-50' : 'text-gray-600'}`}>
-                                    {plan.features.map((feature) => (
-                                        <li key={feature} className="flex items-start gap-2 text-sm">
+                                    {planLimitLines(plan).map((line) => (
+                                        <li key={line} className="flex items-start gap-2 text-sm">
                                             <CheckCircle className={`w-5 h-5 shrink-0 mt-0.5 ${plan.popular ? 'text-blue-200' : 'text-green-500'}`} />
-                                            <span>{feature}</span>
+                                            <span>{line}</span>
+                                        </li>
+                                    ))}
+                                    {plan.features.map((feature, i) => (
+                                        <li key={`${feature}-${i}`} className="flex items-start gap-2 text-sm">
+                                            <CheckCircle className={`w-5 h-5 shrink-0 mt-0.5 ${plan.popular ? 'text-blue-200' : 'text-green-500'}`} />
+                                            <span>{featureLabel(feature)}</span>
                                         </li>
                                     ))}
                                 </ul>

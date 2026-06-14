@@ -286,7 +286,7 @@ class StorageProviderService
         $driver = $driver ?? LibrarySetting::get('storage_driver', 'default');
 
         return match($driver) {
-            'default' => 'Cloudflare R2 (Default)',
+            'default' => 'Alpha Cloud Storage',
             'r2_custom' => 'Cloudflare R2 (Custom Account)',
             's3' => 'Amazon S3',
             'spaces' => 'DigitalOcean Spaces',
@@ -342,8 +342,12 @@ class StorageProviderService
     /**
      * Get temporary signed URL (for restricted files)
      */
-    public function getSignedUrl(string $path, int $expiryMinutes = 60): string
+    public function getSignedUrl(?string $path, int $expiryMinutes = 60): string
     {
+        if (empty($path)) {
+            return '';
+        }
+
         $disk = $this->getActiveDisk();
         return Storage::disk($disk)->temporaryUrl(
             $path,

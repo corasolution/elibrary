@@ -14,10 +14,16 @@ const queryClient = new QueryClient({
     },
 });
 
-const appName = import.meta.env.VITE_APP_NAME || 'Alpha eLibrary';
+// Prefer the runtime platform name (injected by Blade) over the build-time env,
+// so the tab title reflects the configured name without needing a rebuild.
+const appName = (typeof window !== 'undefined' && window.__APP_NAME__)
+    || import.meta.env.VITE_APP_NAME
+    || 'Alpha eLibrary';
 
 createInertiaApp({
-    title: (title) => title ? `${title} — ${appName}` : appName,
+    // Use a page-provided title as-is (the OPAC layout sets the library's own
+    // site title); fall back to the platform name when a page sets none.
+    title: (title) => title || appName,
     resolve: (name) =>
         resolvePageComponent(`./Pages/${name}.jsx`, import.meta.glob('./Pages/**/*.jsx')),
     setup({ el, App, props }) {

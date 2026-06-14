@@ -20,7 +20,7 @@ export default function LanguageSwitcher() {
 
         // Persist to backend if user is authenticated in admin/central area
         if (typeof window !== 'undefined' &&
-            (window.location.pathname.startsWith('/admin') ||
+            (window.location.pathname.includes('/admin') ||
              window.location.pathname.startsWith('/central'))) {
             try {
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
@@ -56,7 +56,7 @@ export default function LanguageSwitcher() {
         <div className="relative" ref={ref}>
             <button
                 onClick={() => setOpen(!open)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-base rounded-lg hover:bg-gray-100 transition-colors"
+                className="lang-trigger flex items-center gap-1.5 px-3 py-1.5 text-base rounded-lg hover:bg-gray-100 transition-colors"
                 aria-label="Change language"
             >
                 <Globe className="w-4 h-4 text-gray-600" />
@@ -72,14 +72,14 @@ export default function LanguageSwitcher() {
             </button>
 
             {open && (
-                <div className="absolute right-0 mt-1.5 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 overflow-hidden">
+                <div className="lang-dropdown absolute right-0 mt-1.5 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 overflow-hidden">
                     {languages.map((lang) => (
                         <button
                             key={lang.code}
                             onClick={() => changeLanguage(lang.code)}
                             className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors ${
                                 i18n.language === lang.code
-                                    ? 'bg-blue-50 text-blue-700 font-medium'
+                                    ? 'lang-active bg-blue-50 text-blue-700 font-medium'
                                     : 'text-gray-700 hover:bg-gray-50'
                             }`}
                         >

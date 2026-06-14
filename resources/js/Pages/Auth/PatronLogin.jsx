@@ -1,4 +1,4 @@
-﻿import { useForm, Link, usePage, router } from '@inertiajs/react';
+import { useForm, Link, usePage, router } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff, Mail, Lock, LogIn, QrCode, Camera, X, AlertCircle, Loader2 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
@@ -124,7 +124,7 @@ export default function PatronLogin() {
     const [tab, setTab] = useState('email');
 
     const { data, setData, post, processing, errors } = useForm({
-        email: '', password: '', remember: false,
+        login: '', password: '', remember: false,
     });
 
     const submit = (e) => {
@@ -158,14 +158,14 @@ export default function PatronLogin() {
             {tab === 'email' && (
                 <form onSubmit={submit} className="space-y-5">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('auth.email')}</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('auth.login_identifier', 'Email or card number')}</label>
                         <div className="relative">
                             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                            <input type="email" value={data.email} onChange={e => setData('email', e.target.value)}
-                                placeholder="you@example.com" autoComplete="email" required
-                                className={`w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${errors.email ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-gray-50 hover:border-gray-400'}`} />
+                            <input type="text" value={data.login} onChange={e => setData('login', e.target.value)}
+                                placeholder={t('auth.login_identifier_placeholder', 'you@example.com or P00012')} autoComplete="username" required
+                                className={`w-full pl-9 pr-4 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${errors.login ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-gray-50 hover:border-gray-400'}`} />
                         </div>
-                        {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                        {errors.login && <p className="text-red-500 text-xs mt-1">{errors.login}</p>}
                     </div>
 
                     <div>
@@ -212,16 +212,20 @@ export default function PatronLogin() {
                 </form>
             )}
 
-            <div className="flex items-center gap-3 my-5">
-                <div className="flex-1 h-px bg-gray-200" />
-                <span className="text-xs text-gray-400">{t('auth.no_account') ?? "Don't have an account?"}</span>
-                <div className="flex-1 h-px bg-gray-200" />
-            </div>
+            {tenant?.self_registration && (
+                <>
+                    <div className="flex items-center gap-3 my-5">
+                        <div className="flex-1 h-px bg-gray-200" />
+                        <span className="text-xs text-gray-400">{t('auth.no_account') ?? "Don't have an account?"}</span>
+                        <div className="flex-1 h-px bg-gray-200" />
+                    </div>
 
-            <Link href={`${base}/register`}
-                className="w-full flex items-center justify-center py-2.5 px-4 border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-gray-700 hover:text-blue-700 text-sm font-semibold rounded-xl transition-all">
-                {t('auth.register') ?? 'Create Account'}
-            </Link>
+                    <Link href={`${base}/register`}
+                        className="w-full flex items-center justify-center py-2.5 px-4 border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-gray-700 hover:text-blue-700 text-sm font-semibold rounded-xl transition-all">
+                        {t('auth.register') ?? 'Create Account'}
+                    </Link>
+                </>
+            )}
         </AuthLayout>
     );
 }

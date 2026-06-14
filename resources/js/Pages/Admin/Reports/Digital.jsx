@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -6,13 +7,15 @@ import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
 
-export default function DigitalReport({ dailyActivity, topResources, summary, from, to }) {
+export default function DigitalReport({
+    dailyActivity, topResources, summary, from, to,
+}) {
+    const { t } = useTranslation();
     const [dateFrom, setDateFrom] = useState(from);
     const [dateTo,   setDateTo]   = useState(to);
 
     const apply = () => router.get(route('admin.reports.digital'), { from: dateFrom, to: dateTo }, { preserveState: true });
 
-    // Group daily activity into per-date view/download/stream
     const chartData = (() => {
         const map = {};
         (dailyActivity ?? []).forEach(r => {
@@ -23,37 +26,37 @@ export default function DigitalReport({ dailyActivity, topResources, summary, fr
     })();
 
     return (
-        <AdminLayout title="Digital Usage">
+        <AdminLayout title={t('admin.reports_ui.digital_usage')}>
             <div className="space-y-6">
                 {/* Date filter */}
                 <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-wrap gap-3 items-end">
                     <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">From</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{t('admin.reports_ui.date_from')}</label>
                         <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
                             className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">To</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{t('admin.reports_ui.date_to')}</label>
                         <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
                             className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
                     </div>
                     <button onClick={apply}
                         className="px-4 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">
-                        Apply
+                        {t('admin.reports_ui.apply_filter')}
                     </button>
                 </div>
 
                 {/* Summary cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <Card icon={Eye}      color="blue"   label="Total Views"     value={summary.total_views} />
-                    <Card icon={Download} color="green"  label="Total Downloads" value={summary.total_downloads} />
-                    <Card icon={Radio}    color="purple" label="Total Streams"   value={summary.total_streams} />
-                    <Card icon={Users}    color="amber"  label="Unique Users"    value={summary.unique_users} />
+                    <Card icon={Eye}      color="blue"   label={t('admin.reports_ui.total_views')}     value={summary.total_views} />
+                    <Card icon={Download} color="green"  label={t('admin.reports_ui.total_downloads')} value={summary.total_downloads} />
+                    <Card icon={Radio}    color="purple" label={t('admin.reports_ui.total_streams')}   value={summary.total_streams} />
+                    <Card icon={Users}    color="amber"  label={t('admin.reports_ui.unique_users')}    value={summary.unique_users} />
                 </div>
 
                 {/* Area chart */}
                 <div className="bg-white border border-gray-200 rounded-xl p-5">
-                    <h2 className="text-sm font-semibold text-gray-700 mb-4">Daily Digital Activity</h2>
+                    <h2 className="text-sm font-semibold text-gray-700 mb-4">{t('admin.reports_ui.daily_activity')}</h2>
                     {chartData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={280}>
                             <AreaChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
@@ -72,26 +75,26 @@ export default function DigitalReport({ dailyActivity, topResources, summary, fr
                                 <YAxis tick={{ fontSize: 11 }} />
                                 <Tooltip />
                                 <Legend />
-                                <Area type="monotone" dataKey="view"     name="Views"     stroke="#3b82f6" fill="url(#gView)"     strokeWidth={2} />
-                                <Area type="monotone" dataKey="download" name="Downloads" stroke="#22c55e" fill="url(#gDownload)" strokeWidth={2} />
-                                <Area type="monotone" dataKey="stream"   name="Streams"   stroke="#8b5cf6" fill="none"            strokeWidth={2} strokeDasharray="4 2" />
+                                <Area type="monotone" dataKey="view"     name={t('admin.reports_ui.col_views')}     stroke="#3b82f6" fill="url(#gView)"     strokeWidth={2} />
+                                <Area type="monotone" dataKey="download" name={t('admin.reports_ui.col_downloads')} stroke="#22c55e" fill="url(#gDownload)" strokeWidth={2} />
+                                <Area type="monotone" dataKey="stream"   name={t('admin.reports_ui.total_streams')} stroke="#8b5cf6" fill="none"            strokeWidth={2} strokeDasharray="4 2" />
                             </AreaChart>
                         </ResponsiveContainer>
-                    ) : <EmptyState />}
+                    ) : <EmptyState text={t('admin.reports_ui.no_data')} />}
                 </div>
 
                 {/* Top resources */}
                 <div className="bg-white border border-gray-200 rounded-xl p-5">
-                    <h2 className="text-sm font-semibold text-gray-700 mb-4">Top 10 Digital Resources</h2>
+                    <h2 className="text-sm font-semibold text-gray-700 mb-4">{t('admin.reports_ui.top_resources')}</h2>
                     {(topResources ?? []).length > 0 ? (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="border-b border-gray-200">
-                                        <th className="text-left py-2 px-3 font-medium text-gray-600">Title</th>
-                                        <th className="text-left py-2 px-3 font-medium text-gray-600">Format</th>
-                                        <th className="text-right py-2 px-3 font-medium text-gray-600">Views</th>
-                                        <th className="text-right py-2 px-3 font-medium text-gray-600">Downloads</th>
+                                        <th className="text-left py-2 px-3 font-medium text-gray-600">{t('admin.reports_ui.col_title')}</th>
+                                        <th className="text-left py-2 px-3 font-medium text-gray-600">{t('admin.reports_ui.col_format')}</th>
+                                        <th className="text-right py-2 px-3 font-medium text-gray-600">{t('admin.reports_ui.col_views')}</th>
+                                        <th className="text-right py-2 px-3 font-medium text-gray-600">{t('admin.reports_ui.col_downloads')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -106,7 +109,7 @@ export default function DigitalReport({ dailyActivity, topResources, summary, fr
                                 </tbody>
                             </table>
                         </div>
-                    ) : <EmptyState />}
+                    ) : <EmptyState text={t('admin.reports_ui.no_data')} />}
                 </div>
             </div>
         </AdminLayout>
@@ -133,6 +136,6 @@ function Card({ icon: Icon, color, label, value }) {
     );
 }
 
-function EmptyState() {
-    return <div className="text-center py-8 text-sm text-gray-400">No data for this period.</div>;
+function EmptyState({ text }) {
+    return <div className="text-center py-8 text-sm text-gray-400">{text}</div>;
 }

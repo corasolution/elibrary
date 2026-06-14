@@ -11,6 +11,8 @@ class AIUsageLog extends Model
 {
     use HasFactory, HasUuids;
 
+    protected $table = 'ai_usage_logs';
+
     const UPDATED_AT = null; // Only created_at timestamp
 
     protected $fillable = [

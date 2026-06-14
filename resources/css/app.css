@@ -52,33 +52,74 @@
     }
 
     /* ── Khmer script overrides ─────────────────────────────────────────
-       Khmer uses stacked vowel diacritics that render incorrectly with
-       negative letter-spacing. Reset spacing & increase line-height
-       for any element containing Khmer Unicode block (U+1780–U+17FF).
+       Khmer uses tall stacked vowel diacritics that render incorrectly with
+       the negative letter-spacing used for Latin (Inter). When the document
+       language is Khmer, prefer Noto Sans Khmer, reset spacing, and give the
+       glyphs enough vertical room without looking loose.
     ──────────────────────────────────────────────────────────────────── */
-    :lang(km),
-    :lang(km) h1, :lang(km) h2, :lang(km) h3,
-    :lang(km) h4, :lang(km) h5, :lang(km) h6 {
-        font-family: 'Noto Sans Khmer', sans-serif;
+    :lang(km) {
+        font-family: 'Noto Sans Khmer', 'Inter', sans-serif;
         letter-spacing: 0 !important;
-        word-spacing: 0.05em;
-        line-height: 2.0;
+        word-spacing: normal;
+        line-height: 1.75;
         font-feature-settings: normal;
     }
 
-    /* Unicode-range rule: any element whose content includes Khmer chars */
-    @font-face {
-        font-family: 'KhmerOverride';
-        src: local('Noto Sans Khmer');
-        unicode-range: U+1780-17FF, U+19E0-19FF, U+200C-200D;
+    :lang(km) h1, :lang(km) h2, :lang(km) h3,
+    :lang(km) h4, :lang(km) h5, :lang(km) h6 {
+        font-family: 'Noto Sans Khmer', 'Inter', sans-serif;
+        letter-spacing: 0 !important;
+        line-height: 1.45;
     }
 
-    /* Utility class for explicit Khmer blocks */
+    /* Khmer glyphs already route to Noto Sans Khmer via the font stacks
+       ('Inter', 'Noto Sans Khmer', …) — Inter lacks Khmer coverage so the
+       browser falls back per-glyph. No unicode-range patch is needed. */
+
+    /* Utility class for explicit Khmer blocks (mixed-language pages) */
     .font-khmer {
         font-family: 'Noto Sans Khmer', sans-serif !important;
         letter-spacing: 0 !important;
-        line-height: 1.9 !important;
-        font-size: 1.05em;
+        line-height: 1.7 !important;
+    }
+
+    /* ── Language switcher dropdown ──────────────────────────────────────
+       The themed OPAC navbar forces white text on every <a>/<button> inside
+       it (ThemeProvider). The language menu is a white panel rendered inside
+       that navbar, so its items would be white-on-white. These selectors are
+       more specific than `.opac-navbar-themed button`, so they win the
+       !important tie and restore readable colors inside the panel only.
+    ──────────────────────────────────────────────────────────────────── */
+    .opac-navbar-themed .lang-dropdown,
+    .opac-navbar-themed .lang-dropdown button {
+        color: #374151 !important;        /* gray-700 */
+    }
+    .opac-navbar-themed .lang-dropdown button:hover {
+        color: #111827 !important;        /* gray-900 */
+        opacity: 1 !important;
+    }
+    .opac-navbar-themed .lang-dropdown button.lang-active {
+        color: #1d4ed8 !important;        /* blue-700 */
+    }
+    .opac-navbar-themed .lang-dropdown svg {
+        stroke: currentColor !important;
+    }
+
+    /* Trigger button: on the dark themed navbar the text is forced white, so the
+       default light-gray hover background would make it white-on-white. Use a
+       translucent light overlay instead so the label stays readable on hover. */
+    .opac-navbar-themed .lang-trigger:hover {
+        background-color: rgba(255, 255, 255, 0.15) !important;
+    }
+
+    /* Segmented EN/ខ្មែរ language pill (NavbarELibrary). It sits on a light slate
+       pill inside the themed navbar, which forces its buttons white → invisible.
+       Restore readable colors: gray for inactive, blue for the active segment. */
+    .opac-navbar-themed .lang-pill button {
+        color: #6b7280 !important;        /* gray-500 */
+    }
+    .opac-navbar-themed .lang-pill button.lang-pill-active {
+        color: #1d4ed8 !important;        /* blue-700 */
     }
 
     h1 { @apply text-3xl md:text-4xl font-bold; }

@@ -1,0 +1,29 @@
+{
+  "id": "kids-library",
+  "name": "Kids Library",
+  "description": "Bright, playful design with large colorful elements, fun typography and child-friendly navigation. Perfect for school and public children's sections.",
+  "preview_image": "/images/templates/kids-library.jpg",
+  "colors": {
+    "primary": "#f97316",
+    "secondary": "#a855f7",
+    "accent": "#22c55e",
+    "background": "#fffbf0",
+    "text": "#1c1917",
+    "muted": "#d4d4d4",
+    "brand-50": "#fff7ed",
+    "brand-500": "#f97316",
+    "brand-700": "#c2410c"
+  },
+  "fonts": {
+    "heading": "Nunito",
+    "body": "Nunito"
+  },
+  "styles": {
+    "layout": "wide",
+    "cardStyle": "playful",
+    "navbarStyle": "colorful",
+    "heroStyle": "kids-fun",
+    "borderRadius": "1.5rem",
+    "buttonStyle": "rounded"
+  }
+}

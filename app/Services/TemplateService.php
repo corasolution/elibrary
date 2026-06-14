@@ -42,7 +42,7 @@ class TemplateService
                 }
             }
 
-            return $templates->sortBy('name');
+            return $templates->sortBy('name')->values();
         });
     }
 

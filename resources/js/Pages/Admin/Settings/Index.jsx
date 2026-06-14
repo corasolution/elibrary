@@ -1,47 +1,46 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import { useForm, usePage } from '@inertiajs/react';
-import { useState } from 'react';
-import { Building2, Palette, RefreshCw, Bell } from 'lucide-react';
-
-const TABS = [
-    { key: 'general',     label: 'General',     icon: Building2 },
-    { key: 'branding',    label: 'Branding',     icon: Palette },
-    { key: 'circulation', label: 'Circulation',  icon: RefreshCw },
-    { key: 'notifications', label: 'Notifications', icon: Bell },
-];
+import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Building2, Palette, RefreshCw, Bell, UploadCloud, Image as ImageIcon, X } from 'lucide-react';
 
 export default function Settings({ settings = {} }) {
     const { flash } = usePage().props;
+    const { t } = useTranslation();
     const [tab, setTab] = useState('general');
 
+    const TABS = [
+        { key: 'general',       label: t('admin.settings_ui.tab_general'),       icon: Building2 },
+        { key: 'branding',      label: t('admin.settings_ui.tab_branding'),      icon: Palette },
+        { key: 'circulation',   label: t('admin.settings_ui.tab_circulation'),   icon: RefreshCw },
+        { key: 'notifications', label: t('admin.settings_ui.tab_notifications'), icon: Bell },
+    ];
+
     const { data, setData, post, processing, errors } = useForm({
-        // General
-        library_name:         settings.library_name ?? '',
-        library_tagline:      settings.library_tagline ?? '',
-        library_email:        settings.library_email ?? '',
-        library_phone:        settings.library_phone ?? '',
-        library_address:      settings.library_address ?? '',
-        default_language:     settings.default_language ?? 'en',
-        timezone:             settings.timezone ?? 'Asia/Phnom_Penh',
-        opac_welcome_text:    settings.opac_welcome_text ?? '',
-        // Branding
-        primary_color:        settings.primary_color ?? '#2563eb',
-        logo:                 null,
-        favicon:              null,
-        // Circulation
-        default_loan_days:    settings.default_loan_days ?? '14',
-        max_loans_per_patron: settings.max_loans_per_patron ?? '5',
-        fine_rate_per_day:    settings.fine_rate_per_day ?? '0.10',
-        max_fine:             settings.max_fine ?? '10.00',
-        grace_period_days:    settings.grace_period_days ?? '0',
-        reservation_expiry:   settings.reservation_expiry ?? '7',
-        enable_self_registration: settings.enable_self_registration ?? '1',
+        library_name:               settings.library_name ?? '',
+        library_tagline:            settings.library_tagline ?? '',
+        library_email:              settings.library_email ?? '',
+        library_phone:              settings.library_phone ?? '',
+        library_address:            settings.library_address ?? '',
+        default_language:           settings.default_language ?? 'en',
+        timezone:                   settings.timezone ?? 'Asia/Phnom_Penh',
+        opac_welcome_text:          settings.opac_welcome_text ?? '',
+        site_title:                 settings.site_title ?? '',
+        primary_color:              settings.primary_color ?? '#2563eb',
+        logo:                       null,
+        favicon:                    null,
+        default_loan_days:          settings.default_loan_days ?? '14',
+        max_loans_per_patron:       settings.max_loans_per_patron ?? '5',
+        fine_rate_per_day:          settings.fine_rate_per_day ?? '0.10',
+        max_fine:                   settings.max_fine ?? '10.00',
+        grace_period_days:          settings.grace_period_days ?? '0',
+        reservation_expiry:         settings.reservation_expiry ?? '7',
+        enable_self_registration:   settings.enable_self_registration ?? '1',
         require_email_verification: settings.require_email_verification ?? '0',
-        // Notifications
-        notifications_email:   settings.notifications_email ?? '',
-        send_overdue_notices:  settings.send_overdue_notices ?? '1',
-        send_due_reminders:    settings.send_due_reminders ?? '1',
-        reminder_days_before:  settings.reminder_days_before ?? '3',
+        notifications_email:        settings.notifications_email ?? '',
+        send_overdue_notices:       settings.send_overdue_notices ?? '1',
+        send_due_reminders:         settings.send_due_reminders ?? '1',
+        reminder_days_before:       settings.reminder_days_before ?? '3',
     });
 
     const submit = (e) => {
@@ -50,27 +49,27 @@ export default function Settings({ settings = {} }) {
     };
 
     return (
-        <AdminLayout title="Library Settings">
+        <AdminLayout title={t('admin.settings_ui.page_title')}>
             <form onSubmit={submit}>
                 <div className="flex gap-6">
                     {/* Tab sidebar */}
                     <div className="w-48 flex-shrink-0">
                         <nav className="space-y-1">
-                            {TABS.map(t => {
-                                const Icon = t.icon;
+                            {TABS.map(item => {
+                                const Icon = item.icon;
                                 return (
                                     <button
-                                        key={t.key}
+                                        key={item.key}
                                         type="button"
-                                        onClick={() => setTab(t.key)}
+                                        onClick={() => setTab(item.key)}
                                         className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-left transition-colors ${
-                                            tab === t.key
+                                            tab === item.key
                                                 ? 'bg-blue-50 text-blue-700 font-medium'
                                                 : 'text-gray-600 hover:bg-gray-100'
                                         }`}
                                     >
                                         <Icon className="w-4 h-4 flex-shrink-0" />
-                                        {t.label}
+                                        {item.label}
                                     </button>
                                 );
                             })}
@@ -87,23 +86,23 @@ export default function Settings({ settings = {} }) {
 
                         {/* General */}
                         {tab === 'general' && (
-                            <Section title="Library Information">
-                                <Field label="Library Name" error={errors.library_name}>
+                            <Section title={t('admin.settings_ui.section_library_info')}>
+                                <Field label={t('admin.settings_ui.library_name')} error={errors.library_name}>
                                     <Input value={data.library_name} onChange={v => setData('library_name', v)} placeholder="e.g. National Library of Cambodia" />
                                 </Field>
-                                <Field label="Tagline">
+                                <Field label={t('admin.settings_ui.library_tagline')}>
                                     <Input value={data.library_tagline} onChange={v => setData('library_tagline', v)} placeholder="e.g. Knowledge for All" />
                                 </Field>
-                                <Field label="OPAC Welcome Message">
+                                <Field label={t('admin.settings_ui.opac_welcome')}>
                                     <Input value={data.opac_welcome_text} onChange={v => setData('opac_welcome_text', v)} placeholder="Welcome to our library catalog." />
                                 </Field>
-                                <Field label="Contact Email" error={errors.library_email}>
+                                <Field label={t('admin.settings_ui.contact_email')} error={errors.library_email}>
                                     <Input type="email" value={data.library_email} onChange={v => setData('library_email', v)} placeholder="library@example.com" />
                                 </Field>
-                                <Field label="Phone">
+                                <Field label={t('admin.settings_ui.phone')}>
                                     <Input value={data.library_phone} onChange={v => setData('library_phone', v)} placeholder="+855 23 xxx xxx" />
                                 </Field>
-                                <Field label="Address">
+                                <Field label={t('admin.settings_ui.address')}>
                                     <textarea
                                         value={data.library_address}
                                         onChange={e => setData('library_address', e.target.value)}
@@ -113,7 +112,7 @@ export default function Settings({ settings = {} }) {
                                     />
                                 </Field>
                                 <div className="grid sm:grid-cols-2 gap-4">
-                                    <Field label="Default Language">
+                                    <Field label={t('admin.settings_ui.default_language')}>
                                         <select value={data.default_language} onChange={e => setData('default_language', e.target.value)}
                                             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                                             <option value="en">English</option>
@@ -122,7 +121,7 @@ export default function Settings({ settings = {} }) {
                                             <option value="zh">中文</option>
                                         </select>
                                     </Field>
-                                    <Field label="Timezone">
+                                    <Field label={t('admin.settings_ui.timezone')}>
                                         <select value={data.timezone} onChange={e => setData('timezone', e.target.value)}
                                             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                                             <option value="Asia/Phnom_Penh">Asia/Phnom_Penh (UTC+7)</option>
@@ -139,8 +138,18 @@ export default function Settings({ settings = {} }) {
 
                         {/* Branding */}
                         {tab === 'branding' && (
-                            <Section title="Branding & Appearance">
-                                <Field label="Primary Color">
+                            <Section title={t('admin.settings_ui.section_branding')}>
+                                <Field label={t('admin.settings_ui.site_title', 'Browser / Site Title')} error={errors.site_title}>
+                                    <Input
+                                        value={data.site_title}
+                                        onChange={v => setData('site_title', v)}
+                                        placeholder={data.library_name || 'My Library'}
+                                    />
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        {t('admin.settings_ui.site_title_hint', 'Shown in the browser tab for your public catalog. Leave blank to use your library name.')}
+                                    </p>
+                                </Field>
+                                <Field label={t('admin.settings_ui.primary_color')}>
                                     <div className="flex items-center gap-3">
                                         <input
                                             type="color"
@@ -161,65 +170,63 @@ export default function Settings({ settings = {} }) {
                                         />
                                     </div>
                                 </Field>
-                                <Field label="Library Logo">
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={e => setData('logo', e.target.files[0])}
-                                        className="block text-sm text-gray-600"
-                                    />
-                                    <p className="text-xs text-gray-400 mt-1">PNG or SVG recommended, max 2MB.</p>
-                                    {settings.logo_url && (
-                                        <img src={settings.logo_url} alt="Logo" className="mt-3 h-12 object-contain border border-gray-200 rounded-lg p-1" />
-                                    )}
-                                </Field>
-                                <Field label="Favicon">
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={e => setData('favicon', e.target.files[0])}
-                                        className="block text-sm text-gray-600"
-                                    />
-                                    <p className="text-xs text-gray-400 mt-1">PNG or ICO, 32×32px, max 512KB.</p>
-                                </Field>
+                                <div className="grid sm:grid-cols-2 gap-4">
+                                    <Field label={t('admin.settings_ui.logo')}>
+                                        <ImageUpload
+                                            value={data.logo}
+                                            currentUrl={settings.logo_url}
+                                            onChange={file => setData('logo', file)}
+                                            hint={t('admin.settings_ui.logo_hint')}
+                                        />
+                                    </Field>
+                                    <Field label={t('admin.settings_ui.favicon')}>
+                                        <ImageUpload
+                                            value={data.favicon}
+                                            currentUrl={settings.favicon_url}
+                                            onChange={file => setData('favicon', file)}
+                                            hint={t('admin.settings_ui.favicon_hint')}
+                                            square
+                                        />
+                                    </Field>
+                                </div>
                             </Section>
                         )}
 
                         {/* Circulation */}
                         {tab === 'circulation' && (
-                            <Section title="Circulation Rules">
+                            <Section title={t('admin.settings_ui.section_circulation')}>
                                 <div className="grid sm:grid-cols-2 gap-4">
-                                    <Field label="Default Loan Period (days)" error={errors.default_loan_days}>
+                                    <Field label={t('admin.settings_ui.loan_period')} error={errors.default_loan_days}>
                                         <Input type="number" min="1" max="365" value={data.default_loan_days} onChange={v => setData('default_loan_days', v)} />
                                     </Field>
-                                    <Field label="Max Loans per Patron" error={errors.max_loans_per_patron}>
+                                    <Field label={t('admin.settings_ui.max_loans')} error={errors.max_loans_per_patron}>
                                         <Input type="number" min="1" max="100" value={data.max_loans_per_patron} onChange={v => setData('max_loans_per_patron', v)} />
                                     </Field>
-                                    <Field label="Fine Rate ($/day)" error={errors.fine_rate_per_day}>
+                                    <Field label={t('admin.settings_ui.fine_rate')} error={errors.fine_rate_per_day}>
                                         <Input type="number" step="0.01" min="0" value={data.fine_rate_per_day} onChange={v => setData('fine_rate_per_day', v)} />
                                     </Field>
-                                    <Field label="Maximum Fine ($)" error={errors.max_fine}>
+                                    <Field label={t('admin.settings_ui.max_fine')} error={errors.max_fine}>
                                         <Input type="number" step="0.01" min="0" value={data.max_fine} onChange={v => setData('max_fine', v)} />
                                     </Field>
-                                    <Field label="Grace Period (days before fines)" error={errors.grace_period_days}>
+                                    <Field label={t('admin.settings_ui.grace_period')} error={errors.grace_period_days}>
                                         <Input type="number" min="0" max="30" value={data.grace_period_days} onChange={v => setData('grace_period_days', v)} />
                                     </Field>
-                                    <Field label="Reservation Expiry (days)" error={errors.reservation_expiry}>
+                                    <Field label={t('admin.settings_ui.reservation_expiry')} error={errors.reservation_expiry}>
                                         <Input type="number" min="1" max="90" value={data.reservation_expiry} onChange={v => setData('reservation_expiry', v)} />
                                     </Field>
                                 </div>
-                                <Field label="Patron Self-Registration">
+                                <Field label={t('admin.settings_ui.self_registration')}>
                                     <Toggle
                                         checked={data.enable_self_registration === '1' || data.enable_self_registration === true}
                                         onChange={v => setData('enable_self_registration', v ? '1' : '0')}
-                                        label="Allow patrons to register online"
+                                        label={t('admin.settings_ui.allow_self_reg')}
                                     />
                                 </Field>
-                                <Field label="Email Verification">
+                                <Field label={t('admin.settings_ui.email_verification')}>
                                     <Toggle
                                         checked={data.require_email_verification === '1' || data.require_email_verification === true}
                                         onChange={v => setData('require_email_verification', v ? '1' : '0')}
-                                        label="Require email verification for new patrons"
+                                        label={t('admin.settings_ui.require_verification')}
                                     />
                                 </Field>
                             </Section>
@@ -227,28 +234,28 @@ export default function Settings({ settings = {} }) {
 
                         {/* Notifications */}
                         {tab === 'notifications' && (
-                            <Section title="Email Notifications">
-                                <Field label="Notification Email" error={errors.notifications_email}>
+                            <Section title={t('admin.settings_ui.section_notifications')}>
+                                <Field label={t('admin.settings_ui.notif_email')} error={errors.notifications_email}>
                                     <Input type="email" value={data.notifications_email} onChange={v => setData('notifications_email', v)} placeholder="staff@library.com" />
-                                    <p className="text-xs text-gray-400 mt-1">Receives copies of outgoing patron notifications.</p>
+                                    <p className="text-xs text-gray-400 mt-1">{t('admin.settings_ui.notif_email_hint')}</p>
                                 </Field>
-                                <Field label="Overdue Notices">
+                                <Field label={t('admin.settings_ui.overdue_notices')}>
                                     <Toggle
                                         checked={data.send_overdue_notices === '1' || data.send_overdue_notices === true}
                                         onChange={v => setData('send_overdue_notices', v ? '1' : '0')}
-                                        label="Send overdue notices to patrons automatically"
+                                        label={t('admin.settings_ui.send_overdue')}
                                     />
                                 </Field>
-                                <Field label="Due Date Reminders">
+                                <Field label={t('admin.settings_ui.due_reminders')}>
                                     <Toggle
                                         checked={data.send_due_reminders === '1' || data.send_due_reminders === true}
                                         onChange={v => setData('send_due_reminders', v ? '1' : '0')}
-                                        label="Send due date reminder emails"
+                                        label={t('admin.settings_ui.send_reminders')}
                                     />
                                 </Field>
-                                <Field label="Reminder Days Before Due" error={errors.reminder_days_before}>
+                                <Field label={t('admin.settings_ui.reminder_days')} error={errors.reminder_days_before}>
                                     <Input type="number" min="1" max="30" value={data.reminder_days_before} onChange={v => setData('reminder_days_before', v)} />
-                                    <p className="text-xs text-gray-400 mt-1">How many days before the due date to send a reminder.</p>
+                                    <p className="text-xs text-gray-400 mt-1">{t('admin.settings_ui.reminder_hint')}</p>
                                 </Field>
                             </Section>
                         )}
@@ -259,7 +266,7 @@ export default function Settings({ settings = {} }) {
                                 disabled={processing}
                                 className="px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-60"
                             >
-                                {processing ? 'Saving…' : 'Save Settings'}
+                                {processing ? t('admin.settings_ui.saving') : t('admin.settings_ui.save_settings')}
                             </button>
                         </div>
                     </div>
@@ -274,6 +281,90 @@ function Section({ title, children }) {
         <div>
             <h2 className="text-sm font-semibold text-gray-900 mb-5">{title}</h2>
             <div className="space-y-4">{children}</div>
+        </div>
+    );
+}
+
+function ImageUpload({ value, currentUrl, onChange, hint, accept = 'image/*', square = false }) {
+    const inputRef = useRef(null);
+    const [dragOver, setDragOver] = useState(false);
+    const [preview, setPreview] = useState(currentUrl ?? null);
+
+    // Build (and clean up) a blob URL for the freshly-picked file;
+    // fall back to the saved image when nothing is selected.
+    useEffect(() => {
+        if (value instanceof File) {
+            const url = URL.createObjectURL(value);
+            setPreview(url);
+            return () => URL.revokeObjectURL(url);
+        }
+        setPreview(currentUrl ?? null);
+    }, [value, currentUrl]);
+
+    const pick = (files) => {
+        if (files && files[0]) onChange(files[0]);
+    };
+
+    const clear = (e) => {
+        e.stopPropagation();
+        onChange(null);
+        if (inputRef.current) inputRef.current.value = '';
+    };
+
+    return (
+        <div
+            onClick={() => inputRef.current?.click()}
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => { e.preventDefault(); setDragOver(false); pick(e.dataTransfer.files); }}
+            className={`group relative flex items-center gap-4 rounded-xl border-2 border-dashed px-4 py-4 cursor-pointer transition-all ${
+                dragOver
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+            }`}
+        >
+            {/* Preview thumbnail */}
+            <div className={`flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-200 bg-white ${
+                square ? 'w-14 h-14 rounded-lg' : 'w-16 h-16 rounded-xl'
+            }`}>
+                {preview ? (
+                    <img src={preview} alt="" className="w-full h-full object-contain p-1" />
+                ) : (
+                    <ImageIcon className="w-6 h-6 text-gray-300" />
+                )}
+            </div>
+
+            {/* Label + hint */}
+            <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-700 truncate">
+                    {value instanceof File
+                        ? value.name
+                        : (preview ? 'Replace image' : 'Click or drag & drop to upload')}
+                </p>
+                {hint && <p className="text-xs text-gray-400 mt-0.5">{hint}</p>}
+            </div>
+
+            {/* Action */}
+            {value instanceof File ? (
+                <button
+                    type="button"
+                    onClick={clear}
+                    title="Remove"
+                    className="flex-shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                >
+                    <X className="w-4 h-4" />
+                </button>
+            ) : (
+                <UploadCloud className="flex-shrink-0 w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+            )}
+
+            <input
+                ref={inputRef}
+                type="file"
+                accept={accept}
+                onChange={(e) => pick(e.target.files)}
+                className="hidden"
+            />
         </div>
     );
 }

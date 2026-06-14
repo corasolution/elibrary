@@ -2,8 +2,10 @@
 
 namespace App\Models\Tenant;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class CardTemplate extends Model
@@ -27,6 +29,17 @@ class CardTemplate extends Model
         'width_mm'    => 'float',
         'height_mm'   => 'float',
     ];
+
+    protected $appends = ['background_image_url'];
+
+    protected function backgroundImageUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->background_image_path
+                ? Storage::url($this->background_image_path)
+                : null,
+        );
+    }
 
     protected static function booted(): void
     {

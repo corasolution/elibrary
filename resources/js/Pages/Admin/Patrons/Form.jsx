@@ -28,6 +28,7 @@ export default function PatronForm({ patron, categories }) {
         membership_expiry:   patron?.membership_expiry  ?? '',
         notes:               patron?.notes              ?? '',
         photo:               null,  // Will hold base64 string
+        password:            '',    // Optional manual password override
     });
 
     const handlePhotoChange = async (e) => {
@@ -273,6 +274,22 @@ export default function PatronForm({ patron, categories }) {
                     <Field label="Notes">
                         <textarea value={data.notes} onChange={e => setData('notes', e.target.value)}
                             className="input" rows={3} placeholder="Internal staff notes" />
+                    </Field>
+                </div>
+
+                {/* Login Credentials */}
+                <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+                    <h2 className="text-sm font-semibold text-gray-700">Login Credentials</h2>
+                    <Field label="Password" error={errors.password}>
+                        <input type="text" value={data.password}
+                            onChange={e => setData('password', e.target.value)}
+                            className="input" autoComplete="new-password"
+                            placeholder={isEdit ? 'Leave blank to keep current password' : 'Leave blank to use card number'} />
+                        <p className="text-xs text-gray-400 mt-1">
+                            {isEdit
+                                ? 'Leave blank to keep the current password. Patrons log in with their card number or email.'
+                                : 'Leave blank to set the password to the patron’s library card number. Patrons log in with their card number or email.'}
+                        </p>
                     </Field>
                 </div>
 

@@ -17,8 +17,10 @@ class ChatbotController extends Controller
 {
     public function __construct(private SearchService $search) {}
 
-    public function chat(Request $request, string $slug): JsonResponse
+    public function chat(Request $request): JsonResponse
     {
+        $slug = $request->segment(1);
+
         if (! $this->enabled()) {
             return response()->json(['error' => 'The assistant is currently unavailable.'], 403);
         }

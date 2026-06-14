@@ -1,0 +1,26 @@
+{
+  "id": "public-library",
+  "name": "Public Library",
+  "description": "Warm, welcoming editorial design for community libraries. Magazine-style horizontal cards, featured picks, and event-friendly layout.",
+  "preview_image": "/images/templates/public-library.jpg",
+  "colors": {
+    "primary": "#c2410c",
+    "secondary": "#78716c",
+    "accent": "#4d7c0f",
+    "background": "#fafaf9",
+    "text": "#292524",
+    "muted": "#a8a29e"
+  },
+  "fonts": {
+    "heading": "DM Sans",
+    "body": "DM Sans"
+  },
+  "styles": {
+    "layout": "wide",
+    "cardStyle": "magazine",
+    "navbarStyle": "solid",
+    "heroStyle": "magazine",
+    "borderRadius": "0.375rem",
+    "buttonStyle": "rounded"
+  }
+}

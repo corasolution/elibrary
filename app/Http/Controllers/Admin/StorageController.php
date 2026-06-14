@@ -209,7 +209,7 @@ class StorageController extends Controller
         return [
             [
                 'value' => 'default',
-                'label' => 'Cloudflare R2 (Default)',
+                'label' => 'Alpha Cloud Storage',
                 'description' => 'Free egress, S3-compatible',
                 'fields' => [],
             ],

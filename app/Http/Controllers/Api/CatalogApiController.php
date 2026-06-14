@@ -24,7 +24,7 @@ class CatalogApiController extends Controller
         return response()->json($results);
     }
 
-    public function show(string $slug, string $id): JsonResponse
+    public function show(string $id): JsonResponse
     {
         $record = BibliographicRecord::with([
             'materialType',
@@ -36,7 +36,7 @@ class CatalogApiController extends Controller
         return response()->json($record);
     }
 
-    public function isbnLookup(string $slug, string $isbn): JsonResponse
+    public function isbnLookup(string $isbn): JsonResponse
     {
         $data = $this->catalogService->lookupByISBN($isbn);
 
@@ -65,7 +65,7 @@ class CatalogApiController extends Controller
     /**
      * Get BIBFRAME JSON-LD for a record
      */
-    public function bibframe(string $slug, string $id): JsonResponse
+    public function bibframe(string $id): JsonResponse
     {
         $record = BibliographicRecord::with(['work.contributions.agent', 'physicalItems'])
             ->findOrFail($id);
@@ -78,7 +78,7 @@ class CatalogApiController extends Controller
     /**
      * Get MARC21 XML for a record
      */
-    public function marc(string $slug, string $id)
+    public function marc(string $id)
     {
         $record = BibliographicRecord::findOrFail($id);
 
@@ -95,7 +95,7 @@ class CatalogApiController extends Controller
     /**
      * Get Dublin Core metadata for a record
      */
-    public function dublinCore(string $slug, string $id): JsonResponse
+    public function dublinCore(string $id): JsonResponse
     {
         $record = BibliographicRecord::with('materialType')->findOrFail($id);
 
@@ -129,7 +129,7 @@ class CatalogApiController extends Controller
     /**
      * Find similar records using vector similarity
      */
-    public function similar(string $slug, string $id): JsonResponse
+    public function similar(string $id): JsonResponse
     {
         $record = BibliographicRecord::findOrFail($id);
 

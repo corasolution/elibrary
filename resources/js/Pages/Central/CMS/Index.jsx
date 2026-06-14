@@ -6,7 +6,7 @@ import {
     Languages, CheckCircle, Clock, Search, Eye, EyeOff
 } from 'lucide-react';
 
-export default function CMSIndex({ translations, sections, filters, stats }) {
+export default function CMSIndex({ translations, sections, sectionCounts = {}, filters, stats }) {
     const [search, setSearch] = useState(filters?.q || '');
     const [section, setSection] = useState(filters?.section || '');
     const [status, setStatus] = useState(filters?.status || '');
@@ -14,6 +14,15 @@ export default function CMSIndex({ translations, sections, filters, stats }) {
     const handleSearch = (e) => {
         e.preventDefault();
         router.get(route('central.cms.index'), { q: search, section, status }, {
+            preserveState: true,
+            replace: true,
+        });
+    };
+
+    // Jump straight to a section group (keeps current search/status).
+    const goToSection = (s) => {
+        setSection(s);
+        router.get(route('central.cms.index'), { q: search, section: s, status }, {
             preserveState: true,
             replace: true,
         });
@@ -185,6 +194,36 @@ export default function CMSIndex({ translations, sections, filters, stats }) {
                             </button>
                         )}
                     </form>
+                </div>
+
+                {/* Group navigation — jump to a section, with counts */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mb-6">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider mr-1">Groups</span>
+                        <button
+                            onClick={() => goToSection('')}
+                            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                                !section
+                                    ? 'bg-blue-600 text-white border-blue-600'
+                                    : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600'
+                            }`}
+                        >
+                            All <span className="opacity-70">{stats?.total ?? 0}</span>
+                        </button>
+                        {sections.map(s => (
+                            <button
+                                key={s}
+                                onClick={() => goToSection(s)}
+                                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                                    section === s
+                                        ? 'bg-blue-600 text-white border-blue-600'
+                                        : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600'
+                                }`}
+                            >
+                                {s} <span className="opacity-70">{sectionCounts?.[s] ?? 0}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Table */}

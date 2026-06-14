@@ -4,22 +4,26 @@ import { Save, ArrowLeft, AlertCircle, CheckCircle, XCircle, Loader2 } from 'luc
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-export default function TenantForm({ tenant, plans }) {
+export default function TenantForm({ tenant, plans, prefill = {}, registrationRequestId = null }) {
     const { data, setData, post, put, processing, errors } = useForm({
-        name: tenant?.name || '',
-        slug: tenant?.slug || '',
+        name: tenant?.name || prefill.name || '',
+        slug: tenant?.slug || prefill.slug || '',
         domain: tenant?.domain || '',
         status: tenant?.status || 'active',
-        plan_id: tenant?.plan_id || '',
+        plan_id: tenant?.plan_id || prefill.plan_id || '',
         trial_ends_at: tenant?.trial_ends_at || '',
-        contact_name: tenant?.data?.contact_name || '',
-        contact_email: tenant?.data?.contact_email || '',
+        contact_name: tenant?.data?.contact_name || prefill.admin_name || '',
+        contact_email: tenant?.data?.contact_email || prefill.admin_email || '',
         contact_phone: tenant?.data?.contact_phone || '',
+        is_featured: tenant?.is_featured || false,
+        featured_order: tenant?.featured_order || '',
         // Admin account (only for new libraries)
-        admin_name: '',
-        admin_email: '',
+        admin_name: prefill.admin_name || '',
+        admin_email: prefill.admin_email || '',
         admin_password: '',
         admin_password_confirmation: '',
+        // Link back to the registration request (marks it approved on success)
+        registration_request_id: registrationRequestId || '',
     });
 
     const isEditing = !!tenant;
@@ -299,6 +303,40 @@ export default function TenantForm({ tenant, plans }) {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Featured on landing page (edit only) */}
+                            {isEditing && (
+                                <div className="md:col-span-2 flex flex-wrap items-center gap-4 pt-2 border-t border-gray-100">
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={data.is_featured}
+                                            onChange={(e) => setData('is_featured', e.target.checked)}
+                                            className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <span className="text-sm font-medium text-gray-700">
+                                            Featured on landing page
+                                        </span>
+                                    </label>
+                                    {data.is_featured && (
+                                        <div className="flex items-center gap-2">
+                                            <label htmlFor="featured_order" className="text-sm text-gray-500">Order</label>
+                                            <input
+                                                id="featured_order"
+                                                type="number"
+                                                min="1"
+                                                value={data.featured_order}
+                                                onChange={(e) => setData('featured_order', e.target.value)}
+                                                className="w-20 px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                                placeholder="1"
+                                            />
+                                        </div>
+                                    )}
+                                    {errors.featured_order && (
+                                        <span className="text-red-600 text-sm">{errors.featured_order}</span>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
 

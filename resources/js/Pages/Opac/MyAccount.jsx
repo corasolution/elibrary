@@ -1,4 +1,4 @@
-﻿import OpacLayout from '@/Layouts/OpacLayout';
+import OpacLayout from '@/Layouts/OpacLayout';
 import { Link, usePage } from '@inertiajs/react';
 import { BookOpen, Clock, Bookmark, History, User, AlertCircle, QrCode, Download, Printer } from 'lucide-react';
 import { useTranslation } from 'react-i18next';

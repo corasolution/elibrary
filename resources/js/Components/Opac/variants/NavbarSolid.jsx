@@ -11,7 +11,7 @@ export default function NavbarSolid() {
     const base = tenant?.base_url ?? '';
 
     return (
-        <header className="opac-navbar bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+        <header className="opac-navbar opac-navbar-themed sticky top-0 z-40 shadow-sm">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     {/* Brand */}
@@ -42,9 +42,11 @@ export default function NavbarSolid() {
                                 <Link href={`${base}/login`} className="text-sm text-gray-600 hover:text-blue-600 font-medium">
                                     {t('auth.login')}
                                 </Link>
-                                <Link href={`${base}/register`} className="btn-primary text-xs py-1.5 px-3">
-                                    {t('nav.register')}
-                                </Link>
+                                {tenant?.self_registration && (
+                                    <Link href={`${base}/register`} className="btn-primary text-xs py-1.5 px-3">
+                                        {t('nav.register')}
+                                    </Link>
+                                )}
                             </div>
                         )}
                     </nav>

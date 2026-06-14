@@ -1,95 +1,41 @@
 import LandingLayout from '@/Layouts/LandingLayout';
 import { Head, Link } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle, X } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 
-const PLANS = [
-    {
-        name: 'Free',
-        price: 0,
-        billing: '',
-        tagline: 'Perfect for small community libraries',
-        color: 'gray',
-        features: {
-            titles:    '500',
-            patrons:   '100',
-            storage:   '1 GB',
-            digital:   false,
-            branches:  false,
-            domain:    false,
-            api:       false,
-            khmer:     true,
-            support:   'Community',
-        },
-    },
-    {
-        name: 'Starter',
-        price: 29,
-        billing: '/mo',
-        tagline: 'Ideal for school and small public libraries',
-        color: 'blue',
-        features: {
-            titles:    '5,000',
-            patrons:   '1,000',
-            storage:   '20 GB',
-            digital:   true,
-            branches:  false,
-            domain:    false,
-            api:       false,
-            khmer:     true,
-            support:   'Email',
-        },
-    },
-    {
-        name: 'Pro',
-        price: 79,
-        billing: '/mo',
-        tagline: 'For universities and multi-branch systems',
-        color: 'brand',
-        popular: true,
-        features: {
-            titles:    '50,000',
-            patrons:   '10,000',
-            storage:   '200 GB',
-            digital:   true,
-            branches:  true,
-            domain:    true,
-            api:       true,
-            khmer:     true,
-            support:   'Priority',
-        },
-    },
-    {
-        name: 'Enterprise',
-        price: null,
-        billing: '',
-        tagline: 'Custom deployments for national libraries',
-        color: 'purple',
-        features: {
-            titles:    'Unlimited',
-            patrons:   'Unlimited',
-            storage:   'Custom',
-            digital:   true,
-            branches:  true,
-            domain:    true,
-            api:       true,
-            khmer:     true,
-            support:   'Dedicated',
-        },
-    },
-];
+// ─── Feature presentation ────────────────────────────────────────────────────
+// Known feature keys get a friendly label; unknown / custom strings pass through
+// (prettified) so the page faithfully reflects whatever is stored on the plan.
+const FEATURE_LABELS = {
+    digital_library:     'Digital Library & Reader',
+    email_notifications: 'Email Notifications',
+    reports:             'Reports & Analytics',
+    multi_branch:        'Multiple Locations',
+    custom_domain:       'Custom Domain',
+    api_access:          'API Access',
+    dedicated_support:   'Dedicated Support',
+    sla:                 'SLA Guarantee',
+    khmer_language:      'Khmer Language',
+};
 
-const FEATURE_ROWS = [
-    { key: 'titles',   label: 'Catalog Titles' },
-    { key: 'patrons',  label: 'Patrons' },
-    { key: 'storage',  label: 'File Storage' },
-    { key: 'digital',  label: 'Digital Library & Reader',  boolean: true },
-    { key: 'branches', label: 'Multiple Locations',        boolean: true },
-    { key: 'domain',   label: 'Custom Domain',             boolean: true },
-    { key: 'api',      label: 'API Access',                boolean: true },
-    { key: 'khmer',    label: 'Khmer Language',            boolean: true },
-    { key: 'support',  label: 'Support' },
-];
+const prettify = (key) =>
+    String(key).replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+const featureLabel = (key) => FEATURE_LABELS[key] ?? prettify(key);
+
+// ─── Per-plan presentation (name-driven, with sensible fallbacks) ────────────
+const COLOR_BY_NAME = {
+    Free:       'gray',
+    Starter:    'blue',
+    Pro:        'brand',
+    Enterprise: 'purple',
+};
+const TAGLINE_BY_NAME = {
+    Free:       'Perfect for small community libraries',
+    Starter:    'Ideal for school and small public libraries',
+    Pro:        'For universities and multi-branch systems',
+    Enterprise: 'Custom deployments for national libraries',
+};
 
 const COLOR_STYLES = {
     gray:  { card: 'border-gray-200',   btn: 'bg-gray-700 hover:bg-gray-800 text-white' },
@@ -98,73 +44,41 @@ const COLOR_STYLES = {
     purple:{ card: 'border-purple-200', btn: 'bg-purple-700 hover:bg-purple-800 text-white' },
 };
 
-const FAQS = [
-    { q: 'Can I start for free?', a: 'Yes. The Free plan is free forever with no credit card required. Upgrade at any time.' },
-    { q: 'What payment methods do you accept?', a: 'We accept ABA PayWay, Bakong KHQR, major credit cards, and manual bank transfer for Enterprise.' },
-    { q: 'Can I import my existing catalog?', a: 'Yes. You can import from MARC21, CSV, or use our ISBN bulk-lookup tool to auto-fill records.' },
-    { q: 'Is there a trial period?', a: 'All paid plans include a 14-day free trial with full features. No credit card needed to start.' },
-    { q: 'What happens if I exceed my limits?', a: 'You\'ll be notified and can upgrade at any time. We never delete data without your consent.' },
-    { q: 'Is data isolated between libraries?', a: 'Yes. Each library tenant has a fully isolated database — your patron data is never shared.' },
+const fmtLimit = (v) =>
+    v === -1 || v === null || v === undefined ? 'Unlimited' : Number(v).toLocaleString();
+
+const fmtStorage = (v) =>
+    v === -1 ? 'Unlimited' : (v === null || v === undefined ? 'Custom' : `${v} GB`);
+
+// Normalize a DB plan record (LandingController payload) into the card shape.
+const normalize = (p) => ({
+    name:    p.name,
+    price:   Number(p.price),
+    billing: p.billing_cycle === 'yearly' ? '/year' : (Number(p.price) > 0 ? '/month' : ''),
+    popular: !!p.is_popular,
+    color:   COLOR_BY_NAME[p.name] || 'blue',
+    tagline: TAGLINE_BY_NAME[p.name] || `Complete ${p.name} plan`,
+    limits: {
+        titles:  fmtLimit(p.max_titles),
+        patrons: fmtLimit(p.max_patrons),
+        storage: fmtStorage(p.max_storage_gb),
+    },
+    features: Array.isArray(p.features) ? p.features : [],
+});
+
+// Fallback used only when the database returns no active plans.
+const FALLBACK = [
+    { name: 'Free',       price: 0,   billing_cycle: 'monthly', is_popular: false, max_titles: 500,    max_patrons: 100,   max_storage_gb: 1,   features: [] },
+    { name: 'Starter',    price: 29,  billing_cycle: 'monthly', is_popular: false, max_titles: 5000,   max_patrons: 1000,  max_storage_gb: 20,  features: ['digital_library', 'email_notifications'] },
+    { name: 'Pro',        price: 79,  billing_cycle: 'monthly', is_popular: true,  max_titles: 50000,  max_patrons: 10000, max_storage_gb: 200, features: ['digital_library', 'multi_branch', 'custom_domain', 'api_access'] },
+    { name: 'Enterprise', price: 199, billing_cycle: 'monthly', is_popular: false, max_titles: -1,     max_patrons: -1,    max_storage_gb: -1,  features: ['digital_library', 'multi_branch', 'custom_domain', 'api_access', 'dedicated_support', 'sla'] },
 ];
-
-// Helper to format plan data from database
-const formatPlan = (dbPlan) => {
-    // Map plan names to colors
-    const colorMap = {
-        'Free': 'gray',
-        'Starter': 'blue',
-        'Pro': 'brand',
-        'Enterprise': 'purple',
-    };
-
-    // Map plan names to taglines
-    const taglineMap = {
-        'Free': 'Perfect for small community libraries',
-        'Starter': 'Ideal for school and small public libraries',
-        'Pro': 'For universities and multi-branch systems',
-        'Enterprise': 'Custom deployments for national libraries',
-    };
-
-    // Check which features this plan has
-    const hasFeature = (featureName) => {
-        return Array.isArray(dbPlan.features) && dbPlan.features.includes(featureName);
-    };
-
-    return {
-        name: dbPlan.name,
-        price: dbPlan.price,
-        billing: dbPlan.billing_cycle === 'yearly' ? '/year' : (dbPlan.price > 0 ? '/month' : ''),
-        tagline: taglineMap[dbPlan.name] || `Complete ${dbPlan.name} plan`,
-        color: colorMap[dbPlan.name] || 'blue',
-        popular: dbPlan.name === 'Pro',
-        features: {
-            titles: dbPlan.max_titles === -1 || dbPlan.max_titles === null
-                ? 'Unlimited'
-                : (dbPlan.max_titles ? dbPlan.max_titles.toLocaleString() : 'Unlimited'),
-            patrons: dbPlan.max_patrons === -1 || dbPlan.max_patrons === null
-                ? 'Unlimited'
-                : (dbPlan.max_patrons ? dbPlan.max_patrons.toLocaleString() : 'Unlimited'),
-            storage: dbPlan.max_storage_gb === -1 || dbPlan.max_storage_gb === null
-                ? 'Unlimited'
-                : (dbPlan.max_storage_gb ? `${dbPlan.max_storage_gb} GB` : 'Custom'),
-            digital: hasFeature('digital_library'),
-            branches: hasFeature('multi_branch'),
-            domain: hasFeature('custom_domain'),
-            api: hasFeature('api_access'),
-            khmer: true, // Always true
-            support: hasFeature('dedicated_support') ? 'Dedicated' :
-                    hasFeature('email_notifications') ? 'Email' : 'Community',
-        },
-    };
-};
 
 export default function Pricing({ plans = [] }) {
     const { t } = useTranslation();
 
-    // Use database plans if available, otherwise fall back to hardcoded
-    const displayPlans = plans.length > 0
-        ? plans.map(formatPlan)
-        : PLANS;
+    const source = plans.length > 0 ? plans : FALLBACK;
+    const displayPlans = source.map(normalize);
 
     const faqSchema = {
         "@context": "https://schema.org",
@@ -207,7 +121,7 @@ export default function Pricing({ plans = [] }) {
             <section className="max-w-6xl mx-auto px-4 pb-16">
                 <div className="grid md:grid-cols-4 gap-6">
                     {displayPlans.map(plan => {
-                        const styles = COLOR_STYLES[plan.color];
+                        const styles = COLOR_STYLES[plan.color] ?? COLOR_STYLES.blue;
                         return (
                             <div key={plan.name} className={`relative rounded-2xl border-2 p-6 flex flex-col ${styles.card} bg-white`}>
                                 {plan.popular && (
@@ -218,35 +132,37 @@ export default function Pricing({ plans = [] }) {
                                 <h3 className="font-bold text-gray-900 text-lg">{plan.name}</h3>
                                 <p className="text-xs text-gray-500 mt-1 mb-4">{plan.tagline}</p>
                                 <div className="mb-6">
-                                    {plan.price === null ? (
-                                        <span className="text-2xl font-bold text-gray-900">Custom</span>
+                                    {plan.price === 0 ? (
+                                        <span className="text-4xl font-bold text-gray-900">Free</span>
                                     ) : (
                                         <><span className="text-4xl font-bold text-gray-900">${plan.price}</span>
                                         <span className="text-gray-400 text-sm">{plan.billing}</span></>
                                     )}
                                 </div>
                                 <Link
-                                    href={plan.price === null ? '/contact' : '/demo'}
+                                    href={plan.name === 'Enterprise' ? '/contact' : '/demo'}
                                     className={`w-full py-2.5 rounded-xl text-sm font-semibold text-center mb-6 block ${styles.btn}`}>
-                                    {plan.price === 0 ? 'Start Free' : plan.price === null ? 'Contact Us' : 'Start Trial'}
+                                    {plan.price === 0 ? 'Start Free' : plan.name === 'Enterprise' ? 'Contact Us' : 'Start Trial'}
                                 </Link>
                                 <ul className="space-y-2.5 flex-1">
-                                    {FEATURE_ROWS.map(row => {
-                                        const val = plan.features[row.key];
-                                        return (
-                                            <li key={row.key} className="flex items-center gap-2 text-sm">
-                                                {row.boolean
-                                                    ? val
-                                                        ? <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
-                                                        : <X className="w-4 h-4 text-gray-300 shrink-0" />
-                                                    : <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
-                                                }
-                                                <span className={row.boolean && !val ? 'text-gray-300' : 'text-gray-700'}>
-                                                    {row.boolean ? row.label : <><strong>{val}</strong> {row.label}</>}
-                                                </span>
-                                            </li>
-                                        );
-                                    })}
+                                    <li className="flex items-center gap-2 text-sm">
+                                        <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                                        <span className="text-gray-700"><strong>{plan.limits.titles}</strong> Titles</span>
+                                    </li>
+                                    <li className="flex items-center gap-2 text-sm">
+                                        <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                                        <span className="text-gray-700"><strong>{plan.limits.patrons}</strong> Patrons</span>
+                                    </li>
+                                    <li className="flex items-center gap-2 text-sm">
+                                        <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                                        <span className="text-gray-700"><strong>{plan.limits.storage}</strong> Storage</span>
+                                    </li>
+                                    {plan.features.map((f, i) => (
+                                        <li key={`${f}-${i}`} className="flex items-center gap-2 text-sm">
+                                            <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                                            <span className="text-gray-700">{featureLabel(f)}</span>
+                                        </li>
+                                    ))}
                                 </ul>
                             </div>
                         );
@@ -258,10 +174,10 @@ export default function Pricing({ plans = [] }) {
             <section className="max-w-3xl mx-auto px-4 pb-20">
                 <h2 className="text-2xl font-bold text-gray-900 text-center mb-10">Frequently Asked Questions</h2>
                 <div className="space-y-4">
-                    {FAQS.map(faq => (
-                        <div key={faq.q} className="card p-5">
-                            <h3 className="font-semibold text-gray-900 mb-1">{faq.q}</h3>
-                            <p className="text-gray-600 text-sm leading-relaxed">{faq.a}</p>
+                    {faqSchema.mainEntity.map(faq => (
+                        <div key={faq.name} className="card p-5">
+                            <h3 className="font-semibold text-gray-900 mb-1">{faq.name}</h3>
+                            <p className="text-gray-600 text-sm leading-relaxed">{faq.acceptedAnswer.text}</p>
                         </div>
                     ))}
                 </div>

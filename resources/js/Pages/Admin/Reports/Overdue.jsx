@@ -1,12 +1,14 @@
+import { useTranslation } from 'react-i18next';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { AlertCircle, DollarSign } from 'lucide-react';
 import { Link } from '@inertiajs/react';
 
 export default function OverdueReport({ loans, byDays, totalFines }) {
+    const { t } = useTranslation();
     const loanList = loans?.data ?? [];
 
     return (
-        <AdminLayout title="Overdue Report">
+        <AdminLayout title={t('admin.reports_ui.overdue_report')}>
             <div className="space-y-6">
                 {/* Summary */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -16,7 +18,7 @@ export default function OverdueReport({ loans, byDays, totalFines }) {
                         </div>
                         <div>
                             <div className="text-2xl font-bold text-gray-900">{loans?.total ?? 0}</div>
-                            <div className="text-xs text-gray-500 mt-0.5">Overdue Items</div>
+                            <div className="text-xs text-gray-500 mt-0.5">{t('admin.reports_ui.overdue_items')}</div>
                         </div>
                     </div>
                     <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col gap-3">
@@ -25,12 +27,12 @@ export default function OverdueReport({ loans, byDays, totalFines }) {
                         </div>
                         <div>
                             <div className="text-2xl font-bold text-gray-900">${Number(totalFines ?? 0).toFixed(2)}</div>
-                            <div className="text-xs text-gray-500 mt-0.5">Total Fines Outstanding</div>
+                            <div className="text-xs text-gray-500 mt-0.5">{t('admin.reports_ui.total_fines_outstanding')}</div>
                         </div>
                     </div>
                     {/* Overdue by range */}
                     <div className="bg-white border border-gray-200 rounded-xl p-4">
-                        <div className="text-xs font-semibold text-gray-600 mb-3">By Days Overdue</div>
+                        <div className="text-xs font-semibold text-gray-600 mb-3">{t('admin.reports_ui.by_days_overdue')}</div>
                         {(byDays ?? []).length > 0 ? (
                             <div className="space-y-2">
                                 {byDays.map(r => (
@@ -40,14 +42,14 @@ export default function OverdueReport({ loans, byDays, totalFines }) {
                                     </div>
                                 ))}
                             </div>
-                        ) : <div className="text-xs text-gray-400">No overdue items.</div>}
+                        ) : <div className="text-xs text-gray-400">{t('admin.reports_ui.no_overdue')}</div>}
                     </div>
                 </div>
 
                 {/* Table */}
                 <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
                     <div className="px-5 py-4 border-b border-gray-100">
-                        <h2 className="text-sm font-semibold text-gray-700">Overdue Loans</h2>
+                        <h2 className="text-sm font-semibold text-gray-700">{t('admin.reports_ui.overdue_loans')}</h2>
                     </div>
                     {loanList.length > 0 ? (
                         <>
@@ -55,11 +57,11 @@ export default function OverdueReport({ loans, byDays, totalFines }) {
                                 <table className="w-full text-sm">
                                     <thead className="bg-gray-50">
                                         <tr>
-                                            <th className="text-left py-2 px-4 font-medium text-gray-600">Patron</th>
-                                            <th className="text-left py-2 px-4 font-medium text-gray-600">Title</th>
-                                            <th className="text-left py-2 px-4 font-medium text-gray-600">Due Date</th>
-                                            <th className="text-left py-2 px-4 font-medium text-gray-600">Days Overdue</th>
-                                            <th className="text-right py-2 px-4 font-medium text-gray-600">Fine</th>
+                                            <th className="text-left py-2 px-4 font-medium text-gray-600">{t('admin.reports_ui.col_patron')}</th>
+                                            <th className="text-left py-2 px-4 font-medium text-gray-600">{t('admin.reports_ui.col_title')}</th>
+                                            <th className="text-left py-2 px-4 font-medium text-gray-600">{t('admin.reports_ui.col_due_date')}</th>
+                                            <th className="text-left py-2 px-4 font-medium text-gray-600">{t('admin.reports_ui.col_days_overdue')}</th>
+                                            <th className="text-right py-2 px-4 font-medium text-gray-600">{t('admin.reports_ui.col_fine')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -108,7 +110,7 @@ export default function OverdueReport({ loans, byDays, totalFines }) {
                             )}
                         </>
                     ) : (
-                        <div className="text-center py-12 text-sm text-gray-400">No overdue items.</div>
+                        <div className="text-center py-12 text-sm text-gray-400">{t('admin.reports_ui.no_overdue')}</div>
                     )}
                 </div>
             </div>

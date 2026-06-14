@@ -1,4 +1,4 @@
-import { usePage, Link } from '@inertiajs/react';
+import { usePage, Link, Head } from '@inertiajs/react';
 import { ThemeProvider } from '@/Components/ThemeProvider';
 import { useThemeVariant } from '@/hooks/useThemeVariant';
 import { BookOpen } from 'lucide-react';
@@ -33,8 +33,14 @@ export default function OpacLayout({ children }) {
         'cambodia-tax': NavbarCambodiaTax,
     }[navbarStyle] || NavbarELibrary;
 
+    const siteTitle = tenant?.site_title || tenant?.name;
+
     return (
         <ThemeProvider theme={theme}>
+            {/* Default browser-tab title for the public catalog (library-editable
+                under Admin → Settings → Branding). Individual pages can still set
+                their own <Head title> to override this. */}
+            {siteTitle && <Head title={siteTitle} />}
             <div className="min-h-screen flex flex-col opac-page-bg">
                 {/* Dynamic Navbar based on template */}
                 <NavbarComponent />

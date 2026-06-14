@@ -17,13 +17,14 @@ class Plan extends Model
 
     protected $fillable = [
         'name', 'price_usd', 'billing_cycle', 'max_titles',
-        'max_patrons', 'max_storage_gb', 'features', 'is_active', 'sort_order',
+        'max_patrons', 'max_storage_gb', 'features', 'is_active', 'is_popular', 'sort_order',
     ];
 
     protected $casts = [
-        'features'  => 'array',
-        'is_active' => 'boolean',
-        'price_usd' => 'decimal:2',
+        'features'   => 'array',
+        'is_active'  => 'boolean',
+        'is_popular' => 'boolean',
+        'price_usd'  => 'decimal:2',
     ];
 
     public function tenants()

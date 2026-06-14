@@ -22,17 +22,18 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     protected $fillable = [
         'id', 'name', 'slug', 'domain', 'data', 'plan_id', 'trial_ends_at', 'status',
-        'created_by_id', 'managed_by_id',
+        'created_by_id', 'managed_by_id', 'is_featured', 'featured_order',
     ];
 
     protected $casts = [
         'data'          => 'array',
         'trial_ends_at' => 'datetime',
+        'is_featured'   => 'boolean',
     ];
 
     public static function getCustomColumns(): array
     {
-        return ['id', 'name', 'slug', 'domain', 'plan_id', 'trial_ends_at', 'status', 'created_by_id', 'managed_by_id'];
+        return ['id', 'name', 'slug', 'domain', 'plan_id', 'trial_ends_at', 'status', 'created_by_id', 'managed_by_id', 'is_featured', 'featured_order'];
     }
 
     public function plan()

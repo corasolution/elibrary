@@ -5,8 +5,10 @@ import { BookOpen, RefreshCw, Users, DollarSign } from 'lucide-react';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
+import { useTranslation } from 'react-i18next';
 
 export default function CirculationReport({ dailyLoans, dailyReturns, topBorrowed, topPatrons, summary, from, to }) {
+    const { t } = useTranslation();
     const [dateFrom, setDateFrom] = useState(from);
     const [dateTo,   setDateTo]   = useState(to);
 
@@ -14,7 +16,6 @@ export default function CirculationReport({ dailyLoans, dailyReturns, topBorrowe
         router.get(route('admin.reports.circulation'), { from: dateFrom, to: dateTo }, { preserveState: true });
     };
 
-    // Merge daily loans + returns into one chart dataset
     const chartData = (() => {
         const map = {};
         (dailyLoans ?? []).forEach(r => { map[r.date] = { date: r.date, Loans: r.loans, Returns: 0 }; });
@@ -26,37 +27,37 @@ export default function CirculationReport({ dailyLoans, dailyReturns, topBorrowe
     })();
 
     return (
-        <AdminLayout title="Circulation Statistics">
+        <AdminLayout title={t('admin.nav.circulation_report')}>
             <div className="space-y-6">
                 {/* Date filter */}
                 <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-wrap gap-3 items-end">
                     <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">From</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{t('admin.reports_ui.date_from')}</label>
                         <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
                             className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">To</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{t('admin.reports_ui.date_to')}</label>
                         <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
                             className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
                     </div>
                     <button onClick={applyFilter}
                         className="px-4 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">
-                        Apply
+                        {t('admin.reports_ui.apply_filter')}
                     </button>
                 </div>
 
                 {/* Summary cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <SummaryCard icon={BookOpen}    color="blue"   label="Total Loans"    value={summary.total_loans} />
-                    <SummaryCard icon={RefreshCw}   color="green"  label="Total Returns"  value={summary.total_returns} />
-                    <SummaryCard icon={Users}        color="purple" label="Unique Patrons" value={summary.unique_patrons} />
-                    <SummaryCard icon={DollarSign}   color="amber"  label="Fines Accrued"  value={`$${Number(summary.total_fines ?? 0).toFixed(2)}`} />
+                    <SummaryCard icon={BookOpen}   color="blue"   label={t('admin.reports_ui.col_loans')}   value={summary.total_loans} />
+                    <SummaryCard icon={RefreshCw}  color="green"  label={t('admin.reports_ui.col_returns')} value={summary.total_returns} />
+                    <SummaryCard icon={Users}       color="purple" label={t('admin.patrons_ui.patron_plural')} value={summary.unique_patrons} />
+                    <SummaryCard icon={DollarSign}  color="amber"  label={t('admin.fines_ui.total_fines')}  value={`$${Number(summary.total_fines ?? 0).toFixed(2)}`} />
                 </div>
 
                 {/* Daily chart */}
                 <div className="bg-white border border-gray-200 rounded-xl p-5">
-                    <h2 className="text-sm font-semibold text-gray-700 mb-4">Daily Loans & Returns</h2>
+                    <h2 className="text-sm font-semibold text-gray-700 mb-4">{t('admin.reports_ui.daily_loans_returns')}</h2>
                     {chartData.length > 0 ? (
                         <ResponsiveContainer width="100%" height={280}>
                             <BarChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
@@ -69,13 +70,13 @@ export default function CirculationReport({ dailyLoans, dailyReturns, topBorrowe
                                 <Bar dataKey="Returns" fill="#22c55e" radius={[4,4,0,0]} />
                             </BarChart>
                         </ResponsiveContainer>
-                    ) : <EmptyState />}
+                    ) : <EmptyState text={t('admin.reports_ui.no_data')} />}
                 </div>
 
                 {/* Top borrowed + top patrons side by side */}
                 <div className="grid md:grid-cols-2 gap-6">
                     <div className="bg-white border border-gray-200 rounded-xl p-5">
-                        <h2 className="text-sm font-semibold text-gray-700 mb-4">Top 10 Borrowed Titles</h2>
+                        <h2 className="text-sm font-semibold text-gray-700 mb-4">{t('admin.reports_ui.top_borrowed')}</h2>
                         {(topBorrowed ?? []).length > 0 ? (
                             <ol className="space-y-2">
                                 {topBorrowed.map((r, i) => (
@@ -86,11 +87,11 @@ export default function CirculationReport({ dailyLoans, dailyReturns, topBorrowe
                                     </li>
                                 ))}
                             </ol>
-                        ) : <EmptyState />}
+                        ) : <EmptyState text={t('admin.reports_ui.no_data')} />}
                     </div>
 
                     <div className="bg-white border border-gray-200 rounded-xl p-5">
-                        <h2 className="text-sm font-semibold text-gray-700 mb-4">Top 10 Active Patrons</h2>
+                        <h2 className="text-sm font-semibold text-gray-700 mb-4">{t('admin.reports_ui.top_patrons')}</h2>
                         {(topPatrons ?? []).length > 0 ? (
                             <ol className="space-y-2">
                                 {topPatrons.map((p, i) => (
@@ -102,7 +103,7 @@ export default function CirculationReport({ dailyLoans, dailyReturns, topBorrowe
                                     </li>
                                 ))}
                             </ol>
-                        ) : <EmptyState />}
+                        ) : <EmptyState text={t('admin.reports_ui.no_data')} />}
                     </div>
                 </div>
             </div>
@@ -130,6 +131,6 @@ function SummaryCard({ icon: Icon, color, label, value }) {
     );
 }
 
-function EmptyState() {
-    return <div className="text-center py-8 text-sm text-gray-400">No data for this period.</div>;
+function EmptyState({ text }) {
+    return <div className="text-center py-8 text-sm text-gray-400">{text}</div>;
 }

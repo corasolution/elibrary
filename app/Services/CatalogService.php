@@ -50,10 +50,10 @@ class CatalogService
         return DB::transaction(function () use ($biblio, $data) {
             $biblioData = $this->extractBiblioData($data);
 
-            // Re-link to Work if title changed
+            // Re-link to Work if title changed (updates the Work in place when
+            // this record is its only instance — avoids orphaned Works)
             if (isset($data['title']) && $data['title'] !== $biblio->title) {
-                $work = $this->findOrCreateWork($data);
-                $biblioData['work_id'] = $work->id;
+                $biblioData['work_id'] = $this->relinkWork($biblio, $data)->id;
             }
 
             $biblio->update($biblioData);
@@ -120,6 +120,10 @@ class CatalogService
             } elseif ($filters['availability'] === 'digital') {
                 $q->whereHas('digitalResources');
             }
+        }
+
+        if (! empty($filters['subject'])) {
+            $q->whereRaw("subjects::text ILIKE ?", ['%' . $filters['subject'] . '%']);
         }
 
         $sort = $filters['sort'] ?? 'relevance';
@@ -220,32 +224,75 @@ class CatalogService
                 'cataloger_id'    => auth()->id(),
             ]);
 
-            // Create Work contributions from authors array
-            foreach ($authors as $index => $author) {
-                if (empty($author['name'])) continue;
-
-                $agent = Agent::firstOrCreate(
-                    ['name' => $author['name'], 'type' => $author['agent_type'] ?? 'person'],
-                    ['name' => $author['name'], 'type' => $author['agent_type'] ?? 'person']
-                );
-
-                $roleCode = $author['role'] ?? $author['role_code'] ?? 'aut';
-
-                WorkContribution::create([
-                    'work_id'     => $work->id,
-                    'agent_id'    => $agent->id,
-                    'agent_name'  => $author['name'],
-                    'agent_type'  => $author['agent_type'] ?? 'person',
-                    'role_code'   => $roleCode,
-                    'role_label'  => $this->roleLabelFromCode($roleCode),
-                    'relator_uri' => "http://id.loc.gov/vocabulary/relators/{$roleCode}",
-                    'is_primary'  => $index === 0,
-                    'sort_order'  => $index,
-                ]);
-            }
+            $this->createWorkContributions($work, $authors);
 
             return $work;
         });
+    }
+
+    /**
+     * Create Work contributions (with Agents) from a catalog-form authors array.
+     */
+    private function createWorkContributions(Work $work, array $authors): void
+    {
+        foreach ($authors as $index => $author) {
+            if (empty($author['name'])) continue;
+
+            $agent = Agent::firstOrCreate(
+                ['name' => $author['name'], 'type' => $author['agent_type'] ?? 'person'],
+                ['name' => $author['name'], 'type' => $author['agent_type'] ?? 'person']
+            );
+
+            $roleCode = $author['role'] ?? $author['role_code'] ?? 'aut';
+
+            WorkContribution::create([
+                'work_id'     => $work->id,
+                'agent_id'    => $agent->id,
+                'agent_name'  => $author['name'],
+                'agent_type'  => $author['agent_type'] ?? 'person',
+                'role_code'   => $roleCode,
+                'role_label'  => $this->roleLabelFromCode($roleCode),
+                'relator_uri' => "http://id.loc.gov/vocabulary/relators/{$roleCode}",
+                'is_primary'  => $index === 0,
+                'sort_order'  => $index,
+            ]);
+        }
+    }
+
+    /**
+     * Resolve the Work linkage when a record's title changes.
+     *
+     * If this record is the only instance of its Work, the edit is a correction —
+     * update the Work in place instead of spawning a new one (prevents orphaned
+     * Works). If the Work is shared with other records, re-link via
+     * findOrCreateWork so the shared Work keeps its original title.
+     */
+    private function relinkWork(BibliographicRecord $biblio, array $data): Work
+    {
+        $oldWork = $biblio->work_id ? Work::find($biblio->work_id) : null;
+
+        $isSoleInstance = $oldWork && $oldWork->instances()
+            ->withTrashed()
+            ->where('id', '!=', $biblio->id)
+            ->doesntExist();
+
+        if ($isSoleInstance) {
+            $oldWork->update([
+                'title'    => $data['title'],
+                'title_km' => $data['title_km'] ?? $oldWork->title_km,
+                'language' => $data['language'] ?? $oldWork->language,
+            ]);
+
+            // Keep contributions in sync with the edited authors
+            if (array_key_exists('authors', $data)) {
+                $oldWork->contributions()->delete();
+                $this->createWorkContributions($oldWork, $data['authors'] ?? []);
+            }
+
+            return $oldWork;
+        }
+
+        return $this->findOrCreateWork($data);
     }
 
     /**

@@ -16,7 +16,11 @@ class AccountController extends Controller
     {
         $patron = $request->user('patron')->load(['category']);
 
-        return Inertia::render('Opac/MyAccount', compact('patron'));
+        $reservationCount = $patron->reservations()
+            ->whereIn('status', ['pending', 'waiting', 'ready'])
+            ->count();
+
+        return Inertia::render('Opac/MyAccount', compact('patron', 'reservationCount'));
     }
 
     public function loans(Request $request): \Inertia\Response
@@ -49,7 +53,8 @@ class AccountController extends Controller
             ->with('bibliographicRecord')
             ->whereIn('status', ['pending', 'waiting', 'ready'])
             ->latest()
-            ->get();
+            ->get()
+            ->each->append('queue_position');
 
         return Inertia::render('Opac/MyReservations', compact('reservations'));
     }
@@ -73,7 +78,10 @@ class AccountController extends Controller
     {
         $patron      = $request->user('patron');
         $reservation = $patron->reservations()->findOrFail($id);
-        $reservation->update(['status' => 'cancelled']);
+
+        // Hands a held copy to the next patron in queue (or releases it)
+        $this->circulation->releaseReservation($reservation, 'cancelled');
+
         return back()->with('success', 'Reservation cancelled.');
     }
 }

@@ -34,6 +34,10 @@ class AppServiceProvider extends ServiceProvider
         // Register observers
         BibliographicRecord::observe(BibliographicRecordObserver::class);
 
+        // Wire the platform R2 settings (saved via Central Admin → Storage)
+        // into the default_r2 disk used by all tenant uploads.
+        $this->configureDefaultR2FromPlatformSettings();
+
         // Register XML response macro for OAI-PMH (uses DOMDocument for namespace support)
         Response::macro('xml', function ($data, $status = 200) {
             $dom = new \DOMDocument('1.0', 'UTF-8');
@@ -91,5 +95,38 @@ class AppServiceProvider extends ServiceProvider
             return response($dom->saveXML(), $status)
                 ->header('Content-Type', 'application/xml; charset=UTF-8');
         });
+    }
+
+    /**
+     * Override the default_r2 disk with credentials saved in platform_settings.
+     * Falls back silently to .env values when the central DB is unavailable
+     * (fresh install, migrations running, artisan package:discover, etc.).
+     */
+    private function configureDefaultR2FromPlatformSettings(): void
+    {
+        try {
+            $settings = \Illuminate\Support\Facades\Cache::remember('platform.r2_config', 300, function () {
+                return [
+                    'key'        => \App\Models\Central\PlatformSetting::get('r2_access_key'),
+                    'secret'     => \App\Models\Central\PlatformSetting::get('r2_secret_key'),
+                    'account_id' => \App\Models\Central\PlatformSetting::get('r2_account_id'),
+                    'bucket'     => \App\Models\Central\PlatformSetting::get('r2_bucket'),
+                    'url'        => \App\Models\Central\PlatformSetting::get('r2_public_url'),
+                ];
+            });
+
+            if (!empty($settings['key']) && !empty($settings['secret']) && !empty($settings['account_id'])) {
+                config([
+                    'filesystems.disks.default_r2.key'      => $settings['key'],
+                    'filesystems.disks.default_r2.secret'   => $settings['secret'],
+                    'filesystems.disks.default_r2.bucket'   => $settings['bucket'] ?: config('filesystems.disks.default_r2.bucket'),
+                    'filesystems.disks.default_r2.endpoint' => "https://{$settings['account_id']}.r2.cloudflarestorage.com",
+                    'filesystems.disks.default_r2.url'      => $settings['url'] ?: config('filesystems.disks.default_r2.url'),
+                ]);
+                \Illuminate\Support\Facades\Storage::forgetDisk('default_r2');
+            }
+        } catch (\Throwable) {
+            // Central DB not reachable — keep .env-based config.
+        }
     }
 }

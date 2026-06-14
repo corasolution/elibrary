@@ -13,6 +13,93 @@ class CatalogAIService
     }
 
     /**
+     * Read a book-cover photo with an AI vision model and extract structured
+     * bibliographic data. Returns a record shaped to match the catalog form's
+     * import handler (title, authors, publisher, …), plus 'metadata'.
+     *
+     * @param string $base64Image Raw base64 (no data: prefix)
+     * @param string $mime        e.g. 'image/jpeg'
+     * @return array|null
+     */
+    public function extractFromCover(string $base64Image, string $mime): ?array
+    {
+        $prompt = <<<PROMPT
+You are an expert library cataloger. The attached image is a photograph of a book cover (or title page).
+Read every visible word and extract the bibliographic details.
+
+Output ONLY valid JSON in exactly this shape (omit a field or use null/[] if you cannot read it — never guess):
+```json
+{
+  "title": "main title",
+  "subtitle": "subtitle if present",
+  "authors": [{"name": "Author Name", "role": "aut"}],
+  "publisher": "publisher if printed",
+  "publication_year": 2008,
+  "edition": "edition statement if printed",
+  "language": "ISO 639-1 code of the title language, e.g. en or km",
+  "series_title": "series if printed",
+  "isbn": "ISBN only if clearly printed on the cover",
+  "subjects": [{"term": "Subject Heading", "scheme": "LCSH"}]
+}
+```
+Rules:
+- Preserve the original script (e.g. keep Khmer text in Khmer).
+- "authors" role is always "aut".
+- publication_year must be an integer or null.
+- Do not include any text outside the JSON.
+PROMPT;
+
+        $result = $this->gemini->generateFromImage($prompt, $base64Image, $mime, [
+            'cache_key'         => 'ai:cover:' . md5($base64Image),
+            'cache_ttl'         => 30 * 24 * 60, // 30 days
+            'temperature'       => 0.1,
+            'max_output_tokens' => 768,
+            'feature'           => 'cover_scan',
+        ]);
+
+        if (! $result || ! $result['text']) {
+            return null;
+        }
+
+        $parsed = $this->gemini->parseJsonResponse($result['text']);
+
+        if (! $parsed || empty($parsed['title'])) {
+            return null;
+        }
+
+        // Normalize to the catalog form import shape.
+        $authors = collect($parsed['authors'] ?? [])
+            ->map(fn ($a) => is_array($a)
+                ? ['name' => trim($a['name'] ?? ''), 'role' => $a['role'] ?? 'aut']
+                : ['name' => trim((string) $a), 'role' => 'aut'])
+            ->filter(fn ($a) => $a['name'] !== '')
+            ->values()
+            ->all();
+
+        $subjects = collect($parsed['subjects'] ?? [])
+            ->map(fn ($s) => is_array($s)
+                ? ['term' => trim($s['term'] ?? ''), 'scheme' => $s['scheme'] ?? 'LCSH']
+                : ['term' => trim((string) $s), 'scheme' => 'LCSH'])
+            ->filter(fn ($s) => $s['term'] !== '')
+            ->values()
+            ->all();
+
+        return [
+            'title'            => $parsed['title'] ?? null,
+            'subtitle'         => $parsed['subtitle'] ?? null,
+            'authors'          => $authors,
+            'publisher'        => $parsed['publisher'] ?? null,
+            'publication_year' => isset($parsed['publication_year']) ? (int) $parsed['publication_year'] : null,
+            'edition'          => $parsed['edition'] ?? null,
+            'language'         => $parsed['language'] ?? null,
+            'series_title'     => $parsed['series_title'] ?? null,
+            'isbn'             => $parsed['isbn'] ?? null,
+            'subjects'         => $subjects,
+            'metadata'         => $result['metadata'],
+        ];
+    }
+
+    /**
      * Suggest DDC and LCC classifications based on bibliographic metadata
      *
      * @param array $data Bibliographic data (title, abstract, subjects, etc.)

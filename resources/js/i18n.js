@@ -34,6 +34,14 @@ i18n.use(initReactI18next).init({
     interpolation: { escapeValue: false },
 });
 
+// `languageChanged` does NOT fire for the initial language, so the <html lang>
+// rendered by Blade (server locale) can disagree with the language i18next
+// actually shows. Sync it immediately so the :lang(km) CSS rules apply on
+// first paint (otherwise Khmer inherits Latin letter-spacing and looks cramped).
+if (typeof document !== 'undefined') {
+    document.documentElement.lang = i18n.language;
+}
+
 // Listen for language changes and persist to localStorage
 i18n.on('languageChanged', (lng) => {
     localStorage.setItem('language', lng);

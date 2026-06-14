@@ -1,6 +1,8 @@
 import OpacLayout from '@/Layouts/OpacLayout';
 import { Link, useForm, usePage } from '@inertiajs/react';
-import { BookOpen, Bookmark, Clock, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { fmtDate } from '@/utils/date';
+import { BookOpen, Bookmark, Clock, CheckCircle, XCircle, ArrowLeft, Users } from 'lucide-react';
 
 const STATUS_CONFIG = {
     pending:   { label: 'Pending',   icon: Clock,        color: 'badge-amber' },
@@ -13,6 +15,7 @@ const STATUS_CONFIG = {
 
 export default function MyReservations({ reservations }) {
     const { tenant } = usePage().props;
+    const { t } = useTranslation();
     const base = tenant?.base_url ?? '';
 
     return (
@@ -55,14 +58,20 @@ export default function MyReservations({ reservations }) {
                                         </Link>
                                         <p className="text-sm text-gray-500">{record?.authors?.[0]?.name ?? '—'}</p>
                                         <div className="flex gap-3 mt-2 text-xs text-gray-400">
-                                            <span>Reserved: {new Date(res.reserved_at).toLocaleDateString()}</span>
+                                            <span>Reserved: {fmtDate(res.reserved_at)}</span>
                                             {res.expiry_date && (
-                                                <span>Expires: {new Date(res.expiry_date).toLocaleDateString()}</span>
+                                                <span>Expires: {fmtDate(res.expiry_date)}</span>
                                             )}
                                         </div>
                                         {res.status === 'ready' && (
                                             <p className="text-xs text-green-700 font-medium mt-1">
                                                 Your item is ready for pickup!
+                                            </p>
+                                        )}
+                                        {res.queue_position != null && (
+                                            <p className="text-xs text-blue-600 font-medium mt-1 flex items-center gap-1">
+                                                <Users className="w-3 h-3" />
+                                                {t('account.queue_position', { position: res.queue_position })}
                                             </p>
                                         )}
                                     </div>

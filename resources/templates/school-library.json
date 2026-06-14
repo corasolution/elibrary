@@ -1,0 +1,26 @@
+{
+  "id": "school-library",
+  "name": "School Library",
+  "description": "Clean, structured academic design with navy and gold. Catalog list view, quick stats, and resource tabs — built for students and teachers.",
+  "preview_image": "/images/templates/school-library.jpg",
+  "colors": {
+    "primary": "#1e3a5f",
+    "secondary": "#64748b",
+    "accent": "#d97706",
+    "background": "#f0f4f8",
+    "text": "#0f172a",
+    "muted": "#94a3b8"
+  },
+  "fonts": {
+    "heading": "Source Sans Pro",
+    "body": "Source Sans Pro"
+  },
+  "styles": {
+    "layout": "centered",
+    "cardStyle": "academic",
+    "navbarStyle": "professional",
+    "heroStyle": "academic",
+    "borderRadius": "0.25rem",
+    "buttonStyle": "classic"
+  }
+}

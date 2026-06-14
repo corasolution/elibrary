@@ -49,6 +49,43 @@ trait BuildsPrintAssets
         return 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($path));
     }
 
+    /**
+     * Resolve patron photo (stored in patron-photos/) to a base64 data URI
+     * so the PDF renderer embeds it without remote fetches. Returns null if absent.
+     */
+    public function photoDataUri(?string $photoUrl): ?string
+    {
+        if (! $photoUrl) {
+            return null;
+        }
+
+        // Security: ensure photo_url is within patron-photos directory
+        $normalized = ltrim(str_replace('\\', '/', $photoUrl), '/');
+        if (! str_starts_with($normalized, 'patron-photos/')) {
+            return null;
+        }
+
+        $path = storage_path('app/public/' . $normalized);
+
+        // Prevent path traversal
+        $realPath = realpath($path);
+        $allowedPath = realpath(storage_path('app/public/patron-photos'));
+
+        if (! $realPath || ! $allowedPath || ! str_starts_with($realPath, $allowedPath)) {
+            return null;
+        }
+
+        if (! is_file($realPath)) {
+            return null;
+        }
+
+        $mime = function_exists('mime_content_type')
+            ? mime_content_type($realPath)
+            : 'image/jpeg';
+
+        return 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($realPath));
+    }
+
     /** Base64 data URI of the bundled Noto Sans Khmer font (for @font-face). */
     public function khmerFontDataUri(): ?string
     {
@@ -66,17 +103,34 @@ trait BuildsPrintAssets
      */
     public function htmlToPdf(string $html, string $format = 'A4'): string
     {
-        $shot = Browsershot::html($html)
-            ->format($format)
-            ->margins(0, 0, 0, 0)
-            ->showBackground(true)
-            ->noSandbox()
-            ->timeout(120);
+        try {
+            $shot = Browsershot::html($html)
+                ->format($format)
+                ->margins(0, 0, 0, 0)
+                ->showBackground(true)
+                ->noSandbox()
+                ->timeout(120);
 
-        if (is_dir(base_path('node_modules'))) {
-            $shot->setIncludePath(getenv('PATH'));
+            if (is_dir(base_path('node_modules'))) {
+                $shot->setIncludePath(getenv('PATH'));
+            }
+
+            return $shot->pdf();
+        } catch (\Throwable $e) {
+            // Servers without Node/Chromium (e.g. shared hosting) can't run
+            // Browsershot — fall back to the pure-PHP DomPDF renderer so labels
+            // and cards still print (Khmer shaping is weaker, but it works).
+            \Illuminate\Support\Facades\Log::warning('Browsershot PDF failed, using DomPDF fallback: ' . $e->getMessage());
+            return $this->htmlToPdfFallback($html, $format);
         }
+    }
 
-        return $shot->pdf();
+    /** Pure-PHP PDF fallback (no Node/Chromium dependency). */
+    protected function htmlToPdfFallback(string $html, string $format = 'A4'): string
+    {
+        return \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)
+            ->setPaper($format === 'Letter' ? 'letter' : 'a4')
+            ->setOptions(['isRemoteEnabled' => true, 'isHtml5ParserEnabled' => true, 'dpi' => 96])
+            ->output();
     }
 }

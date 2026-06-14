@@ -48,7 +48,7 @@ function LangButton() {
                 <ChevronDown className="w-3 h-3 opacity-70" />
             </button>
             {open && (
-                <div className="absolute right-0 mt-1 bg-white shadow-lg rounded border border-gray-200 py-1 min-w-[110px] z-50">
+                <div className="lang-dropdown absolute right-0 mt-1 bg-white shadow-lg rounded border border-gray-200 py-1 min-w-[110px] z-50">
                     <button
                         onClick={() => { i18n.changeLanguage(otherCode); setOpen(false); }}
                         className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
@@ -62,7 +62,9 @@ function LangButton() {
 }
 
 export default function NavbarCambodiaTax() {
-    const { auth, tenant } = usePage().props;
+    const page = usePage();
+    const { auth, tenant } = page.props;
+    const currentUrl = page.url; // reactive on Inertia navigation, e.g. /elibrary/catalog?type=audio
     const { t } = useTranslation();
     const [mobileOpen, setMobileOpen] = useState(false);
     const [searchQ, setSearchQ] = useState('');
@@ -83,9 +85,18 @@ export default function NavbarCambodiaTax() {
     ];
 
     const isActive = (href) => {
-        const path = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
-        if (href === `${base}/`) return path === href || path === base + '/';
-        return path.startsWith(href.split('?')[0]) && (href.includes('?') ? path.includes(href.split('?')[1]) : true);
+        const [curPath, curQ = ''] = currentUrl.split('?');
+        const [hPath, hQ] = href.split('?');
+
+        // Home: only on the library root.
+        if (hPath === `${base}/`) {
+            return curPath === `${base}/` || curPath === base;
+        }
+        // All catalog links share the same path; the `type` param distinguishes them.
+        if (curPath !== hPath) return false;
+        const curType = new URLSearchParams(curQ).get('type');
+        const hType   = hQ ? new URLSearchParams(hQ).get('type') : null;
+        return curType === hType; // Catalog (no type) active only when no type is set
     };
 
     return (

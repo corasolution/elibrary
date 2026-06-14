@@ -39,7 +39,8 @@ class PartnerPortalController extends Controller
                     'created_at' => $tenant->created_at->format('M d, Y'),
                     'trial_ends_at' => $tenant->trial_ends_at?->format('M d, Y'),
                     'is_trial' => $tenant->trial_ends_at && $tenant->trial_ends_at->isFuture(),
-                    'url' => $tenant->domain ? "https://{$tenant->domain}" : "https://{$tenant->slug}.bannalai.com",
+                    // Path-based tenancy — libraries live at {host}/{slug}
+                    'url' => url('/' . $tenant->slug),
                 ];
             });
 

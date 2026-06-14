@@ -73,6 +73,23 @@ Schedule::call(function () {
     });
 })->dailyAt('09:00')->name('send-due-date-reminders')->withoutOverlapping();
 
+// Expire stale holds and advance reservation queues - 7:30am daily per tenant
+// (before the 8am overdue run so freed copies are reflected in notices)
+Schedule::call(function () {
+    \App\Models\Central\Tenant::all()->each(function ($tenant) {
+        try {
+            tenancy()->initialize($tenant);
+
+            \Illuminate\Support\Facades\Artisan::call('reservations:expire');
+
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Reservation expiry failed for tenant {$tenant->id}: {$e->getMessage()}");
+        } finally {
+            tenancy()->end();
+        }
+    });
+})->dailyAt('07:30')->name('expire-reservations')->withoutOverlapping();
+
 // Cleanup deleted tenants (permanently delete after 30 days) - runs at 2am daily
 Schedule::command('tenants:cleanup-deleted')
     ->dailyAt('02:00')

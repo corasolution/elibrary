@@ -2,10 +2,18 @@ import { useState, useEffect, useRef } from 'react';
 import { usePage, Link } from '@inertiajs/react';
 import { ArrowLeft, Download, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
+const KNOWN_FORMATS = ['pdf', 'epub', 'mp3', 'wav', 'flac', 'audio', 'mp4', 'mkv', 'webm', 'video'];
+
+// Map a file extension to a viewer format key.
+const EXT_FORMAT = {
+    pdf: 'pdf', epub: 'epub',
+    mp3: 'mp3', wav: 'wav', flac: 'flac', m4a: 'audio', ogg: 'audio', aac: 'audio',
+    mp4: 'mp4', mkv: 'mkv', webm: 'webm', mov: 'video', avi: 'video',
+};
+
 export default function Reader({ resource, record, url: signedUrl }) {
     const { tenant } = usePage().props;
     const base = tenant?.base_url ?? '';
-    const format = resource?.format?.toLowerCase();
 
     // Build the file URL: prefer relative /storage path (avoids hostname mismatch),
     // fall back to signedUrl (S3 in production), then external url.
@@ -15,6 +23,25 @@ export default function Reader({ resource, record, url: signedUrl }) {
         if (signedUrl) return signedUrl;
         return resource?.url ?? '';
     })();
+
+    // Trust the saved format if it's a viewer we support; otherwise infer it from
+    // the filename / path / URL extension so legacy records without a format still preview.
+    const resolveFormat = () => {
+        const saved = resource?.format?.toLowerCase();
+        if (saved && KNOWN_FORMATS.includes(saved)) return saved;
+        const src = resource?.original_filename || resource?.file_path || resource?.url || fileUrl || '';
+        const m = src.split('?')[0].match(/\.([a-z0-9]+)$/i);
+        const ext = m ? m[1].toLowerCase() : '';
+        if (EXT_FORMAT[ext]) return EXT_FORMAT[ext];
+        // MIME fallback for files with no usable extension (e.g. S3 keys / signed URLs).
+        const mime = (resource?.mime_type || '').toLowerCase();
+        if (mime.includes('pdf'))      return 'pdf';
+        if (mime.includes('epub'))     return 'epub';
+        if (mime.startsWith('audio/')) return 'audio';
+        if (mime.startsWith('video/')) return 'video';
+        return saved || ext;
+    };
+    const format = resolveFormat();
 
     return (
         <div className="min-h-screen bg-gray-900 flex flex-col">

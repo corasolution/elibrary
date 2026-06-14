@@ -11,7 +11,7 @@ export default function NavbarColorful() {
     const base = tenant?.base_url ?? '';
 
     return (
-        <header className="opac-navbar sticky top-0 z-40 shadow-lg shadow-primary/20">
+        <header className="opac-navbar opac-navbar-themed sticky top-0 z-40 shadow-lg">
             <div className="page-container px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     {/* Brand */}
@@ -42,9 +42,11 @@ export default function NavbarColorful() {
                                 <Link href={`${base}/login`} className="text-sm text-white hover:text-white/80 font-semibold transition-colors drop-shadow">
                                     {t('auth.login')}
                                 </Link>
-                                <Link href={`${base}/register`} className="bg-white text-primary px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-white/90 transition-colors shadow-md">
-                                    {t('nav.register')}
-                                </Link>
+                                {tenant?.self_registration && (
+                                    <Link href={`${base}/register`} className="bg-white text-primary px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-white/90 transition-colors shadow-md">
+                                        {t('nav.register')}
+                                    </Link>
+                                )}
                             </div>
                         )}
                     </nav>

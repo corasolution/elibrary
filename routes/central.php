@@ -2,7 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Central\CentralAuthController;
+use App\Http\Controllers\Central\DashboardController;
 use App\Http\Controllers\Central\TenantController;
+use App\Http\Controllers\Central\RegistrationRequestController;
 use App\Http\Controllers\Central\PartnerController;
 use App\Http\Controllers\Central\PartnerPortalController;
 use App\Http\Controllers\Central\PlatformSettingsController;
@@ -55,9 +57,12 @@ Route::prefix('central')
                 return redirect()->route('central.partner-portal.dashboard');
             }
 
-            // Super Admins and others go to Libraries (Tenants) list
-            return redirect()->route('central.tenants.index');
+            // Super Admins land on the platform overview dashboard
+            return redirect()->route('central.overview');
         })->name('dashboard');
+
+        // Platform overview dashboard (Super Admin)
+        Route::get('/overview', [DashboardController::class, 'index'])->name('overview')->middleware('super_admin');
 
         // ========================================
         // Partner Portal (for Partners & Sales Agents)
@@ -69,7 +74,7 @@ Route::prefix('central')
         // ========================================
         // Subscription Plans (Super Admin only)
         // ========================================
-        Route::prefix('plans')->name('plans.')->group(function () {
+        Route::prefix('plans')->name('plans.')->middleware('super_admin')->group(function () {
             Route::get('/', [PlanController::class, 'index'])->name('index');
             Route::get('/create', [PlanController::class, 'create'])->name('create');
             Route::post('/', [PlanController::class, 'store'])->name('store');
@@ -81,7 +86,7 @@ Route::prefix('central')
         // ========================================
         // Payment Verification (Super Admin only)
         // ========================================
-        Route::prefix('payments')->name('payments.')->group(function () {
+        Route::prefix('payments')->name('payments.')->middleware('super_admin')->group(function () {
             Route::get('/', [PaymentController::class, 'index'])->name('index');
             Route::post('/{id}/verify', [PaymentController::class, 'verify'])->name('verify');
             Route::post('/{id}/reject', [PaymentController::class, 'reject'])->name('reject');
@@ -90,7 +95,7 @@ Route::prefix('central')
         // ========================================
         // Invoice Management (Super Admin only)
         // ========================================
-        Route::prefix('invoices')->name('invoices.')->group(function () {
+        Route::prefix('invoices')->name('invoices.')->middleware('super_admin')->group(function () {
             Route::get('/', [InvoiceController::class, 'index'])->name('index');
             Route::get('/{id}/download', [InvoiceController::class, 'download'])->name('download');
             Route::get('/{id}/preview', [InvoiceController::class, 'preview'])->name('preview');
@@ -112,13 +117,33 @@ Route::prefix('central')
 
             // Slug availability check
             Route::get('/check-slug/{slug}', [TenantController::class, 'checkSlug'])->name('check-slug');
+
+            // Featured toggle (landing page portfolio)
+            Route::post('/{id}/toggle-featured', [TenantController::class, 'toggleFeatured'])->name('toggle-featured');
+
+            // Reset a library admin's password (library_admin role only)
+            Route::post('/{id}/admins/{userId}/reset-password', [TenantController::class, 'resetAdminPassword'])
+                ->name('admins.reset-password');
+
+            // Tenant detail (registered last so /create and /check-slug win)
+            Route::get('/{id}', [TenantController::class, 'show'])->name('show');
+        });
+
+        // ========================================
+        // Library Registration Requests (leads — Super Admin reviews then creates library)
+        // ========================================
+        Route::prefix('registration-requests')->name('registration-requests.')->group(function () {
+            Route::get('/', [RegistrationRequestController::class, 'index'])->name('index');
+            Route::get('/{id}', [RegistrationRequestController::class, 'show'])->name('show');
+            Route::put('/{id}/status', [RegistrationRequestController::class, 'updateStatus'])->name('update-status');
+            Route::delete('/{id}', [RegistrationRequestController::class, 'destroy'])->name('destroy');
         });
 
         // ========================================
         // Partner Management
         // (Super Admin only)
         // ========================================
-        Route::prefix('partners')->name('partners.')->group(function () {
+        Route::prefix('partners')->name('partners.')->middleware('super_admin')->group(function () {
             Route::get('/', [PartnerController::class, 'index'])->name('index');
             Route::get('/create', [PartnerController::class, 'create'])->name('create');
             Route::post('/', [PartnerController::class, 'store'])->name('store');
@@ -135,7 +160,7 @@ Route::prefix('central')
         // Team Members
         // (Super Admin only)
         // ========================================
-        Route::prefix('team')->name('team.')->group(function () {
+        Route::prefix('team')->name('team.')->middleware('super_admin')->group(function () {
             Route::get('/', [\App\Http\Controllers\Central\TeamController::class, 'index'])->name('index');
             Route::get('/create', [\App\Http\Controllers\Central\TeamController::class, 'create'])->name('create');
             Route::post('/', [\App\Http\Controllers\Central\TeamController::class, 'store'])->name('store');
@@ -148,7 +173,7 @@ Route::prefix('central')
         // Roles & Permissions
         // (Super Admin only)
         // ========================================
-        Route::prefix('roles')->name('roles.')->group(function () {
+        Route::prefix('roles')->name('roles.')->middleware('super_admin')->group(function () {
             Route::get('/', [\App\Http\Controllers\Central\RoleController::class, 'index'])->name('index');
             Route::get('/create', [\App\Http\Controllers\Central\RoleController::class, 'create'])->name('create');
             Route::post('/', [\App\Http\Controllers\Central\RoleController::class, 'store'])->name('store');
@@ -161,7 +186,7 @@ Route::prefix('central')
         // Content Management System (CMS)
         // (Super Admin only)
         // ========================================
-        Route::prefix('cms')->name('cms.')->group(function () {
+        Route::prefix('cms')->name('cms.')->middleware('super_admin')->group(function () {
             Route::get('/', [CMSController::class, 'index'])->name('index');
             Route::get('/create', [CMSController::class, 'form'])->name('create');
             Route::post('/', [CMSController::class, 'store'])->name('store');
@@ -183,7 +208,7 @@ Route::prefix('central')
         // Platform Settings
         // (Super Admin only)
         // ========================================
-        Route::prefix('settings')->name('settings.')->group(function () {
+        Route::prefix('settings')->name('settings.')->middleware('super_admin')->group(function () {
             // AI Settings
             Route::get('/ai', [PlatformSettingsController::class, 'aiSettings'])->name('ai');
             Route::post('/ai', [PlatformSettingsController::class, 'updateAISettings'])->name('ai.update');

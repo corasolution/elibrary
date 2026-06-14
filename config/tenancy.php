@@ -13,11 +13,15 @@ return [
         'localhost',
         'alphaelibrary.com',
         'app.alphaelibrary.com',
+        'bannalai.com',
+        'www.bannalai.com',
     ],
 
     'bootstrappers' => [
         Stancl\Tenancy\Bootstrappers\DatabaseTenancyBootstrapper::class,
-        Stancl\Tenancy\Bootstrappers\CacheTenancyBootstrapper::class,
+        // Tags-based CacheTenancyBootstrapper replaced — file/database cache
+        // drivers don't support tags. This isolates tenants by cache directory.
+        App\Tenancy\Bootstrappers\FileCacheTenancyBootstrapper::class,
         Stancl\Tenancy\Bootstrappers\FilesystemTenancyBootstrapper::class,
         Stancl\Tenancy\Bootstrappers\QueueTenancyBootstrapper::class,
     ],

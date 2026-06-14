@@ -25,10 +25,12 @@ class GeminiService implements AiTextService
 
     public function __construct()
     {
-        // Read from database settings first, fall back to config/env
-        $this->apiKey = $this->getSettingValue('gemini_api_key') ?? config('services.gemini.api_key');
-        $this->baseUrl = $this->getSettingValue('gemini_api_url') ?? config('services.gemini.base_url');
-        $this->model = $this->getSettingValue('gemini_model') ?? config('services.gemini.model');
+        // Read from database settings first, fall back to config/env.
+        // Coalesce to '' — the API key is unset until configured in Central Admin,
+        // and the typed string properties cannot hold null. isConfigured() guards usage.
+        $this->apiKey = $this->getSettingValue('gemini_api_key') ?? config('services.gemini.api_key') ?? '';
+        $this->baseUrl = $this->getSettingValue('gemini_api_url') ?? config('services.gemini.base_url') ?? '';
+        $this->model = $this->getSettingValue('gemini_model') ?? config('services.gemini.model') ?? '';
         $this->timeout = config('services.gemini.timeout', 30);
         $this->maxRetries = config('services.gemini.max_retries', 2);
     }
@@ -161,6 +163,103 @@ class GeminiService implements AiTextService
                 }
 
                 sleep(2 ** $attempt); // Exponential backoff
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Generate content from a prompt + image (vision). Mirrors generateContent()
+     * but sends an inline_data image part alongside the text part.
+     */
+    public function generateFromImage(string $prompt, string $base64Image, string $mime, array $options = []): ?array
+    {
+        $cacheKey = $options['cache_key'] ?? null;
+        $cacheTTL = $options['cache_ttl'] ?? (90 * 24 * 60);
+        $feature  = $options['feature'] ?? 'generate_from_image';
+
+        if ($cacheKey && Cache::has($cacheKey)) {
+            $this->logUsage($feature, ['input_tokens' => 0, 'output_tokens' => 0, 'response_time_ms' => 0], 'success', true);
+            return Cache::get($cacheKey);
+        }
+
+        $temperature = $options['temperature'] ?? 0.2;
+        $maxTokens   = $options['max_output_tokens'] ?? 2048;
+
+        $payload = [
+            'contents' => [[
+                'parts' => [
+                    ['inline_data' => ['mime_type' => $mime, 'data' => $base64Image]],
+                    ['text' => $prompt],
+                ],
+            ]],
+            'generationConfig' => [
+                'temperature'     => $temperature,
+                'topK'            => 40,
+                'topP'            => 0.95,
+                'maxOutputTokens' => $maxTokens,
+            ],
+        ];
+
+        $startTime = microtime(true);
+        $attempt = 0;
+
+        while ($attempt < $this->maxRetries) {
+            try {
+                $response = Http::timeout($this->timeout)
+                    ->withHeaders(['Content-Type' => 'application/json'])
+                    ->post("{$this->baseUrl}/models/{$this->model}:generateContent?key={$this->apiKey}", $payload);
+
+                if ($response->successful()) {
+                    $data = $response->json();
+                    $responseTime = (int) ((microtime(true) - $startTime) * 1000);
+
+                    $result = [
+                        'text' => $data['candidates'][0]['content']['parts'][0]['text'] ?? null,
+                        'metadata' => [
+                            'model' => $this->model,
+                            'input_tokens' => $data['usageMetadata']['promptTokenCount'] ?? 0,
+                            'output_tokens' => $data['usageMetadata']['candidatesTokenCount'] ?? 0,
+                            'total_tokens' => $data['usageMetadata']['totalTokenCount'] ?? 0,
+                            'response_time_ms' => $responseTime,
+                        ],
+                    ];
+
+                    if ($cacheKey) {
+                        Cache::put($cacheKey, $result, $cacheTTL);
+                    }
+
+                    $this->logUsage($feature, $result['metadata'], 'success', false);
+
+                    return $result;
+                }
+
+                if ($response->status() === 429) {
+                    $attempt++;
+                    if ($attempt < $this->maxRetries) {
+                        sleep(2 ** $attempt);
+                        continue;
+                    }
+                }
+
+                throw new \Exception("Gemini API error: {$response->status()} - {$response->body()}");
+            } catch (\Throwable $e) {
+                $attempt++;
+                Log::warning("Gemini vision attempt {$attempt} failed: {$e->getMessage()}");
+
+                if ($attempt >= $this->maxRetries) {
+                    $this->logUsage($feature, [
+                        'input_tokens' => 0,
+                        'output_tokens' => 0,
+                        'response_time_ms' => (int) ((microtime(true) - $startTime) * 1000),
+                        'error' => $e->getMessage(),
+                    ], 'error', false);
+
+                    return null;
+                }
+
+                sleep(2 ** $attempt);
             }
         }
 

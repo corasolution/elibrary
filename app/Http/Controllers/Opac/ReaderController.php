@@ -18,7 +18,7 @@ class ReaderController extends Controller
         $patronId = $request->user('patron')?->id;
 
         if (! $this->assetService->canAccess($resource, $patronId)) {
-            $slug = $request->route('slug');
+            $slug = $request->segment(1);
             return redirect()->route('library.opac.login', ['slug' => $slug])
                 ->with('error', 'You must be logged in to access this resource.');
         }

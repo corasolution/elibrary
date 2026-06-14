@@ -632,6 +632,8 @@
         "email": "អ៊ីមែល",
         "password": "លេខសំងាត់",
         "login": "ចូល",
+        "login_identifier": "អ៊ីមែល ឬលេខប័ណ្ណ",
+        "login_identifier_placeholder": "you@example.com ឬ P00012",
         "register": "បង្កើតគណនី",
         "remember_me": "ចងចាំខ្ញុំ",
         "forgot_password": "ភ្លេចលេខសំងាត់?",

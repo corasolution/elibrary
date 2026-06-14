@@ -2,12 +2,14 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Link, router, useForm } from '@inertiajs/react';
 import { Plus, Search, Edit2, Trash2, Eye, BookOpen, FileText, X, Upload } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import ExcelExportButton from '@/Components/Catalog/ExcelExportButton';
 import ExcelImportModal from '@/Components/Catalog/ExcelImportModal';
 
 export default function CatalogIndex({ records, filters, trashCount = 0 }) {
     const [search, setSearch]           = useState(filters?.q ?? '');
     const [showImportModal, setShowImportModal] = useState(false);
+    const { t } = useTranslation();
 
     const doSearch = (e) => {
         e.preventDefault();
@@ -20,7 +22,7 @@ export default function CatalogIndex({ records, filters, trashCount = 0 }) {
     };
 
     const deleteRecord = (id, title) => {
-        if (!confirm(`Move "${title}" to trash? It will be permanently deleted after 30 days.`)) return;
+        if (!confirm(t('admin.catalog.delete_confirm', { title }))) return;
         router.delete(route('admin.catalog.destroy', id));
     };
 
@@ -28,7 +30,7 @@ export default function CatalogIndex({ records, filters, trashCount = 0 }) {
     const total = records?.total ?? 0;
 
     return (
-        <AdminLayout title="Catalog">
+        <AdminLayout title={t('admin.catalog.page_title')}>
             <div className="space-y-4">
                 {/* Toolbar */}
                 <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
@@ -39,7 +41,7 @@ export default function CatalogIndex({ records, filters, trashCount = 0 }) {
                                 type="text"
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
-                                placeholder="Search title, author, ISBN…"
+                                placeholder={t('admin.catalog.search_placeholder')}
                                 className="w-full pl-9 pr-8 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                             {search && (
@@ -51,7 +53,7 @@ export default function CatalogIndex({ records, filters, trashCount = 0 }) {
                         </div>
                         <button type="submit"
                             className="px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-300">
-                            Search
+                            {t('common.search')}
                         </button>
                     </form>
 
@@ -59,7 +61,7 @@ export default function CatalogIndex({ records, filters, trashCount = 0 }) {
                         <Link href={route('admin.catalog.trash')}
                             className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50">
                             <Trash2 className="w-4 h-4" />
-                            Trash
+                            {t('admin.catalog.trash')}
                             {trashCount > 0 && (
                                 <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-100 text-red-600 text-xs font-semibold">
                                     {trashCount}
@@ -76,12 +78,12 @@ export default function CatalogIndex({ records, filters, trashCount = 0 }) {
                             className="inline-flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 bg-white"
                         >
                             <Upload className="w-4 h-4 text-blue-600" />
-                            Import
+                            {t('admin.catalog.import')}
                         </button>
 
                         <Link href={route('admin.catalog.create')}
                             className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg">
-                            <Plus className="w-4 h-4" /> New Record
+                            <Plus className="w-4 h-4" /> {t('admin.catalog.new_record')}
                         </Link>
                     </div>
                 </div>
@@ -90,20 +92,20 @@ export default function CatalogIndex({ records, filters, trashCount = 0 }) {
                 <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                     {/* Count */}
                     <div className="px-4 py-3 border-b border-gray-100 text-sm text-gray-500">
-                        {total.toLocaleString()} {total === 1 ? 'record' : 'records'}
-                        {filters?.q && <span className="ml-1">matching <strong>"{filters.q}"</strong></span>}
+                        {total.toLocaleString()} {total === 1 ? t('admin.catalog.record_singular') : t('admin.catalog.record_plural')}
+                        {filters?.q && <span className="ml-1">{t('admin.catalog.matching')} <strong>"{filters.q}"</strong></span>}
                     </div>
 
                     {data.length === 0 ? (
                         <div className="py-16 text-center">
                             <BookOpen className="w-10 h-10 text-gray-300 mx-auto mb-3" />
                             <p className="text-sm text-gray-500">
-                                {filters?.q ? 'No records match your search.' : 'No catalog records yet.'}
+                                {filters?.q ? t('admin.catalog.no_search_results') : t('admin.catalog.no_records')}
                             </p>
                             {!filters?.q && (
                                 <Link href={route('admin.catalog.create')}
                                     className="inline-flex items-center gap-1.5 mt-4 text-sm text-blue-600 hover:underline">
-                                    <Plus className="w-4 h-4" /> Add the first record
+                                    <Plus className="w-4 h-4" /> {t('admin.catalog.add_first')}
                                 </Link>
                             )}
                         </div>
@@ -112,12 +114,12 @@ export default function CatalogIndex({ records, filters, trashCount = 0 }) {
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="bg-gray-50 border-b border-gray-100">
-                                        <th className="text-left px-4 py-3 font-medium text-gray-600">Title</th>
-                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden md:table-cell">Author</th>
-                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden lg:table-cell">Type</th>
-                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden lg:table-cell">Year</th>
-                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden xl:table-cell">ISBN</th>
-                                        <th className="text-center px-4 py-3 font-medium text-gray-600">Copies</th>
+                                        <th className="text-left px-4 py-3 font-medium text-gray-600">{t('admin.catalog.col_title')}</th>
+                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden md:table-cell">{t('admin.catalog.col_author')}</th>
+                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden lg:table-cell">{t('admin.catalog.col_type')}</th>
+                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden lg:table-cell">{t('admin.catalog.col_year')}</th>
+                                        <th className="text-left px-4 py-3 font-medium text-gray-600 hidden xl:table-cell">{t('admin.catalog.col_isbn')}</th>
+                                        <th className="text-center px-4 py-3 font-medium text-gray-600">{t('admin.catalog.col_copies')}</th>
                                         <th className="px-4 py-3"></th>
                                     </tr>
                                 </thead>
@@ -191,18 +193,18 @@ export default function CatalogIndex({ records, filters, trashCount = 0 }) {
                     {/* Pagination */}
                     {records?.last_page > 1 && (
                         <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-                            <span>Page {records.current_page} of {records.last_page}</span>
+                            <span>{t('common.page_of', { current: records.current_page, last: records.last_page })}</span>
                             <div className="flex gap-2">
                                 {records.prev_page_url && (
                                     <Link href={records.prev_page_url}
                                         className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">
-                                        Previous
+                                        {t('common.previous')}
                                     </Link>
                                 )}
                                 {records.next_page_url && (
                                     <Link href={records.next_page_url}
                                         className="px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50">
-                                        Next
+                                        {t('common.next')}
                                     </Link>
                                 )}
                             </div>

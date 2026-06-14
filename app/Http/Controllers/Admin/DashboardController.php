@@ -33,10 +33,11 @@ class DashboardController extends Controller
             $totalPatrons = Patron::where('status', 'active')->count();
             $todayStat    = DailyStat::where('date', $today)->first();
             $digitalViews = $todayStat?->digital_views ?? 0;
+            $holdsReady   = \App\Models\Tenant\Reservation::where('status', 'ready')->count();
 
-            return compact('loansToday', 'returnsToday', 'overdue', 'newPatrons', 'totalTitles', 'totalPatrons', 'digitalViews');
+            return compact('loansToday', 'returnsToday', 'overdue', 'newPatrons', 'totalTitles', 'totalPatrons', 'digitalViews', 'holdsReady');
         } catch (\Throwable) {
-            return ['loansToday'=>0,'returnsToday'=>0,'overdue'=>0,'newPatrons'=>0,'totalTitles'=>0,'totalPatrons'=>0,'digitalViews'=>0];
+            return ['loansToday'=>0,'returnsToday'=>0,'overdue'=>0,'newPatrons'=>0,'totalTitles'=>0,'totalPatrons'=>0,'digitalViews'=>0,'holdsReady'=>0];
         }
     }
 

@@ -16,7 +16,7 @@ return [
     'providers' => [
 
         'cloudflare_r2_default' => [
-            'name' => 'Cloudflare R2 (Default)',
+            'name' => 'Alpha Cloud Storage',
             'driver' => 's3',
             'description' => 'Free egress, S3-compatible object storage',
             'documentation' => 'https://developers.cloudflare.com/r2/',

@@ -21,7 +21,7 @@ export default function RegistrationPending() {
                     </h1>
 
                     <p className="text-lg text-gray-600 mb-8">
-                        {t('registration.pending_message', 'Thank you for registering with Alpha eLibrary. Your library registration is currently under review.')}
+                        {t('registration.pending_message', 'Thank you for registering with Alpha eLibrary. Your account is under review and we will get back to you soon.')}
                     </p>
 
                     {/* What's Next Section */}
@@ -38,11 +38,11 @@ export default function RegistrationPending() {
                             </li>
                             <li className="flex items-start gap-3">
                                 <span className="font-semibold shrink-0">2.</span>
-                                <span>{t('registration.step2', 'We will verify your library information and prepare your account.')}</span>
+                                <span>{t('registration.step2', 'We will contact you on Telegram to verify your library information.')}</span>
                             </li>
                             <li className="flex items-start gap-3">
                                 <span className="font-semibold shrink-0">3.</span>
-                                <span>{t('registration.step3', 'Once approved, you will receive an email with your login credentials and access instructions.')}</span>
+                                <span>{t('registration.step3', 'Once verified, we will set up your library account and send you your login details.')}</span>
                             </li>
                             <li className="flex items-start gap-3">
                                 <span className="font-semibold shrink-0">4.</span>

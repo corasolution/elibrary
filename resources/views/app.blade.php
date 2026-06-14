@@ -22,7 +22,7 @@
     <link rel="alternate" hreflang="km" href="{{ url()->current() }}" />
     <link rel="alternate" hreflang="x-default" href="{{ url('/') }}" />
 
-    <!-- SEO: Default Meta (overridden per page via @inertiaHead) -->
+    <!-- SEO: Default Meta (overridden per page via Inertia head) -->
     <meta name="description" content="Alpha eLibrary — Cambodia's leading digital library platform. Modern library management, cataloging, circulation and eLibrary for schools, universities and NGOs across Southeast Asia." />
     <meta name="keywords" content="digital library cambodia, library management system cambodia, e-library cambodia, school library software, university library system, បណ្ណាល័យឌីជីថល, ប្រព័ន្ធគ្រប់គ្រងបណ្ណាល័យ" />
     <meta name="robots" content="index, follow" />
@@ -55,13 +55,13 @@
     <meta name="application-name" content="{{ $platformName }}" />
 
     <!-- JSON-LD: Organization -->
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","@id":"{{ url('/') }}/#organization","name":"Alpha eLibrary","alternateName":"Bannalai","url":"{{ url('/') }}","description":"Cambodia's leading digital library platform for schools, universities, NGOs and government libraries.","foundingLocation":{"@type":"Place","name":"Phnom Penh, Cambodia"},"areaServed":["KH","TH","VN","MM","LA"],"contactPoint":{"@type":"ContactPoint","contactType":"customer support","email":"hello@corasoft.io","availableLanguage":["English","Khmer"]}}</script>
+    <script type="application/ld+json">{"@@context":"https://schema.org","@type":"Organization","@id":"{{ url('/') }}/#organization","name":"Alpha eLibrary","alternateName":"Bannalai","url":"{{ url('/') }}","description":"Cambodia's leading digital library platform for schools, universities, NGOs and government libraries.","foundingLocation":{"@type":"Place","name":"Phnom Penh, Cambodia"},"areaServed":["KH","TH","VN","MM","LA"],"contactPoint":{"@type":"ContactPoint","contactType":"customer support","email":"hello@corasoft.io","availableLanguage":["English","Khmer"]}}</script>
 
     <!-- JSON-LD: SoftwareApplication -->
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Alpha eLibrary","applicationCategory":"BusinessApplication","operatingSystem":"Web","offers":{"@type":"AggregateOffer","priceCurrency":"USD","lowPrice":"0","highPrice":"79","offerCount":"4"},"description":"Integrated Library System and eLibrary SaaS for Cambodia and Southeast Asia.","featureList":["Book cataloging with ISBN lookup","Circulation and loan management","Digital eBook and ePub reader","AI-powered catalog search","Khmer language support","Multi-branch library management","Cloud storage","Patron self-registration","Barcode label printing","Library analytics and reports"],"inLanguage":["en","km"],"url":"{{ url('/') }}"}</script>
+    <script type="application/ld+json">{"@@context":"https://schema.org","@type":"SoftwareApplication","name":"Alpha eLibrary","applicationCategory":"BusinessApplication","operatingSystem":"Web","offers":{"@type":"AggregateOffer","priceCurrency":"USD","lowPrice":"0","highPrice":"79","offerCount":"4"},"description":"Integrated Library System and eLibrary SaaS for Cambodia and Southeast Asia.","featureList":["Book cataloging with ISBN lookup","Circulation and loan management","Digital eBook and ePub reader","AI-powered catalog search","Khmer language support","Multi-branch library management","Cloud storage","Patron self-registration","Barcode label printing","Library analytics and reports"],"inLanguage":["en","km"],"url":"{{ url('/') }}"}</script>
 
     <!-- JSON-LD: WebSite -->
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"{{ $platformName }}","url":"{{ url('/') }}","description":"Cambodia's #1 digital library platform","inLanguage":["en","km"]}</script>
+    <script type="application/ld+json">{"@@context":"https://schema.org","@type":"WebSite","name":"{{ $platformName }}","url":"{{ url('/') }}","description":"Cambodia's #1 digital library platform","inLanguage":["en","km"]}</script>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -72,6 +72,8 @@
     <script>
         // Pass server-side locale to i18n
         window.initialLanguage = @json($page['props']['locale'] ?? 'km');
+        // Runtime app/platform name for the Inertia tab-title fallback.
+        window.__APP_NAME__ = @json($platformName);
     </script>
     @routes
     @viteReactRefresh

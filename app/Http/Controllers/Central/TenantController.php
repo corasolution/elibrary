@@ -84,7 +84,7 @@ class TenantController extends Controller
     /**
      * Show tenant creation form
      */
-    public function create()
+    public function create(Request $request)
     {
         $centralUser = Auth::guard('central')->user();
 
@@ -93,9 +93,14 @@ class TenantController extends Controller
             abort(403, 'You do not have permission to create tenants.');
         }
 
+        // Optional prefill when converting a registration request into a library.
+        $prefill = $request->only(['name', 'slug', 'admin_name', 'admin_email', 'plan_id']);
+
         return Inertia::render('Central/Tenants/Form', [
             'tenant' => null,
             'plans' => Plan::where('is_active', true)->orderBy('name')->get(['id', 'name', 'price_usd']),
+            'prefill' => array_filter($prefill),
+            'registrationRequestId' => $request->get('registration_request_id'),
         ]);
     }
 
@@ -122,7 +127,11 @@ class TenantController extends Controller
             'admin_name' => ['required', 'string', 'max:255'],
             'admin_email' => ['required', 'email', 'max:255'],
             'admin_password' => ['required', 'string', 'min:8', 'confirmed'],
+            'registration_request_id' => ['nullable', 'string'],
         ]);
+
+        $requestId = $validated['registration_request_id'] ?? null;
+        unset($validated['registration_request_id']);
 
         $validated['id'] = (string) Str::uuid();
         $validated['created_by_id'] = $centralUser->id;
@@ -139,6 +148,16 @@ class TenantController extends Controller
                 'email' => $validated['admin_email'],
                 'password' => $validated['admin_password'],
             ]);
+
+            // If this library was created from a registration request, mark it approved.
+            if ($requestId) {
+                \App\Models\Central\RegistrationRequest::where('id', $requestId)->update([
+                    'status'         => \App\Models\Central\RegistrationRequest::STATUS_APPROVED,
+                    'tenant_id'      => $tenant->id,
+                    'reviewed_by_id' => $centralUser->id,
+                    'reviewed_at'    => now(),
+                ]);
+            }
 
             return redirect()
                 ->route('central.tenants.index')
@@ -168,6 +187,150 @@ class TenantController extends Controller
     }
 
     /**
+     * Tenant detail page — admins, AI usage, storage, catalog breakdown.
+     * Tenant-database stats are gathered inside initialize/end so a broken
+     * tenant DB degrades to an error banner instead of a 500.
+     */
+    public function show(string $id)
+    {
+        $centralUser = Auth::guard('central')->user();
+        $tenant = Tenant::with(['plan:id,name,price_usd', 'managedBy:id,name', 'createdBy:id,name'])->findOrFail($id);
+
+        if (!$centralUser->canManageTenant($id)) {
+            abort(403, 'You do not have permission to view this tenant.');
+        }
+
+        $admins       = [];
+        $catalog      = [];
+        $totals       = ['records' => 0, 'patrons' => 0, 'staff' => 0];
+        $storageBytes = null;
+        $tenantError  = null;
+
+        try {
+            tenancy()->initialize($tenant);
+
+            // Convert to plain arrays BEFORE tenancy()->end() — Inertia serializes
+            // props after the tenant connection is gone, and Eloquent models from
+            // the tenant DB crash on date casting without it.
+            $admins = \App\Models\Tenant\User::role('library_admin')
+                ->orderBy('created_at')
+                ->get(['id', 'name', 'email', 'created_at'])
+                ->map(fn ($u) => [
+                    'id'         => $u->id,
+                    'name'       => $u->name,
+                    'email'      => $u->email,
+                    'created_at' => $u->created_at?->toIso8601String(),
+                ])
+                ->values()
+                ->all();
+
+            $catalog = \App\Models\Tenant\BibliographicRecord::query()
+                ->leftJoin('material_types', 'material_types.id', '=', 'bibliographic_records.material_type_id')
+                ->selectRaw("coalesce(material_types.name, 'Uncategorized') as type, count(*) as total")
+                ->groupBy('material_types.name')
+                ->orderByDesc('total')
+                ->get()
+                ->map(fn ($row) => ['type' => $row->type, 'total' => (int) $row->total])
+                ->values()
+                ->all();
+
+            $totals['records'] = \App\Models\Tenant\BibliographicRecord::count();
+            $totals['patrons'] = \App\Models\Tenant\Patron::count();
+            $totals['staff']   = \App\Models\Tenant\User::count();
+
+            // Tenant storage usage — storage_path() is suffixed per-tenant while
+            // tenancy is initialized (suffix_storage_path = true).
+            $dir = storage_path('app');
+            if (is_dir($dir)) {
+                $storageBytes = 0;
+                $iterator = new \RecursiveIteratorIterator(
+                    new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS)
+                );
+                foreach ($iterator as $file) {
+                    if ($file->isFile()) {
+                        $storageBytes += $file->getSize();
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            $tenantError = $e->getMessage();
+        } finally {
+            tenancy()->end();
+        }
+
+        // AI usage per month from the central ledger (no tenant DB scan needed)
+        $aiUsage = \App\Models\Central\AiUsageLedger::where('tenant_id', $id)
+            ->where('created_at', '>=', now()->subMonths(6)->startOfMonth())
+            ->selectRaw("to_char(created_at, 'YYYY-MM') as month")
+            ->selectRaw('count(*) as calls')
+            ->selectRaw('sum(input_tokens) as input_tokens')
+            ->selectRaw('sum(output_tokens) as output_tokens')
+            ->selectRaw('sum(billed_usd) as billed_usd')
+            ->groupBy('month')
+            ->orderByDesc('month')
+            ->get();
+
+        return Inertia::render('Central/Tenants/Show', [
+            'tenant'       => $tenant,
+            'admins'       => $admins,
+            'catalog'      => $catalog,
+            'totals'       => $totals,
+            'storageBytes' => $storageBytes,
+            'aiUsage'      => $aiUsage,
+            'tenantError'  => $tenantError,
+        ]);
+    }
+
+    /**
+     * Reset a library ADMIN's password. Scoped to users holding the
+     * `library_admin` role only — other staff cannot be reset here.
+     * Returns the new password as JSON so it can be shown once and relayed.
+     */
+    public function resetAdminPassword(Request $request, string $id, string $userId)
+    {
+        $centralUser = Auth::guard('central')->user();
+        $tenant = Tenant::findOrFail($id);
+
+        if (! $centralUser->canManageTenant($id)) {
+            abort(403, 'You do not have permission to manage this library.');
+        }
+
+        $request->validate([
+            'password' => ['nullable', 'string', 'min:8'],
+        ]);
+
+        $newPassword = $request->filled('password')
+            ? $request->input('password')
+            : Str::password(12);
+
+        try {
+            tenancy()->initialize($tenant);
+
+            $user = \App\Models\Tenant\User::findOrFail($userId);
+
+            if (! $user->hasRole('library_admin')) {
+                tenancy()->end();
+                abort(403, 'Only library admin accounts can be reset here.');
+            }
+
+            $user->update(['password' => \Illuminate\Support\Facades\Hash::make($newPassword)]);
+            $email = $user->email;
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            tenancy()->end();
+            return response()->json(['error' => 'Could not reset password: ' . $e->getMessage()], 422);
+        }
+
+        tenancy()->end();
+
+        return response()->json([
+            'email'    => $email,
+            'password' => $newPassword,
+        ]);
+    }
+
+    /**
      * Update tenant
      */
     public function update(Request $request, string $id)
@@ -187,10 +350,13 @@ class TenantController extends Controller
             'plan_id' => ['nullable', 'exists:plans,id'],
             'trial_ends_at' => ['nullable', 'date'],
             'status' => ['required', 'in:pending,active,suspended,cancelled'],
+            'is_featured' => ['nullable', 'boolean'],
+            'featured_order' => ['nullable', 'integer', 'min:1'],
         ]);
 
         try {
             $tenant->update($validated);
+            $this->clearLandingCaches();
 
             return redirect()
                 ->route('central.tenants.index')
@@ -198,6 +364,44 @@ class TenantController extends Controller
         } catch (\Throwable $e) {
             return back()->withErrors(['general' => 'Failed to update tenant: ' . $e->getMessage()]);
         }
+    }
+
+    /**
+     * Toggle a library's featured flag (shown on the public landing page).
+     */
+    public function toggleFeatured(Request $request, string $id)
+    {
+        $centralUser = Auth::guard('central')->user();
+
+        if (!$centralUser->isSuperAdmin()) {
+            abort(403, 'Only Super Admins can feature libraries.');
+        }
+
+        $tenant = Tenant::findOrFail($id);
+
+        if ($tenant->is_featured) {
+            $tenant->update(['is_featured' => false, 'featured_order' => null]);
+            $message = "'{$tenant->name}' removed from the landing page.";
+        } else {
+            $order = $request->integer('featured_order')
+                ?: ((int) Tenant::where('is_featured', true)->max('featured_order')) + 1;
+            $tenant->update(['is_featured' => true, 'featured_order' => $order]);
+            $message = "'{$tenant->name}' is now featured on the landing page.";
+        }
+
+        $this->clearLandingCaches();
+
+        return back()->with('success', $message);
+    }
+
+    /**
+     * Landing page library lists are cached — drop them whenever
+     * featured flags or tenant details change.
+     */
+    private function clearLandingCaches(): void
+    {
+        \Illuminate\Support\Facades\Cache::forget('landing.featured_libraries');
+        \Illuminate\Support\Facades\Cache::forget('landing.all_libraries');
     }
 
     /**
@@ -329,7 +533,7 @@ class TenantController extends Controller
     public function checkSlug(string $slug)
     {
         // Reserved slugs
-        $reserved = ['admin', 'central', 'api', 'features', 'pricing', 'about', 'contact', 'demo', 'register', 'login', 'logout', 'dashboard'];
+        $reserved = ['admin', 'central', 'api', 'features', 'pricing', 'about', 'contact', 'demo', 'register', 'login', 'logout', 'dashboard', 'libraries'];
 
         if (in_array($slug, $reserved)) {
             return response()->json([

@@ -11,7 +11,7 @@ export default function NavbarDark() {
     const base = tenant?.base_url ?? '';
 
     return (
-        <header className="opac-navbar bg-gray-900 text-gray-100 sticky top-0 z-40 shadow-lg shadow-black/20">
+        <header className="opac-navbar opac-navbar-themed sticky top-0 z-40 shadow-lg shadow-black/20">
             <div className="page-container px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     {/* Brand */}
@@ -42,9 +42,11 @@ export default function NavbarDark() {
                                 <Link href={`${base}/login`} className="text-sm text-gray-300 hover:text-white font-medium transition-colors">
                                     {t('auth.login')}
                                 </Link>
-                                <Link href={`${base}/register`} className="bg-primary text-white px-4 py-1.5 rounded-lg text-xs font-semibold hover:opacity-90 transition-opacity">
-                                    {t('nav.register')}
-                                </Link>
+                                {tenant?.self_registration && (
+                                    <Link href={`${base}/register`} className="bg-primary text-white px-4 py-1.5 rounded-lg text-xs font-semibold hover:opacity-90 transition-opacity">
+                                        {t('nav.register')}
+                                    </Link>
+                                )}
                             </div>
                         )}
                     </nav>

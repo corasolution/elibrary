@@ -1,18 +1,21 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Link, useForm } from '@inertiajs/react';
 import { AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { fmtDate } from '@/utils/date';
 
 export default function Overdue({ loans }) {
     const loanList = loans?.data ?? [];
+    const { t } = useTranslation();
 
     return (
-        <AdminLayout title="Overdue Items">
+        <AdminLayout title={t('admin.loans_ui.overdue_title')}>
             <div className="space-y-4">
                 <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
                     <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
                         <AlertCircle className="w-4 h-4 text-red-500" />
-                        <h2 className="text-sm font-semibold text-gray-700">Overdue Loans</h2>
-                        <span className="ml-auto text-xs text-gray-400">{loans?.total ?? 0} items</span>
+                        <h2 className="text-sm font-semibold text-gray-700">{t('admin.loans_ui.overdue_title')}</h2>
+                        <span className="ml-auto text-xs text-gray-400">{loans?.total ?? 0} {t('common.items')}</span>
                     </div>
 
                     {loanList.length > 0 ? (
@@ -21,12 +24,12 @@ export default function Overdue({ loans }) {
                                 <table className="w-full text-sm">
                                     <thead className="bg-gray-50">
                                         <tr>
-                                            <th className="text-left py-2 px-4 font-medium text-gray-600">Patron</th>
-                                            <th className="text-left py-2 px-4 font-medium text-gray-600">Title</th>
-                                            <th className="text-left py-2 px-4 font-medium text-gray-600">Barcode</th>
-                                            <th className="text-left py-2 px-4 font-medium text-gray-600">Due Date</th>
-                                            <th className="text-left py-2 px-4 font-medium text-gray-600">Days Overdue</th>
-                                            <th className="text-right py-2 px-4 font-medium text-gray-600">Fine</th>
+                                            <th className="text-left py-2 px-4 font-medium text-gray-600">{t('admin.loans_ui.col_patron')}</th>
+                                            <th className="text-left py-2 px-4 font-medium text-gray-600">{t('admin.catalog.col_title')}</th>
+                                            <th className="text-left py-2 px-4 font-medium text-gray-600">{t('admin.loans_ui.col_barcode')}</th>
+                                            <th className="text-left py-2 px-4 font-medium text-gray-600">{t('admin.loans_ui.col_due_date')}</th>
+                                            <th className="text-left py-2 px-4 font-medium text-gray-600">{t('admin.loans_ui.col_days_overdue')}</th>
+                                            <th className="text-right py-2 px-4 font-medium text-gray-600">{t('admin.loans_ui.col_fine')}</th>
                                             <th className="py-2 px-4" />
                                         </tr>
                                     </thead>
@@ -45,7 +48,7 @@ export default function Overdue({ loans }) {
                                                         <div className="truncate text-gray-800">{loan.item?.bibliographic_record?.title ?? '—'}</div>
                                                     </td>
                                                     <td className="py-2 px-4 font-mono text-xs text-gray-600">{loan.item?.barcode ?? '—'}</td>
-                                                    <td className="py-2 px-4 text-red-600 font-medium">{loan.due_date}</td>
+                                                    <td className="py-2 px-4 text-red-600 font-medium">{fmtDate(loan.due_date)}</td>
                                                     <td className="py-2 px-4">
                                                         <span className={`badge ${daysOverdue > 30 ? 'badge-red' : daysOverdue > 7 ? 'badge-amber' : 'badge-orange'}`}>
                                                             {daysOverdue}d
@@ -68,7 +71,7 @@ export default function Overdue({ loans }) {
                     ) : (
                         <div className="text-center py-16 text-sm text-gray-400">
                             <AlertCircle className="w-8 h-8 mx-auto mb-2 text-green-300" />
-                            No overdue items. All clear!
+                            {t('admin.loans_ui.no_overdue')}
                         </div>
                     )}
                 </div>
@@ -79,13 +82,14 @@ export default function Overdue({ loans }) {
 
 function ReturnButton({ loanId }) {
     const { post, processing } = useForm();
+    const { t } = useTranslation();
     return (
         <button
             onClick={() => post(route('admin.loans.return', loanId))}
             disabled={processing}
             className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50 font-medium"
         >
-            Return
+            {t('admin.loans_ui.return_btn')}
         </button>
     );
 }

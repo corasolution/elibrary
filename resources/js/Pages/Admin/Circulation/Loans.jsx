@@ -2,10 +2,13 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import { Search, RefreshCw, BookOpen } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { fmtDate } from '@/utils/date';
 
 export default function Loans({ loans, filters = {} }) {
     const loanList = loans?.data ?? [];
     const [q, setQ] = useState(filters.q ?? '');
+    const { t } = useTranslation();
 
     const search = (e) => {
         e.preventDefault();
@@ -13,7 +16,7 @@ export default function Loans({ loans, filters = {} }) {
     };
 
     return (
-        <AdminLayout title="Active Loans">
+        <AdminLayout title={t('admin.loans_ui.page_title')}>
             <div className="space-y-4">
                 {/* Search */}
                 <form onSubmit={search} className="flex gap-2">
@@ -22,17 +25,17 @@ export default function Loans({ loans, filters = {} }) {
                         <input
                             value={q}
                             onChange={e => setQ(e.target.value)}
-                            placeholder="Search patron name or number…"
+                            placeholder={t('admin.patrons_ui.search_placeholder')}
                             className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
-                    <button type="submit" className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">Search</button>
+                    <button type="submit" className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">{t('common.search')}</button>
                 </form>
 
                 <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
                     <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-                        <h2 className="text-sm font-semibold text-gray-700">Active Loans</h2>
-                        <span className="text-xs text-gray-400">{loans?.total ?? 0} total</span>
+                        <h2 className="text-sm font-semibold text-gray-700">{t('admin.loans_ui.page_title')}</h2>
+                        <span className="text-xs text-gray-400">{loans?.total ?? 0} {t('common.total')}</span>
                     </div>
 
                     {loanList.length > 0 ? (
@@ -41,12 +44,12 @@ export default function Loans({ loans, filters = {} }) {
                                 <table className="w-full text-sm">
                                     <thead className="bg-gray-50">
                                         <tr>
-                                            <th className="text-left py-2 px-4 font-medium text-gray-600">Patron</th>
-                                            <th className="text-left py-2 px-4 font-medium text-gray-600">Title</th>
-                                            <th className="text-left py-2 px-4 font-medium text-gray-600">Barcode</th>
-                                            <th className="text-left py-2 px-4 font-medium text-gray-600">Collection</th>
-                                            <th className="text-left py-2 px-4 font-medium text-gray-600">Due Date</th>
-                                            <th className="text-left py-2 px-4 font-medium text-gray-600">Renewals</th>
+                                            <th className="text-left py-2 px-4 font-medium text-gray-600">{t('admin.loans_ui.col_patron')}</th>
+                                            <th className="text-left py-2 px-4 font-medium text-gray-600">{t('admin.loans_ui.col_item')}</th>
+                                            <th className="text-left py-2 px-4 font-medium text-gray-600">{t('admin.loans_ui.col_barcode')}</th>
+                                            <th className="text-left py-2 px-4 font-medium text-gray-600">{t('admin.nav.collections_locations')}</th>
+                                            <th className="text-left py-2 px-4 font-medium text-gray-600">{t('admin.loans_ui.col_due_date')}</th>
+                                            <th className="text-left py-2 px-4 font-medium text-gray-600">{t('common.renewals')}</th>
                                             <th className="py-2 px-4" />
                                         </tr>
                                     </thead>
@@ -68,9 +71,9 @@ export default function Loans({ loans, filters = {} }) {
                                                     <td className="py-2 px-4 text-gray-600">{loan.item?.collection?.name ?? '—'}</td>
                                                     <td className="py-2 px-4">
                                                         <span className={isOverdue ? 'text-red-600 font-semibold' : 'text-gray-700'}>
-                                                            {loan.due_date}
+                                                            {fmtDate(loan.due_date)}
                                                         </span>
-                                                        {isOverdue && <span className="ml-1 badge badge-red text-xs">Overdue</span>}
+                                                        {isOverdue && <span className="ml-1 badge badge-red text-xs">{t('admin.nav.overdue')}</span>}
                                                     </td>
                                                     <td className="py-2 px-4 text-gray-600">{loan.renewals_count ?? 0}</td>
                                                     <td className="py-2 px-4">
@@ -90,7 +93,7 @@ export default function Loans({ loans, filters = {} }) {
                     ) : (
                         <div className="text-center py-16 text-sm text-gray-400">
                             <BookOpen className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                            No active loans found.
+                            {t('admin.loans_ui.no_loans')}
                         </div>
                     )}
                 </div>
@@ -101,26 +104,28 @@ export default function Loans({ loans, filters = {} }) {
 
 function ReturnButton({ loanId }) {
     const { post, processing } = useForm();
+    const { t } = useTranslation();
     return (
         <button
             onClick={() => post(route('admin.loans.return', loanId))}
             disabled={processing}
             className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50 font-medium"
         >
-            Return
+            {t('admin.loans_ui.return_btn')}
         </button>
     );
 }
 
 function RenewButton({ loanId }) {
     const { post, processing } = useForm();
+    const { t } = useTranslation();
     return (
         <button
             onClick={() => post(route('admin.loans.renew', loanId))}
             disabled={processing}
             className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 disabled:opacity-50 font-medium"
         >
-            Renew
+            {t('admin.loans_ui.renew_btn')}
         </button>
     );
 }

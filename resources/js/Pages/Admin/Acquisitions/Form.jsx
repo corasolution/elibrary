@@ -31,7 +31,7 @@ export default function AcquisitionForm({ order, biblios = [] }) {
     const submit = (e) => {
         e.preventDefault();
         if (isEdit) {
-            post(route('admin.acquisitions.update', order.id), { _method: 'PUT' });
+            put(route('admin.acquisitions.update', order.id));
         } else {
             post(route('admin.acquisitions.store'));
         }

@@ -196,6 +196,51 @@ class CatalogController extends Controller
     }
 
     /**
+     * Read a photographed book cover with an AI vision model and return
+     * extracted bibliographic fields for the cataloger to review/apply.
+     * POST /admin/catalog/scan-cover  body: { image: "data:image/jpeg;base64,..." }
+     */
+    public function scanCover(Request $request)
+    {
+        $enabled = filter_var(\App\Models\Tenant\LibrarySetting::get('ai_features_enabled', false), FILTER_VALIDATE_BOOLEAN)
+            && filter_var(\App\Models\Tenant\LibrarySetting::get('ai_cataloging_enabled', false), FILTER_VALIDATE_BOOLEAN);
+
+        if (! $enabled) {
+            return response()->json(['error' => 'AI cataloging is disabled for this library.'], 403);
+        }
+
+        $request->validate([
+            'image' => 'required|string',
+        ]);
+
+        // Parse the data URL → mime + raw base64.
+        if (! preg_match('/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/s', $request->input('image'), $m)) {
+            return response()->json(['error' => 'Invalid image format.'], 422);
+        }
+        $mime    = $m[1];
+        $rawB64  = $m[2];
+        $decoded = base64_decode($rawB64, true);
+
+        if ($decoded === false) {
+            return response()->json(['error' => 'Could not decode image.'], 422);
+        }
+        if (strlen($decoded) > 6 * 1024 * 1024) {
+            return response()->json(['error' => 'Image too large (max 6MB).'], 422);
+        }
+
+        $result = app(\App\Services\CatalogAIService::class)->extractFromCover($rawB64, $mime);
+
+        if (! $result) {
+            return response()->json(['error' => 'Could not read the cover. Try a clearer, well-lit photo.'], 422);
+        }
+
+        // Hand the photo back so the form can keep it as the cover image.
+        $result['cover_image_url'] = $request->input('image');
+
+        return response()->json(['result' => $result]);
+    }
+
+    /**
      * Search external library sources (LOC, Open Library, Google Books, CrossRef).
      * GET /admin/catalog/import-search?q=...&type=isbn|title|author|doi&sources[]=loc,...
      */

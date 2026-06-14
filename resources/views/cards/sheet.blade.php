@@ -4,6 +4,7 @@
     $h  = $template->height_mm;
     $els = $template->elements ?? [];
     $fontData = $fontData ?? null;
+    $bgImageData = $bgImageData ?? null; // base64 data URI of background image
 @endphp
 <!DOCTYPE html>
 <html>
@@ -34,7 +35,13 @@
             width: {{ $w }}mm;
             height: {{ $h }}mm;
             margin: 0 3mm 3mm 0;
-            background: {{ $template->background_color ?? '#ffffff' }};
+            background-color: {{ $template->background_color ?? '#ffffff' }};
+            @if ($bgImageData)
+            background-image: url('{{ $bgImageData }}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            @endif
             border: 0.2mm solid #d1d5db;
             border-radius: 2mm;
             overflow: hidden;
@@ -93,10 +100,19 @@
                     @break
 
                 @case('initials')
-                    <div class="el el-initials"
-                         style="{{ $style }} background:{{ $data['avatar_color'] ?? '#1e3a8a' }}; line-height:{{ $el['h'] ?? 18 }}mm; font-size:{{ ($el['h'] ?? 18) * 1.6 }}mm;">
-                        {{ $data['initials'] ?? '?' }}
-                    </div>
+                    @if (!empty($data['photo']))
+                        {{-- Render photo if available --}}
+                        <div class="el" style="{{ $style }}">
+                            <img src="{{ $data['photo'] }}" class="el-img"
+                                 style="object-fit:cover; border-radius:50%;">
+                        </div>
+                    @else
+                        {{-- Fallback to initials circle --}}
+                        <div class="el el-initials"
+                             style="{{ $style }} background:{{ $data['avatar_color'] ?? '#1e3a8a' }}; line-height:{{ $el['h'] ?? 18 }}mm; font-size:{{ ($el['h'] ?? 18) * 1.6 }}mm;">
+                            {{ $data['initials'] ?? '?' }}
+                        </div>
+                    @endif
                     @break
 
                 @case('text')

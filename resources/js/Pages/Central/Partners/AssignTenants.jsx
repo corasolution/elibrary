@@ -161,7 +161,7 @@ export default function AssignTenants({ partner, allTenants, assignedTenantIds }
                                                             {tenant.name}
                                                         </div>
                                                         <div className="text-xs text-gray-500 truncate">
-                                                            {tenant.slug}.bannalai.com
+                                                            {window.location.host}/{tenant.slug}
                                                         </div>
                                                     </div>
                                                 </div>

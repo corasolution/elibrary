@@ -48,6 +48,12 @@ class CardRenderService
             'initials'          => $this->initials($patron),
             'avatar_color'      => $this->avatarColor($patron->patron_number ?? $patron->id),
 
+            // Photo helpers
+            'photo_url'         => $patron->photo_url,
+            'photo'             => $patron->photo_url
+                ? $this->photoDataUri($patron->photo_url)
+                : null,
+
             // Barcode (Code128 of the card number) as embeddable PNG data URI
             'barcode'           => $patron->patron_number
                 ? $this->barcodeDataUri($patron->patron_number)
@@ -83,12 +89,30 @@ class CardRenderService
         $cards = $patrons->map(fn (Patron $p) => $this->resolveFields($p, $libraryName))->all();
 
         $html = View::make('cards.sheet', [
-            'template'  => $template,
-            'cards'     => $cards,
-            'logo'      => $logo,
-            'fontData'  => $this->khmerFontDataUri(),
+            'template'     => $template,
+            'cards'        => $cards,
+            'logo'         => $logo,
+            'fontData'     => $this->khmerFontDataUri(),
+            'bgImageData'  => $this->bgImageDataUri($template),
         ])->render();
 
         return $this->htmlToPdf($html);
+    }
+
+    /** Background image as a base64 data URI for embedding in the PDF. */
+    private function bgImageDataUri(CardTemplate $template): ?string
+    {
+        if (! $template->background_image_path) {
+            return null;
+        }
+
+        $path = storage_path('app/public/' . $template->background_image_path);
+        if (! is_file($path)) {
+            return null;
+        }
+
+        $mime = function_exists('mime_content_type') ? mime_content_type($path) : 'image/jpeg';
+
+        return 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($path));
     }
 }

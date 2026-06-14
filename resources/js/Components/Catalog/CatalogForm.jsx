@@ -1,11 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import {
     BookOpen, FileText, Headphones, Film, Globe, Map, Database,
     Disc, Search, X, Plus, Trash2, Loader2, ChevronDown, ChevronRight, Download, Sparkles,
+    UploadCloud, Camera,
 } from 'lucide-react';
 import ImportModal from '@/Components/Catalog/ImportModal';
+import CoverScanModal from '@/Components/Catalog/CoverScanModal';
 
 // ─── Material type definitions ────────────────────────────────────────────────
 const MATERIAL_TYPES = [
@@ -97,10 +99,12 @@ export default function CatalogForm({ record = null, materialTypes = [], collect
 
     const [errors, setErrors]             = useState({});
     const [submitting, setSubmitting]     = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(null);
     const [activeTab, setActiveTab]       = useState('biblio');
     const [showBibframe, setShowBibframe] = useState(false);
     const [showImport, setShowImport]     = useState(false);
     const [importSeed, setImportSeed]     = useState({ query: '', type: 'isbn' });
+    const [showScan, setShowScan]         = useState(false);
 
     // Open the multi-source Import panel, optionally pre-seeded (e.g. from the ISBN icon).
     const openImport = (query = '', type = 'isbn') => {
@@ -258,6 +262,12 @@ export default function CatalogForm({ record = null, materialTypes = [], collect
         const method = isEdit ? 'put' : 'post';
 
         router[method](url, payload, {
+            onProgress: (p) => {
+                if (payload.digital?.file instanceof File) {
+                    setUploadProgress(p?.percentage ?? null);
+                }
+            },
+            onFinish:  () => setUploadProgress(null),
             onSuccess: () => { setSubmitting(false); onSuccess?.(); },
             onError:   (errs) => {
                 setErrors(errs);
@@ -293,18 +303,38 @@ export default function CatalogForm({ record = null, materialTypes = [], collect
                 />
             )}
 
+            {/* ── AI Cover Scan Modal ─────────────────────────────────────── */}
+            {showScan && (
+                <CoverScanModal
+                    onApply={handleImport}
+                    onClose={() => setShowScan(false)}
+                />
+            )}
+
             {/* ── Material Type Selector ──────────────────────────────────── */}
             <div className="bg-white rounded-xl border border-gray-200 p-6 mb-4">
                 <div className="flex items-center justify-between mb-3">
                     <h2 className="text-sm font-semibold text-gray-700">Material Type</h2>
-                    <button
-                        type="button"
-                        onClick={() => openImport('', 'isbn')}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
-                    >
-                        <Download className="w-3.5 h-3.5" />
-                        Import from Library Catalog
-                    </button>
+                    <div className="flex items-center gap-2">
+                        {aiEnabled && (
+                            <button
+                                type="button"
+                                onClick={() => setShowScan(true)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors"
+                            >
+                                <Camera className="w-3.5 h-3.5" />
+                                Scan Cover (AI)
+                            </button>
+                        )}
+                        <button
+                            type="button"
+                            onClick={() => openImport('', 'isbn')}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+                        >
+                            <Download className="w-3.5 h-3.5" />
+                            Import from Library Catalog
+                        </button>
+                    </div>
                 </div>
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                     {MATERIAL_TYPES.map(mt => {
@@ -850,11 +880,14 @@ export default function CatalogForm({ record = null, materialTypes = [], collect
                                         className="input" placeholder="https://…" />
                                 </Field>
                             ) : (
-                                <Field label="File" hint="PDF, ePub, MP3, MP4 — max 500 MB">
-                                    <input type="file"
-                                        onChange={e => setDigital('file', e.target.files[0])}
-                                        className="input"
-                                        accept=".pdf,.epub,.mp3,.mp4,.docx,.csv" />
+                                <Field label="File" error={errors['digital.file']}>
+                                    <FileDropzone
+                                        file={data.digital.file}
+                                        onChange={f => setDigital('file', f)}
+                                        progress={uploadProgress}
+                                        accept=".pdf,.epub,.mp3,.mp4,.docx,.csv"
+                                        hint="PDF, ePub, MP3, MP4 — max 500 MB"
+                                    />
                                 </Field>
                             )}
 
@@ -943,6 +976,115 @@ function Field({ label, hint, error, children }) {
             </label>
             {children}
             {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+        </div>
+    );
+}
+
+const DROPZONE_ICONS = { mp3: Headphones, mp4: Film, csv: Database };
+
+function FileDropzone({ file, onChange, progress, accept, hint }) {
+    const inputRef = useRef(null);
+    const [dragOver, setDragOver] = useState(false);
+
+    const uploading = progress !== null && progress !== undefined;
+
+    const pick = (files) => {
+        if (files && files[0]) onChange(files[0]);
+    };
+
+    const clear = (e) => {
+        e.stopPropagation();
+        onChange(null);
+        if (inputRef.current) inputRef.current.value = '';
+    };
+
+    const fmtSize = (bytes) =>
+        bytes >= 1048576
+            ? `${(bytes / 1048576).toFixed(1)} MB`
+            : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+
+    const ext = file?.name?.split('.').pop()?.toLowerCase();
+    const FileIcon = DROPZONE_ICONS[ext] ?? FileText;
+
+    // ── Empty state: dashed dropzone ──
+    if (!file) {
+        return (
+            <div
+                onClick={() => inputRef.current?.click()}
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={(e) => { e.preventDefault(); setDragOver(false); pick(e.dataTransfer.files); }}
+                className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-6 py-8 cursor-pointer transition-all ${
+                    dragOver
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                }`}
+            >
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${
+                    dragOver ? 'bg-blue-100' : 'bg-gray-100'
+                }`}>
+                    <UploadCloud className={`w-6 h-6 ${dragOver ? 'text-blue-600' : 'text-gray-400'}`} />
+                </div>
+                <p className="text-sm font-medium text-gray-700">
+                    Click to upload <span className="text-gray-400 font-normal">or drag & drop</span>
+                </p>
+                {hint && <p className="text-xs text-gray-400">{hint}</p>}
+                <input
+                    ref={inputRef}
+                    type="file"
+                    accept={accept}
+                    onChange={(e) => pick(e.target.files)}
+                    className="hidden"
+                />
+            </div>
+        );
+    }
+
+    // ── File selected: card with progress ──
+    return (
+        <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
+            <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                    <FileIcon className="w-5 h-5 text-blue-600" />
+                </div>
+                <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-gray-800 truncate">{file.name}</p>
+                    <p className="text-xs text-gray-400">
+                        {fmtSize(file.size)}
+                        {uploading && <span className="text-blue-600 font-medium ml-2">Uploading… {Math.round(progress)}%</span>}
+                    </p>
+                </div>
+                {uploading ? (
+                    <Loader2 className="w-4 h-4 text-blue-500 animate-spin flex-shrink-0" />
+                ) : (
+                    <button
+                        type="button"
+                        onClick={clear}
+                        title="Remove file"
+                        className="flex-shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                )}
+            </div>
+
+            {/* Progress bar */}
+            {uploading && (
+                <div className="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-200"
+                        style={{ width: `${progress}%` }}
+                    />
+                </div>
+            )}
+
+            <input
+                ref={inputRef}
+                type="file"
+                accept={accept}
+                onChange={(e) => pick(e.target.files)}
+                className="hidden"
+            />
         </div>
     );
 }

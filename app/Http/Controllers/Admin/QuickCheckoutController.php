@@ -77,6 +77,15 @@ class QuickCheckoutController extends Controller
                 ->where('barcode', $request->barcode)
                 ->firstOrFail();
 
+            $onHold     = $item->item_status === 'on_hold';
+            $holdPatron = null;
+            if ($onHold) {
+                $holdPatron = \App\Models\Tenant\Reservation::where('item_id', $item->id)
+                    ->where('status', 'ready')
+                    ->with('patron')
+                    ->first()?->patron?->fullName();
+            }
+
             return response()->json([
                 'item' => [
                     'id'          => $item->id,
@@ -85,6 +94,8 @@ class QuickCheckoutController extends Controller
                     'call_number' => $item->call_number,
                     'status'      => $item->item_status,
                     'available'   => $item->item_status === 'available',
+                    'on_hold'     => $onHold,
+                    'hold_patron' => $holdPatron,
                     'type'        => $item->bibliographicRecord?->materialType?->name,
                 ],
             ]);

@@ -36,7 +36,11 @@ export default function CardRenderer({
                 position: 'relative',
                 width: w,
                 height: h,
-                background: template?.background_color ?? '#ffffff',
+                backgroundColor: template?.background_color ?? '#ffffff',
+                backgroundImage: template?.background_image_url ? `url(${template.background_image_url})` : undefined,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
                 borderRadius: 2 * k,
                 overflow: 'hidden',
                 boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
@@ -102,6 +106,23 @@ export function ElementBody({ el, data, branding, k }) {
     }
 
     if (type === 'initials') {
+        // If photo exists, render circular photo
+        if (data?.photo_url) {
+            return (
+                <img
+                    src={data.photo_url}
+                    alt="Patron photo"
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        borderRadius: '50%'
+                    }}
+                />
+            );
+        }
+
+        // Otherwise, render initials circle (fallback)
         return (
             <div style={{
                 width: '100%', height: '100%', borderRadius: '50%',

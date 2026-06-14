@@ -20,17 +20,22 @@ class PatronAuthController extends Controller
 
     public function login(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $credentials = $request->validate([
-            'email'    => ['required', 'email'],
+        $request->validate([
+            'login'    => ['required', 'string'],
             'password' => ['required'],
         ]);
 
-        if (! Auth::guard('patron')->attempt($credentials, $request->boolean('remember'))) {
+        // Login accepts either an email address or a library card number (patron_number).
+        $field  = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'patron_number';
+        $patron = Patron::where($field, $request->login)->first();
+
+        if (! $patron || ! Hash::check($request->password, $patron->password ?? '')) {
             throw ValidationException::withMessages([
-                'email' => __('auth.failed'),
+                'login' => __('auth.failed'),
             ]);
         }
 
+        Auth::guard('patron')->login($patron, $request->boolean('remember'));
         $request->session()->regenerate();
 
         $slug = $request->segment(1);
@@ -69,13 +74,23 @@ class PatronAuthController extends Controller
         return response()->json(['qr_token' => $patron->qr_token]);
     }
 
-    public function showRegister(): \Inertia\Response
+    public function showRegister(Request $request)
     {
+        if (! $this->selfRegistrationEnabled()) {
+            $slug = $request->segment(1);
+            return redirect("/{$slug}/login")
+                ->with('error', __('Public registration is disabled. Please contact the library to create an account.'));
+        }
+
         return Inertia::render('Auth/PatronRegister');
     }
 
     public function register(Request $request): \Illuminate\Http\RedirectResponse
     {
+        if (! $this->selfRegistrationEnabled()) {
+            abort(403, 'Self-registration is disabled for this library.');
+        }
+
         $data = $request->validate([
             'first_name' => ['required', 'string', 'max:100'],
             'last_name'  => ['nullable', 'string', 'max:100'],
@@ -107,6 +122,14 @@ class PatronAuthController extends Controller
 
         $slug = $request->segment(1);
         return redirect("/{$slug}");
+    }
+
+    private function selfRegistrationEnabled(): bool
+    {
+        return filter_var(
+            \App\Models\Tenant\LibrarySetting::get('enable_self_registration', true),
+            FILTER_VALIDATE_BOOLEAN
+        );
     }
 
     private function generatePatronNumber(): string

@@ -1,0 +1,26 @@
+{
+  "id": "university-library",
+  "name": "University Library",
+  "description": "Classic academic university library design. Dark navy navbar, gold accents, warm parchment tones, serif typography, and horizontal catalog-list cards with availability badges.",
+  "preview_image": "/images/templates/university-library.jpg",
+  "colors": {
+    "primary": "#2c3e6b",
+    "secondary": "#6b7280",
+    "accent": "#c9a227",
+    "background": "#f5f0e6",
+    "text": "#1a1a2e",
+    "muted": "#a09880"
+  },
+  "fonts": {
+    "heading": "Crimson Text",
+    "body": "Source Sans Pro"
+  },
+  "styles": {
+    "layout": "centered",
+    "cardStyle": "catalog-list",
+    "navbarStyle": "university",
+    "heroStyle": "university",
+    "borderRadius": "0.25rem",
+    "buttonStyle": "classic"
+  }
+}

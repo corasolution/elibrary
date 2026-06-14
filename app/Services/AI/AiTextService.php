@@ -17,6 +17,16 @@ interface AiTextService
      */
     public function generateContent(string $prompt, array $options = []): ?array;
 
+    /**
+     * Generate text from a prompt plus a single image (vision).
+     *
+     * @param string $base64Image Raw base64 (no data: prefix)
+     * @param string $mime e.g. 'image/jpeg', 'image/png'
+     * @param array $options cache_key, cache_ttl, max_output_tokens, feature, system
+     * @return array|null ['text' => string, 'metadata' => [...token info...]] or null on failure
+     */
+    public function generateFromImage(string $prompt, string $base64Image, string $mime, array $options = []): ?array;
+
     /** Parse a JSON object out of a model response (handles ```json fences). */
     public function parseJsonResponse(string $text): ?array;
 
